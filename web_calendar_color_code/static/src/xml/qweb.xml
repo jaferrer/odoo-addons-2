@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+    <t t-name="CalendarView.sidebar.contacts.color">
+        <div t-foreach="filters" class="o_calendar_contact">
+            <t t-if="filters_value.value"><!-- don't display if no value given (or undefined) -->
+                <div class="o_checkbox">
+                    <input type="checkbox" name="selection" t-att-value="filters_value.value" t-att-checked="(filters_value.is_checked ? true : undefined)"/><span/>
+                </div>
+                <t t-if="filters_value.value == -1">
+                    <span><i class="fa fa-users fa-fw o_cal_avatar"/></span>
+                </t>
+                <t t-if="(filters_value.value != -1) &amp;&amp; filters_value.avatar_model">
+                    <img t-attf-src="/web/image/#{filters_value.avatar_model}/#{filters_value.value}/image_small" class="o_cal_avatar"/>
+                </t>
+<!--                <t t-if="filters_value.color_code">-->
+                    <span t-attf-class="color_filter" t-att-style="(filters_value.color_code ? 'border-bottom: 4px solid' + filters_value.color_code + ';': ' ')">
+                        <t t-esc="filters_value.label"/>
+                    </span>
+<!--                </t>-->
+<!--                <t t-else="">-->
+<!--                    <span t-attf-class="color_filter o_underline_color_#{filters_value.color}">-->
+<!--                        <t t-esc="filters_value.label"/>-->
+<!--                    </span>-->
+<!--                </t>-->
+<!--                <span t-attf-class="color_filter o_underline_color_#{filters_value.color}"><t t-esc="filters_value.label"/></span>-->
+            </t>
+        </div>
+    </t>
+</template>

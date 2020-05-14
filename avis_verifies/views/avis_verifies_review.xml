@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="avis_verifies_review_tree" model="ir.ui.view">
+        <field name="name">avis_verifies_review_tree</field>
+        <field name="model">avis.verifies.review</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="firstname"/>
+                <field name="lastname"/>
+                <field name="review_date" widget="date"/>
+                <field name="shop_name"/>
+                <field name="rate" widget="priority"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="avis_verifies_review_form" model="ir.ui.view">
+        <field name="name">avis_verifies_review_form</field>
+        <field name="model">avis.verifies.review</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="firstname"/>
+                        <field name="lastname"/>
+                        <field name="shop_name"/>
+                        <field name="order_ref"/>
+                        <field name="canal"/>
+                    </group>
+                    <group>
+                        <field name="rate" widget="priority"/>
+                        <field name="review_date" widget="date"/>
+                        <field name="publish_date" widget="date"/>
+                        <field name="order_date" widget="date"/>
+                    </group>
+                    <group>
+                        <field name="sc"/>
+                        <field name="sc_insatisfaction" attrs="{'invisible': [('sc', '=', True)]}"/>
+                        <field name="tc_g"/>
+                        <field name="tc_insatisfaction" attrs="{'invisible': [('tc_g', '=', True)]}"/>
+                        <field name="insatisfaction_intervention"/>
+                    </group>
+                    <group colspan="2" col="1">
+                        <field name="review"/>
+                        <field name="comment_ids">
+                            <tree>
+                                <field name="author_id"/>
+                                <field name="date" widget="date"/>
+                                <field name="comment"/>
+                            </tree>
+                        </field>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="avis_verifies_review_search" model="ir.ui.view">
+        <field name="name">avis_verifies_review_search</field>
+        <field name="model">avis.verifies.review</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="firstname"/>
+                <field name="lastname"/>
+                <field name="shop_name"/>
+                <field name="review_date"/>
+                <field name="order_date"/>
+                <group>
+                    <filter name="group_by_state" string="Statut" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_rate" string="Note" context="{'group_by': 'rate'}"/>
+                    <filter name="group_by_shpo_name" string="Agence" context="{'group_by': 'shop_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

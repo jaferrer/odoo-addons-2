@@ -17,12 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import base64
-from ftplib import FTP, error_perm
 from io import BytesIO
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
+
+from odoo.addons.queue_job.job import job
 
 
 class AccountMoveExportWizard(models.TransientModel):
@@ -32,6 +33,10 @@ class AccountMoveExportWizard(models.TransientModel):
     @api.model
     def _get_default_ftp_url(self):
         return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_url', False)
+
+    @api.model
+    def _get_default_ftp_port(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_port', False)
 
     @api.model
     def _get_default_ftp_login(self):
@@ -61,6 +66,7 @@ class AccountMoveExportWizard(models.TransientModel):
     group_by_account = fields.Boolean(u"Group by accounting account", default=True)
 
     ftp_url = fields.Char(u"FTP URL", default=_get_default_ftp_url)
+    ftp_port = fields.Char(u"FTP port", default=_get_default_ftp_port)
     ftp_login = fields.Char(u"FTP login", default=_get_default_ftp_login)
     ftp_password = fields.Char(u"FTP password", default=_get_default_ftp_password)
     ftp_path = fields.Char(u"FTP path", default=_get_default_ftp_path)
@@ -97,18 +103,33 @@ class AccountMoveExportWizard(models.TransientModel):
         else:
             return self._onscreen_export()
 
+    @api.multi
+    def get_ftp_instance(self, host, port, username, password):
+        """ Create a FTPWizard instance and return it """
+        return self.env['ftp.wizard'].create({
+            'host': host,
+            'port': port or 21,
+            'username': username,
+            'password': password,
+        })
+
     @api.model
     def cron_export_lines(self):
         """ Called from account_move_export_cron
 
         Automatically export some lines accordingly to the parameters specified in account config settings
         """
+        note = u"Export des lignes comptables du %s" % fields.Date.today()
+        self.with_delay(description=note)._run_export_lines()
+
+    @api.model
+    @job(default_channel='root.account')
+    def _run_export_lines(self):
         get_param = self.env['ir.config_parameter'].get_param
         vals = {
             'destination': 'ftp',
             'line_selection': get_param('account_move_export.export_line_selection'),
-            'journal_ids': self.env['account.journal'].browse(safe_eval(get_param(
-                'account_move_export.export_journal_ids', '[]'))),
+            'journal_ids': [(6, 0, safe_eval(get_param('account_move_export.export_journal_ids', '[]')))],
             'group_by_account': safe_eval(get_param('account_move_export.export_group_by_account', 'False')),
             'ftp_url': get_param('account_move_export.export_ftp_url'),
             'ftp_login': get_param('account_move_export.export_ftp_login'),
@@ -195,30 +216,15 @@ class AccountMoveExportWizard(models.TransientModel):
     @api.multi
     def _send_to_ftp(self):
         """ Send the resulting export (stored in self.binary_export) to the specified ftp server """
-
-        def create_path(ftp, path):
-            """ Recursive mkdir on FTP """
-            cur_path = ''
-            for directory in path.split('/'):
-                cur_path += '/' + directory
-                try:
-                    ftp.mkd(cur_path)
-                except error_perm:
-                    # Means that the folder already exists
-                    pass
-
         self.ensure_one()
         if not (self.ftp_url and self.ftp_login and self.ftp_password and self.ftp_path):
             raise UserError(_(u"Cannot connect to the FTP : missing parameters"))
 
-        dest_ftp = FTP(host=self.ftp_url, user=self.ftp_login, passwd=self.ftp_password)
-        try:
-            dest_ftp.cwd(self.ftp_path)
-        except error_perm:
-            create_path(dest_ftp, self.ftp_path)
-            dest_ftp.cwd(self.ftp_path)
-
-        dest_ftp.storbinary(u"STOR %s" % self.data_fname, BytesIO(base64.decodestring(self.binary_export)))
+        ftp_wizard = self.get_ftp_instance(self.ftp_url, self.ftp_port, self.ftp_login, self.ftp_password)
+        dest_ftp = ftp_wizard.get_conn()
+        ftp_wizard.mkdir(dest_ftp, self.ftp_path)
+        ftp_wizard.chdir(dest_ftp, self.ftp_path)
+        ftp_wizard.put(dest_ftp, BytesIO(base64.decodestring(self.binary_export)), self.data_fname)
 
     @api.multi
     def _onscreen_export(self):

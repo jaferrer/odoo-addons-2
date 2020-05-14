@@ -72,6 +72,7 @@ class MrpProductionToInvoice(models.Model):
         if len(self.mapped('manufacturer_id')) != 1:
             raise exceptions.ValidationError(
                 _(u"It's not possible to generate an invoice from manufacturing orders with different manufacturer!"))
+        manufacturer = self.mapped('manufacturer_id')[0]
 
         if any([mo.account_invoice_id and mo.account_invoice_id.state != 'cancel' for mo in self]):
             raise exceptions.ValidationError(_(u"An invoice already exist for this manufacturing order!"))
@@ -80,7 +81,7 @@ class MrpProductionToInvoice(models.Model):
         for rec in self:
             sti = rec.product_id
             seller = sti._select_seller(
-                partner_id=rec.manufacturer_id,
+                partner_id=manufacturer,
                 quantity=rec.product_qty,
                 date=rec.date_planned_start[:10],
                 uom_id=rec.product_uom_id)
@@ -90,17 +91,20 @@ class MrpProductionToInvoice(models.Model):
                 'quantity': rec.product_qty,
                 'uom_id': sti.uom_po_id.id,
                 'price_unit': seller.price or sti.list_price,
+                'account_id': self.env['account.invoice.line'].get_invoice_line_account(
+                    'in_invoice', sti, manufacturer.property_account_position_id, self.env.user.company_id).id,
             }))
 
         ctx = self.env.context.copy()
         ctx.update({
-            'default_partner_id': self.mapped('manufacturer_id')[0].id,
+            'default_partner_id': manufacturer.id,
             'default_date_invoice': fields.Datetime.now(),
             'default_invoice_line_ids': all_services_to_invoice,
             'default_state': 'draft',
             'default_type': 'in_invoice',
             'default_journal_type': 'purchase',
             'default_mrp_production_ids': self.ids,
+            'default_fiscal_position_id': manufacturer.property_account_position_id.id,
         })
 
         return {

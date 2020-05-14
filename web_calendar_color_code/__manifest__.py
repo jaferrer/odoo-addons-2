@@ -44,6 +44,9 @@ Usage
     'data': [
         'views/templates.xml',
     ],
+    'qweb': [
+        'static/src/xml/qweb.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,

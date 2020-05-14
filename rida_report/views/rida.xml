@@ -128,8 +128,6 @@
                         <group>
                             <field name="theme_id"/>
                             <field name="project_id"/>
-                            <field name="purchase_id"/>
-                            <field name="invoice_id"/>
                         </group>
                         <group>
                             <field name="auth_mode"/>
@@ -166,8 +164,6 @@
                 <field name="name"/>
                 <field name="theme_id"/>
                 <field name="project_id"/>
-                <field name="purchase_id"/>
-                <field name="invoice_id"/>
                 <filter name="archived" string="Archived projects only" domain="[('active', '=', False)]"/>
             </search>
         </field>
@@ -183,8 +179,6 @@
                 <field name="user_id"/>
                 <field name="project_id"/>
                 <field name="theme_id"/>
-                <field name="purchase_id"/>
-                <field name="invoice_id"/>
                 <field name="comment"/>
                 <field name="contributor_ids"/>
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>

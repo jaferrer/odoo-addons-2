@@ -167,9 +167,9 @@
         <record id="project_milestone_timeline" model="ir.ui.view">
             <field name="name">project.milestone.timeline</field>
             <field name="model">project.milestone</field>
-            <field name="type">timeline</field>
+            <field name="type">timeline2</field>
             <field name="arch" type="xml">
-                <timeline date_start="qualif_should_be_livred_at"
+                <timeline2 date_start="qualif_should_be_livred_at"
                           date_stop="should_be_closed_at"
                           default_group_by="project_id"
                           colors="#ec7063: project_id == False;"/>
@@ -180,7 +180,7 @@
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form,timeline</field>
+            <field name="view_mode">tree,form,timeline2</field>
             <field name="context">{'search_default_open': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">

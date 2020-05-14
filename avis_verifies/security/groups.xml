@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="category_avis_verifies" model="ir.module.category">
+        <field name="name">Avis Vérifiés</field>
+    </record>
+
+    <record id="group_avis_verifies_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="avis_verifies.category_avis_verifies"/>
+    </record>
+
+    <record id="group_avis_verifies_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="avis_verifies.category_avis_verifies"/>
+        <field name="implied_ids" eval="[(4, ref('avis_verifies.group_avis_verifies_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+    </record>
+
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('avis_verifies.group_avis_verifies_user'))]"/>
+    </record>
+</odoo>

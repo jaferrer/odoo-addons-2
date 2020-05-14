@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="sale_order_view_search_inherit_quotation_dunning_filter" model="ir.ui.view">
+        <field name="name">sale_order_view_search_inherit_quotation_dunning_filter</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='sales']" position="after">
+                <separator/>
+                <filter string="Dunning 30 days before"
+                        name="days_30"
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=30)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+                <filter string="Dunning 15 days before"
+                        name="days_15"
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=15)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+                <filter string="Dunning 7 days before"
+                        name="days_7"
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_form_dunning_link" model="ir.ui.view">
+        <field name="name">sale.order.dunning.form.link</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <field name="date_order" position="after">
+                <field name="next_dunning_date" widget="date" attrs="{'invisible':[('state', 'not in', ['draft', 'sent'])]}"/>
+            </field>
+            <xpath expr="//notebook" position="inside">
+                <page string="Dunning">
+                    <field name="sale_order_dunning_ids" readonly="1"
+                           decoration-muted="state == 'done'"
+                           decoration-warning="not date_done and next_dunning_date == current_date"
+                           decoration-danger="not date_done and next_dunning_date &lt; current_date">
+                        <tree>
+                            <field name="name"/>
+                            <field name="dunning_type_id"/>
+                            <field name="next_dunning_date"/>
+                            <field name="date_done"/>
+                            <field name="note"/>
+                            <field name="state"/>
+                            <field name="attachment_count" invisible="1"/>
+                            <button name="action_see_attachments" type="object" icon="fa-paperclip" attrs="{'invisible':[('attachment_count', '&lt;', 1)]}"/>
+                            <button name="action_print_dunning" type="object" icon="fa-print"/>
+                            <button name="action_send_mail" type="object" icon="fa-envelope-o" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
+                            <button name="action_done" type="object"  icon="fa-check" style="color: green;" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
+                            <button name="action_cancel" type="object" icon="fa-times" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_tree_dunning_link" model="ir.ui.view">
+        <field name="name">sale.order.dunning.tree.link</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="dunning_number"/>
+            </field>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.server" id="ir_actions_server_report_relance_for_sale_order">
+        <field name="name">Create Dunning</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_create_dunning()
+        </field>
+    </record>
+
+    <record model="ir.values" id="ir_values_report_relance_for_sale_order">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">sale.order</field>
+        <field name="name">Create Dunning</field>
+        <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_report_relance_for_sale_order)"/>
+    </record>
+
+</odoo>

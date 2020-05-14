@@ -1,0 +1,276 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* avis_verifies
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-20 18:51+0000\n"
+"PO-Revision-Date: 2020-03-20 18:51+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: avis_verifies
+#: model:ir.ui.view,arch_db:avis_verifies.avis_verifies_review_search
+msgid "Agence"
+msgstr "Agence"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_comment_ids
+msgid "Answers"
+msgstr "Réponses apportées"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_author_id
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_author_id
+msgid "Author"
+msgstr "Auteur"
+
+#. module: avis_verifies
+#: model:ir.module.category,name:avis_verifies.category_avis_verifies
+#: model:ir.ui.view,arch_db:avis_verifies.avis_verifies_view_sale_config_settings
+msgid "Avis Vérifiés"
+msgstr "Avis Vérifiés"
+
+#. module: avis_verifies
+#: model:ir.model,name:avis_verifies.model_avis_verifies_review
+msgid "Avis vérifié"
+msgstr "Avis vérifié"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_sale_config_settings_avis_verifies_site_reviews_url
+msgid "Avis-verifies' site review URL"
+msgstr "URL de récupération des avis d'avis-verifies"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Bad"
+msgstr "Mauvais"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_canal
+msgid "Canal"
+msgstr "Canal"
+
+#. module: avis_verifies
+#: selection:avis.verifies.comment,origin:0
+msgid "Client"
+msgstr "Client"
+
+#. module: avis_verifies
+#: model:ir.model,name:avis_verifies.model_avis_verifies_comment
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_comment
+msgid "Comment"
+msgstr "Commentaire"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_tc_insatisfaction
+msgid "Commercial technician insatisfaction"
+msgstr "Insatisfaction relative au technicien commercial"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Correct"
+msgstr "Correct"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_create_uid
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_create_date
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_sc_insatisfaction
+msgid "Customer service insatisfaction"
+msgstr "Insatisfaction relative au service client"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_date
+msgid "Date"
+msgstr "Date "
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_display_name
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_json_display_name
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Excellent"
+msgstr "Excellent"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_firstname
+msgid "First name"
+msgstr "Prénom"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Good"
+msgstr "Bon"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_id
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_json_id
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_id
+msgid "ID"
+msgstr "ID"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_insatisfaction_intervention
+msgid "Intervention insatisfaction"
+msgstr "Insatisfaction sur l'intervention"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment___last_update
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_json___last_update
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_write_uid
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_write_date
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_lastname
+msgid "Last name"
+msgstr "Nom"
+
+#. module: avis_verifies
+#: model:res.groups,name:avis_verifies.group_avis_verifies_manager
+msgid "Manager"
+msgstr "Gestionnaire"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Neutral"
+msgstr "Neutre"
+
+#. module: avis_verifies
+#: model:ir.ui.view,arch_db:avis_verifies.avis_verifies_review_search
+msgid "Note"
+msgstr "Note"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_order_date
+msgid "Order date"
+msgstr "Date de commande"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_order_ref
+msgid "Order reference"
+msgstr "Référence de la commande"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_origin
+msgid "Origin"
+msgstr "Origine"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_publish_date
+msgid "Publish date"
+msgstr "Date de publication"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_rate
+msgid "Rate"
+msgstr "Note"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_review_id
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_review
+msgid "Review"
+msgstr "Avis"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_review_id_av
+msgid "Review ID in avis-verifies"
+msgstr "ID sur avis-verifies"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_review_date
+msgid "Review date"
+msgstr "Date d'évaluation"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_sc
+msgid "Satisfied with customer service"
+msgstr "Satisfait du service client"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_tc_g
+msgid "Satisfied with the commercial technician"
+msgstr "Satisfait du technicien commercial"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_shop_id_av
+msgid "Shop ID in avis-verifies"
+msgstr "ID de l'agence dans avis-verifies"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_shop_name
+msgid "Shop name"
+msgstr "Nom de l'agence"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_state
+msgid "State"
+msgstr "État"
+
+#. module: avis_verifies
+#: model:ir.ui.view,arch_db:avis_verifies.avis_verifies_review_search
+msgid "Statut"
+msgstr "Statut"
+
+#. module: avis_verifies
+#: model:res.groups,name:avis_verifies.group_avis_verifies_user
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: avis_verifies
+#: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_user_id
+#: selection:avis.verifies.comment,origin:0
+msgid "Vendor"
+msgstr "Vendeur"
+
+#. module: avis_verifies
+#: selection:avis.verifies.review,rate:0
+msgid "Very bad"
+msgstr "Très mauvais"
+
+#. module: avis_verifies
+#: model:ir.model,name:avis_verifies.model_avis_verifies_json
+msgid "avis.verifies.json"
+msgstr "avis.verifies.json"
+
+#. module: avis_verifies
+#: sql_constraint:avis.verifies.review:0
+msgid "review_id_av must be unique"
+msgstr "L'ID d'avis doit être unique"
+
+#. module: avis_verifies
+#: model:ir.model,name:avis_verifies.model_sale_config_settings
+msgid "sale.config.settings"
+msgstr "sale.config.settings"

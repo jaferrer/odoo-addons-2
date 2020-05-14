@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="resource_planning_cell_resource_planning">
+            <field name="name">resource_planning_cell_resource_planning</field>
+            <field name="model">resource.planning.cell</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <planning date_start="datetime_start"
+                          date_stop="datetime_end"
+                          headerOrientation="top"
+                          mode="month"
+                          default_group_by="department_id,employee_id"
+                          show_current_time="false"
+                          show_week_scale="true"
+                          color_field="project_color"
+                          event_open_popup="true"
+                          min_zoom="7 * 24 * 60 /**Js expr for 1 week in minutes**/"
+                          max_zoom="3 * 31  * 24 * 60 /**Js expr for 3 months in minutes**/"
+                          minute_snap="12 * 60 /**Js expr for 12 hours in minutes**/"
+                          zoomKey="ctrlKey"
+                          overlap_field="overlap"
+                          visibleFrameQweb="false"
+                          drag_data="[
+                          {'field': 'project_id', 'color_field': 'color_code', 'range_full': 'day', 'group_by': 'employee_id', 'create_auto': True},
+                          {'field': 'employee_id', 'range_full': 'day', 'group_by': 'project_id',  'create_auto': True}
+                          ]"
+                          axis="1:day"
+                          scale_button="false"
+                          swap_enable="true"
+                />
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="resource_planning_cell_form">
+            <field name="name">resource_planning_cell_form</field>
+            <field name="model">resource.planning.cell</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form editable="top">
+                    <sheet>
+                        <h1>
+                            <field name="employee_id"/>
+                        </h1>
+                        <field name="datetime_start" invisible="1"/>
+                        <field name="datetime_end" invisible="1"/>
+                        <group>
+                            <field name="project_id"/>
+                            <group>
+                                <field name="date_start"/>
+                                <field name="date_end"/>
+                            </group>
+                            <group>
+                                <field name="period_start"/>
+                                <field name="period_end"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="resource_planning_cell_search">
+            <field name="name">resource_planning_cell_search</field>
+            <field name="model">resource.planning.cell</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="department_id"/>
+                    <field name="project_id"/>
+                    <field name="employee_id"/>
+                    <separator/>
+                    <filter name="grp_employee_id" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="grp_project_id" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="grp_department_id" string="Department" context="{'group_by': 'department_id'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_resource_planning_project_form">
+            <field name="name">project_resource_planning_project_form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='misc']" position="inside">
+                    <group string="Resource Planning">
+                        <field name="used_in_resource_planning"/>
+                        <field name="color_code" widget="color"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="resource_planning_cell_tree">
+            <field name="name">resource_planning_cell_tree</field>
+            <field name="model">resource.planning.cell</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="department_id"/>
+                    <field name="employee_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="project_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="project_resource_planning_sheet_action" model="ir.actions.act_window">
+            <field name="name">Planning</field>
+            <field name="res_model">resource.planning.cell</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">planning,tree,pivot</field>
+            <field name="context">{'search_default_from_this_week':True}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a new Planning.
+                </p>
+            </field>
+        </record>
+
+        <menuitem action="project_resource_planning_sheet_action" id="project_resource_planning_sheet_menu"
+                  parent="project.menu_main_pm" sequence="1"/>
+
+    </data>
+</openerp>

@@ -1,0 +1,32 @@
+<template>
+    <t t-name="Timeline2.View">
+        <div class="oe_timeline2_view">
+            <div class="oe_timeline2_buttons">
+                <button class="btn btn-default btn-sm oe_timeline_button_today">Today</button>
+                <div class="btn-group btn-sm scale_button">
+                    <button class="btn btn-default oe_timeline_button_scale_day">Day</button>
+                    <button class="btn btn-default oe_timeline_button_scale_week">Week</button>
+                    <button class="btn btn-default oe_timeline_button_scale_month">Month</button>
+                    <button class="btn btn-default oe_timeline_button_scale_year">Year</button>
+                </div>
+                <button id="swap_button" class="btn btn-default btn-sm fa fa-retweet o_hidden">Swap</button>
+            </div>
+            <div id="timeline2_drag_item" class="btn-group btn-sm o_hidden"/>
+            <div class="oe_timeline2_widget"/>
+        </div>
+    </t>
+    <t t-name="Timeline2.DefaultItemTemplate">
+        <div class="arrow arrow-left">
+            <i class="fa fa-caret-left"></i>
+        </div>
+        <div class="vis-item-title span">
+            <span>
+                <i class="fa fa-times del"></i>
+                <t t-esc="item.evt.display_name" />
+            </span>
+        </div>
+        <div class="arrow arrow-right">
+            <i class="fa fa-caret-right"></i>
+        </div>
+    </t>
+</template>
