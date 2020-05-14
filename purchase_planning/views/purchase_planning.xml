@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record id="purchase_planning_tree" model="ir.ui.view">
+        <field name="name">purchase_planning_tree</field>
+        <field name="model">purchase.planning</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id"/>
+                <field name="supplier_id"/>
+                <field name="period_id"/>
+                <field name="retained_qty"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="purchase_planning_form" model="ir.ui.view">
         <field name="name">purchase_planning_form</field>
         <field name="model">purchase.planning</field>
@@ -70,4 +85,5 @@
            </search>
         </field>
     </record>
+
 </odoo>

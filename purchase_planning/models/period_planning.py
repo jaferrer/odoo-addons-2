@@ -53,4 +53,4 @@ class PeriodPlanning(models.Model):
     @api.multi
     def _compute_purchase_planning(self):
         for rec in self:
-            rec.count_purchase_planning = self.env['purchase.planning'].search_count([('period_id', '=', self.id)])
+            rec.count_purchase_planning = self.env['purchase.planning'].search_count([('period_id', 'in', self.ids)])

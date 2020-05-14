@@ -31,5 +31,5 @@ class ResCalendarYear(models.Model):
     def name_get(self):
         res = []
         for rec in self:
-            res.append((rec.id, rec.number))
+            res.append((rec.id, str(rec.number)))
         return res

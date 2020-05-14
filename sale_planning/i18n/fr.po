@@ -175,12 +175,12 @@ msgstr "Période"
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_period_planning
 msgid "Period Planning"
-msgstr "Period planning"
+msgstr "Planning des ventes"
 
 #. module: sale_planning
 #: model:ir.actions.act_window,name:sale_planning.period_sale_planning_view_action
 msgid "Period planning"
-msgstr "Period planning"
+msgstr "Planning des ventes"
 
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_product_product
@@ -206,6 +206,7 @@ msgstr "Quantité à vendre"
 
 #. module: sale_planning
 #: model:ir.ui.menu,name:sale_planning.menu_sale_sale_planning
+#: code:addons/sale_planning/wizards/sale_planning_wizard.py:46
 msgid "Sale Forecast"
 msgstr "Planning des ventes"
 
@@ -217,12 +218,12 @@ msgstr "Planning des ventes"
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_sale_planning_wizard
 msgid "Sale Planning Wizard"
-msgstr "Sale Planning Wizard"
+msgstr "Wizard de Planning des ventes"
 
 #. module: sale_planning
 #: model:ir.model.fields,field_description:sale_planning.field_period_planning__sale_state
 msgid "Sale State"
-msgstr "Etat des ventes"
+msgstr "État des ventes"
 
 #. module: sale_planning
 #: model:ir.actions.act_window,name:sale_planning.sale_planning_view_action
