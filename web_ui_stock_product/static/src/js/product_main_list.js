@@ -123,7 +123,6 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
         },
         start: function () {
             this._super();
-            // window.openerp.webclient.set_content_full_screen(true);
         },
         _connect_scanner: function () {
             this.barcode_scanner.connect(this.scan.bind(this));
@@ -222,7 +221,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                     new ScanProductRow.Numpad(this, row).appendTo(this.quantity_numpad);
                 });
         },
-        exit_numpad: function (numpad) {
+        exit_numpad: function () {
             this.product_table.toggleClass('d-none');
             this.$('#mass_btn').toggleClass('d-none');
             this.$('#manual_scan').toggleClass('d-none');

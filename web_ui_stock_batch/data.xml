@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="web_ui_action_batch" model="stock.picking.type.web.ui.action">
+            <field name="name">Écran de lots</field>
+            <field name="action">stock.ui.batch</field>
+        </record>
+
+        <record id="batch_poste_1" model="poste.batch">
+            <field name="name">Poste de lots 1</field>
+            <field name="code">BATCH_POSTE_1</field>
+            <field name="description">Poste de lots 1</field>
+        </record>
+
+    </data>
+</odoo>

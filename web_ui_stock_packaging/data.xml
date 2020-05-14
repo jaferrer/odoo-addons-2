@@ -2,7 +2,7 @@
 <odoo>
     <data>
 
-        <record model="stock.picking.type.web.ui.action" id="web_ui_action_packing">
+        <record id="web_ui_action_packing" model="stock.picking.type.web.ui.action">
             <field name="name">Écran de colisage</field>
             <field name="action">stock.ui.packaging</field>
         </record>
