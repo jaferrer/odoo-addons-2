@@ -31,7 +31,10 @@ This module allows to generate automatically tasks from project task types. You 
 selected by default for any new project.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_template_tasks.xml'],
+    'data': [
+        'security/ir.model.access.csv',
+        'project_template_tasks.xml',
+    ],
     'demo': ['tests/template_tasks_demo.xml'],
     'test': [],
     'installable': True,

@@ -17,17 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import base64
-import xlsxwriter
-import csv
 import StringIO
-
+import base64
+import csv
 from io import BytesIO
-from openerp.addons.connector.session import ConnectorSession
+
+import xlsxwriter
 from openerp.addons.connector.queue.job import job
-from openerp import models, fields, api, exceptions, _
-from openerp.tools.safe_eval import safe_eval
+from openerp.addons.connector.session import ConnectorSession
+
 import openerp
+from openerp import models, fields, api, exceptions, _
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 
@@ -70,6 +70,17 @@ class OdooScript(models.Model):
 
     @api.multi
     def execute(self, autocommit=False):
+        def _eval(code, glob, loc):
+            from opcode import opmap
+            from openerp.tools.safe_eval import _SAFE_OPCODES, safe_eval
+            print_opcode = {opmap['PRINT_EXPR'],
+                            opmap['PRINT_ITEM'],
+                            opmap['PRINT_NEWLINE'],
+                            opmap['PRINT_ITEM_TO']}
+            _SAFE_OPCODES |= print_opcode
+            safe_eval(code, glob, loc, mode='exec', locals_builtins=True)
+            _SAFE_OPCODES -= print_opcode
+
         self.ensure_one()
         glob = globals()
         env_script = self.sudo().env
@@ -79,7 +90,7 @@ class OdooScript(models.Model):
             'env': env_script
         }
         self.last_execution_begin = fields.Datetime.now()
-        safe_eval(self.script, glob, loc, mode='exec')
+        _eval(self.script, glob, loc)
         self.last_execution_end = fields.Datetime.now()
         if autocommit:
             self.env.cr.commit()

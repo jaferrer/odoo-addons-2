@@ -45,21 +45,17 @@ _logger = logging.getLogger(__name__)
 class customerResPartner(models.Model):
     _name = 'res.partner.custom.field'
 
-    partner_id = fields.Many2one(comodel_name='res.partner',
-                                 string='Partner',
-                                 required=True)
-
-    field = fields.Char(string='field odoo')
-
-    field_mapping = fields.Char(string='field source')
+    partner_id = fields.Many2one('res.partner', u"Partner", required=True)
+    field = fields.Char(u"field odoo")
+    field_mapping = fields.Char(u"field source")
 
 
 class customerResPartner(models.Model):
     _inherit = 'res.partner'
 
-    final_customer = fields.Boolean(string='Final Customer')
-    address_company_name = fields.Char(string="Nom de la boutique point relais")
-    id_relais = fields.Char(string="Id point relais")
+    final_customer = fields.Boolean(u"Final Customer")
+    address_company_name = fields.Char(u"Nom de la boutique point relais")
+    id_relais = fields.Char(u"Id point relais")
 
 
 class magentoextendResPartner(models.Model):
@@ -70,32 +66,17 @@ class magentoextendResPartner(models.Model):
 
     _rec_name = 'name'
 
-    openerp_id = fields.Many2one(comodel_name='res.partner',
-                                 string='Partner',
-                                 required=True,
-                                 ondelete='cascade')
+    openerp_id = fields.Many2one('res.partner', u"Partner", required=True, ondelete='cascade')
 
-    backend_id = fields.Many2one(
-        comodel_name='magentoextend.backend',
-        string='magentoextend Backend',
-        store=True,
-        readonly=False,
-    )
+    backend_id = fields.Many2one('magentoextend.backend', u"magentoextend Backend", store=True, readonly=False)
 
-    backend_home_id = fields.Many2one(
-        related='backend_id.connector_id.home_id',
-        comodel_name='backend.home',
-        string='Backend Home',
-        store=True,
-        required=False,
-        ondelete='restrict',
-    )
+    backend_home_id = fields.Many2one('backend.home', u"Backend Home",
+                                      related='backend_id.connector_id.home_id', store=True, required=False,
+                                      ondelete='restrict'
+                                      )
 
-    updated_at = fields.Datetime(string='Updated At (on Magento)',
-                                 readonly=True)
-
-    created_at = fields.Datetime(string='Created At (on Magento)',
-                                 readonly=True)
+    updated_at = fields.Datetime(u"Updated At (on Magento)", readonly=True)
+    created_at = fields.Datetime(u"Created At (on Magento)", readonly=True)
 
     @api.model
     def create(self, vals):
@@ -112,46 +93,24 @@ class MagentoAddress(models.Model):
 
     _rec_name = 'backend_id'
 
-    openerp_id = fields.Many2one(comodel_name='res.partner',
-                                 string='Partner',
-                                 required=True,
-                                 ondelete='cascade')
-    created_at = fields.Datetime(string='Created At (on Magento)',
-                                 readonly=True)
-    updated_at = fields.Datetime(string='Updated At (on Magento)',
-                                 readonly=True)
-    is_default_billing = fields.Boolean(string='Default Invoice')
-    is_default_shipping = fields.Boolean(string='Default Shipping')
-    magento_partner_id = fields.Many2one(comodel_name='magentoextend.res.partner',
-                                         string='Magento Partner',
-                                         required=True,
-                                         ondelete='cascade')
-    backend_id = fields.Many2one(
-        related='magento_partner_id.backend_id',
-        comodel_name='magentoextend.backend',
-        string='Magento Backend',
-        store=True,
-        readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
-        required=False,
-    )
+    openerp_id = fields.Many2one('res.partner', u"Partner", required=True, ondelete='cascade')
+    created_at = fields.Datetime(u"Created At (on Magento)", readonly=True)
+    updated_at = fields.Datetime(u"Updated At (on Magento)", readonly=True)
+    is_default_billing = fields.Boolean(u"Default Invoice")
+    is_default_shipping = fields.Boolean(u"Default Shipping")
+    magento_partner_id = fields.Many2one('magentoextend.res.partner', u"Magento Partner",
+                                         required=True, ondelete='cascade')
+    backend_id = fields.Many2one('magentoextend.backend', u"Magento Backend", related='magento_partner_id.backend_id',
+                                 store=True, readonly=True,
+                                 required=False)  # override 'magento.binding', can't be INSERTed if True:
 
-    backend_home_id = fields.Many2one(
-        related='backend_id.connector_id.home_id',
-        comodel_name='backend.home',
-        string='Backend Home',
-        store=True,
-        required=False,
-        ondelete='restrict',
-    )
+    backend_home_id = fields.Many2one('backend.home', u"Backend Home", related='backend_id.connector_id.home_id',
+                                      store=True, required=False, ondelete='restrict')
 
-    is_magento_order_address = fields.Boolean(
-        string='Address from a Magento Order',
-    )
+    is_magento_order_address = fields.Boolean(u"Address from a Magento Order")
 
     _sql_constraints = [
-        ('openerp_uniq', 'unique(backend_id, openerp_id)',
-         'A partner address can only have one binding by backend.'),
+        ('openerp_uniq', 'unique(backend_id, openerp_id)', u"A partner address can only have one binding by backend."),
     ]
 
     @api.model
@@ -248,7 +207,7 @@ class CustomerImporter(magentoextendImporter):
     def _after_import(self, binding):
         """ Import the addresses """
         book = self.unit_for(PartnerAddressBook, model='magentoextend.address')
-        #book.import_addresses(self.magentoextend_id, binding.id)
+        # book.import_addresses(self.magentoextend_id, binding.id)
 
 
 CustomerImport = CustomerImporter

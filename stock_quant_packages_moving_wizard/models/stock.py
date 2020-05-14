@@ -67,7 +67,7 @@ class StockQuant(models.Model):
             domain += force_domain
         moves = self.env['stock.move'].search(domain)
         moves_correct_chain = moves.filtered(lambda move: move in quant.history_ids or
-                                             any([sm in quant.history_ids for sm in move.move_orig_ids]))
+                                                          any([sm in quant.history_ids for sm in move.move_orig_ids]))
         moves_correct_chain = self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids)],
                                                             order='priority desc, date asc, id')
         moves_no_ancestors = moves.filtered(lambda move: move not in quant.history_ids and not move.move_orig_ids)
@@ -276,7 +276,7 @@ class StockQuant(models.Model):
 class StockWarehouse(models.Model):
     _inherit = 'stock.warehouse'
 
-    picking_type_id = fields.Many2one('stock.picking.type', string="Default picking type")
+    picking_type_id = fields.Many2one('stock.picking.type', u"Default picking type")
 
 
 class Stock(models.Model):
@@ -284,13 +284,13 @@ class Stock(models.Model):
     _auto = False
     _order = 'package_id asc, product_id asc'
 
-    product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
-    package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
-    lot_id = fields.Many2one("stock.production.lot", string="Lot")
-    qty = fields.Float(string="Quantity")
-    uom_id = fields.Many2one("product.uom", string="UOM")
-    location_id = fields.Many2one("stock.location", string="Location")
-    parent_id = fields.Many2one("stock.quant.package", "Parent Package", index=True)
+    product_id = fields.Many2one('product.product', u"Product", readonly=True, index=True)
+    package_id = fields.Many2one("stock.quant.package", u"Package", index=True)
+    lot_id = fields.Many2one("stock.production.lot", u"Lot")
+    qty = fields.Float(u"Quantity")
+    uom_id = fields.Many2one("product.uom", u"UOM")
+    location_id = fields.Many2one("stock.location", u"Location")
+    parent_id = fields.Many2one("stock.quant.package", u"Parent Package", index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
@@ -350,66 +350,48 @@ class Stock(models.Model):
         if self:
             location = self[0].location_id
             if any([line.location_id != location for line in self]):
-                raise UserError(_("Impossible to move simultaneously products of different locations"))
-        ctx = self.env.context.copy()
-        ctx['active_ids'] = self.ids
+                raise UserError(_(u"Impossible to move simultaneously products of different locations"))
+        return self._get_wizard_action(_("Move products"))
+
+    @api.multi
+    def _get_wizard_action(self, act_name=False):
         return {
-            'name': _("Move products"),
+            'name': act_name or self._description,
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',
             'res_model': 'product.move.wizard',
             'target': 'new',
-            'context': ctx,
+            'context': dict(self.env.context, active_ids=self.ids, active_mode=self._name),
         }
 
     @api.multi
     def move_products_to_package(self):
-        ctx = self.env.context.copy()
-        ctx['active_ids'] = self.ids
-        ctx['default_move_to'] = 'package'
-        return {
-            'name': _("Move to package"),
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'product.move.wizard',
-            'target': 'new',
-            'context': ctx,
-        }
+        return self.with_context(default_move_to='package')._get_wizard_action(_("Move to package"))
 
     @api.multi
     def execute_packops(self):
-        ctx = self.env.context.copy()
-        ctx['active_ids'] = self.ids
-        ctx['default_move_to'] = 'execute_packops'
-        return {
-            'name': _("Execute pack operations"),
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'product.move.wizard',
-            'target': 'new',
-            'context': ctx,
-        }
+        return self.with_context(default_move_to='execute_packops')._get_wizard_action(_("Execute pack operations"))
 
 
 class MovingWizardStockPicking(models.Model):
     _inherit = 'stock.picking'
 
     @api.multi
-    def get_data_for_new_package(self):
-        self.ensure_one()
-        return {'owner_id': self.owner_id and self.owner_id.id or False,
-                'location_id': self.location_dest_id and self.location_dest_id.id or False}
+    def get_data_for_new_package(self, for_packops=False):
+        data = super(MovingWizardStockPicking, self).get_data_for_new_package(for_packops)
+        data.update({
+            'owner_id': self.owner_id.id or False,
+            'location_id': self.location_dest_id.id or False
+        })
+        return data
 
     @api.multi
     def create_package_for_picking(self):
         self.ensure_one()
         packops_without_packages = self.pack_operation_ids.filtered(lambda packop: not packop.result_package_id)
         if packops_without_packages:
-            new_package = self.env['stock.quant.package']. \
-                create(self.get_data_for_new_package())
+            new_package = self.env['stock.quant.package'].create(self.get_data_for_new_package())
             packops_without_packages.write({'result_package_id': new_package.id})
         else:
             raise UserError(_("Nothing to do."))

@@ -24,10 +24,10 @@ from openerp import models, api, fields, tools
 from openerp.exceptions import UserError
 from openerp.tools import ustr
 
-
 CHRONO_RELAIS = [
     '86',
-    '80'
+    '80',
+    '49'
 ]
 
 
@@ -131,7 +131,9 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                    company_email or '', login_dict["company_pre_alert_chronopost"] or '0')
 
             customer_name_1 = self.company_name
-            customer_civility = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or self.convert_title_chronopost(self.partner_id.title)
+            customer_civility = self.is_relais(
+                self.produit_expedition_id.code) and self.partner_id.name or self.convert_title_chronopost(
+                self.partner_id.title)
             customer_name_2 = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or ''
             shipper_name_2 = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or ''
             customer_adress_1 = self.line2 or ''
@@ -144,7 +146,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             customer_mobile_phone = self.mobile_number
             customer_email = self.email
             customer_pre_alert = self.client_pre_alert_chronopost or '0'
-            customer_description = (customer_name_1,customer_civility or 'M', customer_name_2 or '',
+            customer_description = (customer_name_1, customer_civility or 'M', customer_name_2 or '',
                                     shipper_name_2 or '', customer_adress_1 or '',)
             customer_adress_data = (customer_zip or '', customer_city or '', customer_country or '',
                                     customer_country_name or '', customer_phone or '', customer_mobile_phone or '',
@@ -333,8 +335,10 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 </soapenv:Envelope>"""
 
             encoded_request = tools.ustr(xml_post_parameter).encode('utf-8')
-            headers = {"Content-Type": "text/xml; charset=UTF-8",
-                       "Content-Length": len(encoded_request)}
+            headers = {
+                "Content-Type": "text/xml; charset=UTF-8",
+                "Content-Length": str(len(encoded_request))
+            }
             response = requests.post(url="https://www.chronopost.fr/shipping-cxf/ShippingServiceWS",
                                      headers=headers,
                                      data=encoded_request,
@@ -356,12 +360,12 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             if response.content == '<html><body>No service was found.</body></html>':
                 raise UserError(u"Service non trouvé")
             if len(response.content.split('<faultstring>')) > 1 and \
-                            len(response.content.split('<faultstring>')[1].split('</faultstring>')) > 1:
+                    len(response.content.split('<faultstring>')[1].split('</faultstring>')) > 1:
                 msg = ustr(response.content).split('<faultstring>')[1].split('</faultstring>')[0]
                 if msg:
                     raise UserError(msg)
             if len(response.content.split('<errorMessage>')) == 2 and \
-                            len(response.content.split('<errorMessage>')[1].split('</errorMessage>')) == 2:
+                    len(response.content.split('<errorMessage>')[1].split('</errorMessage>')) == 2:
                 msg = ustr(response.content).split('<errorMessage>')[1].split('</errorMessage>')[0]
                 if msg:
                     raise UserError(msg)

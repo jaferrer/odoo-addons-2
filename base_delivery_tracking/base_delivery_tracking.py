@@ -16,33 +16,39 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from collections import defaultdict
 
 from openerp import models, fields, api, _
+
+from openerp.tools import frozendict
 
 
 class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
+    _description = u"Transporter"
 
-    name = fields.Char(string="Name")
-    image = fields.Binary(string="Image")
-    number_ids = fields.One2many('tracking.number', 'transporter_id', string="List of related tracking numbers")
-    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_number_trackings',
-                                      store=True)
-    logo = fields.Char(compute='_compute_logo', string="Logo")
+    name = fields.Char(u"Name", readonly=True)
+    image = fields.Binary(u"Image")
+    transporter_code = fields.Char(u"Unique code for this transporter", readonly=True)
+    debug_mode = fields.Boolean(u"En mode Test")
+    number_ids = fields.One2many('tracking.number', 'transporter_id', u"List of related tracking numbers")
+    number_trackings = fields.Integer("Number of related tracking numbers", compute='_compute_number_trackings')
 
-    @api.depends('number_ids')
+    @api.multi
+    def _check_valid_credencial(self):
+        return True
+
+
+    @api.multi
     def _compute_number_trackings(self):
+        groupby = fields = ['transporter_id']
+        res = self.env['tracking.number'].read_group([('transporter_id', 'in', self.ids)], fields, groupby)
+        res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res if it['transporter_id']}
         for rec in self:
-            rec.number_trackings = len(rec.number_ids)
-
-    # Function to overwrite for each transporter.
-    @api.multi
-    def _compute_logo(self):
-        for rec in self:
-            rec.logo = False
+            rec.number_trackings = res.get(rec.id, 0)
 
     @api.multi
-    def open_transporter_numbers(self):
+    def open_tracking_numbers(self):
         self.ensure_one()
         return {
             'name': _('Tracking numbers related to transporter %s' % self.name),
@@ -56,24 +62,24 @@ class TrackingTransporter(models.Model):
 
 class TrackingStatus(models.Model):
     _name = 'tracking.status'
+    _description = u"Tracking Number Status"
 
-    tracking_id = fields.Many2one('tracking.number', string="Linked tracking number")
-    date = fields.Datetime(string="Status Date")
-    status = fields.Char(string="Delivery Status")
+    tracking_id = fields.Many2one('tracking.number', u"Linked tracking number")
+    date = fields.Datetime(u"Status Date")
+    status = fields.Char(u"Delivery Status")
 
 
 class TrackingNumber(models.Model):
     _name = 'tracking.number'
+    _description = u"Tracking Number"
 
-    name = fields.Char(string="Tracking number", required=True)
-    status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
-    date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
-    status = fields.Char(string="Last status", compute='_compute_date_and_status')
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
-    last_status_update = fields.Datetime(string="Date of the last update")
-    logo = fields.Char(string="Logo", related='transporter_id.logo')
-    image = fields.Binary(string="Image", related='transporter_id.image')
-    partner_id = fields.Many2one('res.partner', string="Contact", compute='_compute_partner_id')
+    name = fields.Char(u"Tracking number", required=True)
+    status_ids = fields.One2many('tracking.status', 'tracking_id', u"Status history")
+    date = fields.Datetime(u"Date of the last status", compute='_compute_date_and_status')
+    status = fields.Char(u"Last status", compute='_compute_date_and_status')
+    transporter_id = fields.Many2one('tracking.transporter', u"Transporter")
+    last_status_update = fields.Datetime(u"Date of the last update")
+    partner_id = fields.Many2one('res.partner', u"Contact", compute='_compute_partner_id')
 
     @api.multi
     def _compute_date_and_status(self):

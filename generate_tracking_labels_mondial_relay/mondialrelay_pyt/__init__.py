@@ -23,4 +23,5 @@
 ##############################################################################
 
 from mondialrelay_pyt import MRWebService
+from mondialrelay_pyt import MondialRelayException, MondialRelayExceptionWS, MondialRelayExceptionInvalidData, MondialRelayExceptionInvalidDict
 

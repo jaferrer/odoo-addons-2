@@ -21,6 +21,8 @@ from openerp import models, api, _
 from urllib2 import urlopen
 from lxml import etree
 
+TRACKING_URL = 'https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber='
+
 
 class ChronopostTrackingTransporter(models.Model):
     _inherit = 'tracking.transporter'
@@ -42,12 +44,14 @@ class ChronopostTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
                 rec.status_ids.unlink()
-                file = urlopen(_('https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber=') + rec.name)
+                file = urlopen(_(TRACKING_URL) + rec.name)
                 if file:
                     list_status = etree.fromstring(file.read()).findall(".//events")
                     for c in list_status:
                         date = c.find(".//eventDate").text
                         date = date[:10] + ' ' + date[11:19]
-                        self.env['tracking.status'].create({'date': date,
-                                                            'status': c.find(".//eventLabel").text,
-                                                            'tracking_id': rec.id})
+                        self.env['tracking.status'].create({
+                            'date': date,
+                            'status': c.find(".//eventLabel").text,
+                            'tracking_id': rec.id
+                        })

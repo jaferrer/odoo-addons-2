@@ -25,15 +25,24 @@ from openerp import models, fields, api, _
 class TrackingTransporter(models.Model):
     _inherit = 'tracking.transporter'
 
-    picking_ids = fields.One2many('stock.picking', 'transporter_id', groups='stock.group_stock_user',
-                                  string="List of related pickings")
-    number_pickings = fields.Integer(string="Number of related pickings", compute='_compute_number_pickings',
-                                     groups='stock.group_stock_user', store=True)
+    number_pickings = fields.Integer(u"Number of related Pickings", compute='_compute_number_pickings')
+    number_quant_package = fields.Integer(u"Number of related Package", compute='_compute_number_quant_package')
 
-    @api.depends('picking_ids')
+    @api.multi
     def _compute_number_pickings(self):
+        groupby = fields = ['transporter_id']
+        res = self.env['stock.picking'].read_group([('transporter_id', 'in', self.ids)], fields, groupby)
+        res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res if it['transporter_id']}
         for rec in self:
-            rec.number_pickings = len(rec.picking_ids)
+            rec.number_pickings = res.get(rec.id, 0)
+
+    @api.multi
+    def _compute_number_quant_package(self):
+        groupby = fields = ['transporter_id']
+        res = self.env['stock.quant.package'].read_group([('transporter_id', 'in', self.ids)], fields, groupby)
+        res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res if it['transporter_id']}
+        for rec in self:
+            rec.number_quant_package = res.get(rec.id, 0)
 
     @api.multi
     def open_pickings(self):
@@ -44,7 +53,7 @@ class TrackingTransporter(models.Model):
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'stock.picking',
-            'domain': [('id', 'in', self.picking_ids.ids)]
+            'domain': [('transporter_id', '=', self.id)]
         }
 
     @api.multi
@@ -56,31 +65,37 @@ class TrackingTransporter(models.Model):
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'stock.quant.package',
-            'domain': [('id', 'in', self.package_ids.ids)]
+            'domain': [('transporter_id', '=', self.id)]
         }
 
+class StockQuantPackage(models.Model):
+    _inherit = 'stock.quant.package'
+
+    transporter_id = fields.Many2one('tracking.transporter', u"Transporteur")
+    tracking_id = fields.Many2one('tracking.number', u"Tracking number")
+
+    @api.onchange('tracking_id')
+    def _onchange_tracking_id(self):
+        self.transporter_id = self.tracking_id.transporter_id
 
 class TrackingNumber(models.Model):
     _inherit = 'tracking.number'
 
-    picking_id = fields.Many2one('stock.picking', string="Stock picking",
-                                 groups='stock.group_stock_user')
-    group_id = fields.Many2one('procurement.group', string="Procurement Group")
+    picking_id = fields.Many2one('stock.picking', u"Stock picking", readonly=True)
+    group_id = fields.Many2one('procurement.group', u"Procurement Group")
 
     @api.multi
     def _compute_partner_id(self):
-        result = super(TrackingNumber, self)._compute_partner_id()
+        super(TrackingNumber, self)._compute_partner_id()
         for rec in self:
             if rec.picking_id:
                 rec.partner_id = rec.picking_id.partner_id
-        return result
 
 
 class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
+    transporter_id = fields.Many2one('tracking.transporter', u"Transporter used",
                                      related='tracking_ids.transporter_id', store=True, readonly=True)
-    last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking",
-                                   groups='stock.group_stock_user')
+    last_status_update = fields.Datetime(u"Date of the last update")
+    tracking_ids = fields.One2many('tracking.number', 'picking_id', u"Delivery Tracking")

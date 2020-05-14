@@ -57,7 +57,7 @@ class StockMove(models.Model):
 
         for move in moves:
             states['waiting'] |= move
-            states['confirmed'] |= move
+            states['confirmed'] -= move
 
         for state, to_writes in states.items():
             if to_writes:
