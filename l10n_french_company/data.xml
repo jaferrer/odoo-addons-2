@@ -9,10 +9,21 @@
           <!-- Installation du français et configuration en langue principale de l'administrateur et de la société-->
         <record model="base.language.install" id="installation_francais">
             <field name="lang">fr_FR</field>
-            <field name="overwrite" eval="True"/>
+<!--            <field name="overwrite" eval="True"/>-->
         </record>
 
         <function model="base.language.install" name="lang_install" eval="[[ref('installation_francais')]]"/>
+
+        <record id="res_partner_form_l10n_french_company" model="ir.ui.view">
+            <field name="name">res_partner_form_l10n_french_company</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="l10n_fr.res_partner_form_l10n_fr"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='siret']" position="after">
+                    <field name="ape" attrs="{'invisible': [('is_company', '=', False)]}"/>
+                </xpath>
+            </field>
+        </record>
 
     </data>
 </openerp>
