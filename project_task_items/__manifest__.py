@@ -32,6 +32,7 @@ Mini sous tâche
     'data': [
         'security/ir.model.access.csv',
         'project_task_items.xml',
+        'security/ir_rules.xml',
     ],
     'demo': [],
     'test': [],
