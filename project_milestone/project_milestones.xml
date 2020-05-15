@@ -176,11 +176,56 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_milestone_kanban">
+            <field name="name">project.milestone.kanban</field>
+            <field name="model">project.milestone</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by='project_id'>
+                    <field name="project_id"/>
+                    <field name="start_date"/>
+                    <field name="qualif_should_be_livred_at"/>
+                    <field name="qualif_should_be_livred_at_internal"/>
+                    <field name="should_be_test_before"/>
+                    <field name="should_be_closed_at"/>
+                    <field name="livred_in_qualif_at"/>
+                    <field name="livred_in_prod_at"/>
+                    <field name="closed_at"/>
+                    <field name="nb_tasks"/>
+                    <field name="nb_days_tasks"/>
+                    <field name="nb_tasks_done"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <group>
+                                    <strong><field name="name"/></strong><br/>
+                                    <strong><field name="project_id"/></strong><br/>
+                                    <strong>Début:</strong><field name="start_date"/><br/>
+                                    <strong>Recette:</strong><field name="qualif_should_be_livred_at"/><br/>
+                                    <strong>Recette interne:</strong><field name="qualif_should_be_livred_at_internal"/><br/>
+                                    <strong>Fin recettage:</strong><field name="should_be_test_before"/><br/>
+                                    <strong>MEP:</strong><field name="should_be_closed_at"/><br/>
+                                    <strong>Qualif:</strong><field name="livred_in_qualif_at"/><br/>
+                                    <strong>Prod:</strong><field name="livred_in_prod_at"/><br/>
+                                    <strong>Fermée:</strong><field name="closed_at"/><br/>
+                                    <strong>Jours:</strong><field name="closed_at"/><br/>
+                                    <field name="nb_tasks_done" widget="gauge"
+                                           style="width:120px;height:90px;cursor:pointer;"
+                                           options="{'max_field':'nb_tasks'}">Tâches faites</field>
+                                </group>
+                            </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
         <record id="project_milestone_action" model="ir.actions.act_window">
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form,timeline2</field>
+            <field name="view_mode">kanban,tree,form,timeline2</field>
             <field name="context">{'search_default_open': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
