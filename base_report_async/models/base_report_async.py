@@ -23,7 +23,7 @@ from openerp import tools
 _logger = logging.getLogger(__name__)
 
 
-@job(default_channel='root.report')
+@job
 def job_asynchronous_report_generation(session, model_name, report_id, values, context):
     return session.env[model_name].browse(report_id).with_context(context).asynchronous_report_generation(values)
 
@@ -33,10 +33,10 @@ class DelayReport(models.Model):
 
     async_report = fields.Boolean(u"Asynchronous generation")
 
-    def create_temporary_report_attachment(self, binary, name):
+    def create_temporary_report_attachment(self, binary, name, force_mimetype=None):
         if not binary:
             return False
-        mimetype = guess_mimetype(binary.decode('base64'))
+        mimetype = force_mimetype or guess_mimetype(binary.decode('base64'))
         extension = mimetypes.guess_extension(mimetype)
         if extension == '.xlb':
             extension = '.xls'
@@ -99,7 +99,8 @@ class DelayReport(models.Model):
                     zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
                                       base64.b64decode(att.with_context(bin_size=False).datas))
             with open(zip_file_path, 'r') as zf:
-                attachment = self.create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
+                attachment = self.create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name,
+                                                                     force_mimetype='application/zip')
         else:
             try:
                 attachment = self.save_attachement_for_one_record(active_model, active_ids)
