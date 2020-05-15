@@ -23,7 +23,7 @@ from openerp import tools
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.report')
 def job_asynchronous_report_generation(session, model_name, report_id, values, context):
     return session.env[model_name].browse(report_id).with_context(context).asynchronous_report_generation(values)
 
