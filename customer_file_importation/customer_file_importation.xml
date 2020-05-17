@@ -160,7 +160,6 @@
                             <field name="chunk_size"/>
                             <field name="fields_to_import"/>
                             <field name="original_file_id"/>
-                            <field name="context_to_add"/>
                             <field name="error" invisible="True"/>
                             <field name="done" invisible="True"/>
                             <field name="error_msg"/>

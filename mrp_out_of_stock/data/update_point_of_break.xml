@@ -3,7 +3,7 @@
     <data noupdate="1">
 
         <record id="update_point_of_break3" model="ir.cron">
-            <field name="name">Mise à jour des coûts des produits</field>
+            <field name="name">Update point of break</field>
             <field name="model_id" ref="mrp.model_mrp_production"/>
             <field name="active" eval="True" />
             <field name="user_id" ref="base.user_root" />
