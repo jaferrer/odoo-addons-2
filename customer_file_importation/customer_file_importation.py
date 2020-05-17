@@ -18,7 +18,6 @@
 #
 
 import base64
-import json
 import logging
 import io
 
@@ -131,11 +130,6 @@ class CustomerFileToImport(models.Model):
     @api.multi
     def log_error(self, msg):
         self._log(msg, type='ERROR')
-
-    @api.multi
-    def get_context_to_add(self):
-        self.ensure_one()
-        return {}
 
     @api.model
     def get_external_id_or_create_one(self, object, module=None):
@@ -255,7 +249,6 @@ class CustomerGeneratedCsvFile(models.Model):
     model = fields.Char(string=u"Model", readonly=True, required=True)
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
-    context_to_add = fields.Char(string=u"Context To add")
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
     state = fields.Selection([('draft', u"To import"),
                               ('importing', u"Importing"),
@@ -301,7 +294,6 @@ class CustomerGeneratedCsvFile(models.Model):
                 'fields_to_import': rec.fields_to_import,
                 'original_file_id': rec.id,
                 'chunk_size': rec.import_id.chunk_size,
-                'context_to_add': rec.context_to_add
             })
             if not rec.import_id.asynchronous:
                 if imported.error_msg:
@@ -328,7 +320,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     error_msg = fields.Text(string=u"Message d'erreur")
     generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
     processed = fields.Boolean(string=u"Traité")
-    context_to_add = fields.Char("Additional Context tu use in the import")
 
     @api.multi
     def _compute_datas_fname(self):
@@ -390,10 +381,7 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
             fields_to_import = safe_eval(rec.fields_to_import)
             rec.started = True
             default_values_for_importation_wizard = rec.get_default_values_for_importation_wizard()
-            context_to_add = json.loads(rec.context_to_add or "{}")
-            ctx = dict(self.env.context)
-            ctx.update(context_to_add)
-            wizard = self.env['base_import.import'].with_context(ctx).create(default_values_for_importation_wizard)
+            wizard = self.env['base_import.import'].create(default_values_for_importation_wizard)
             options = rec.get_default_importation_options()
             existing_attachment_ids = []
             if rec.asynchronous:
