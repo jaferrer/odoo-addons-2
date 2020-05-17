@@ -56,7 +56,7 @@ class ProjectProject(models.Model):
 class ProjectResourcePlanningSheet(models.Model):
     _name = 'resource.planning.cell'
     _description = u"Resource Planning"
-    _order = 'department_id, employee_id, date_start'
+    _order = 'department_id, employee_id, datetime_start'
 
     @api.multi
     def name_get(self):
@@ -67,8 +67,8 @@ class ProjectResourcePlanningSheet(models.Model):
             return [(rec.id, rec.employee_id.name) for rec in self]
         return [(rec.id, u"%s - %s" % (rec.employee_id.name, rec.project_id.name)) for rec in self]
 
-    employee_id = fields.Many2one('hr.employee', u"Employé", required=True)
-    department_id = fields.Many2one('hr.department', u"Départnement", readonly=True,
+    employee_id = fields.Many2one('hr.employee', u"Employee", required=True)
+    department_id = fields.Many2one('hr.department', u"Départment", readonly=True,
                                     related='employee_id.department_id', store=True)
     project_color = fields.Char(u"Color Code", related='project_id.color_code', store=True)
     datetime_start = fields.Datetime(u"Start Datetime", required=True)
@@ -76,16 +76,18 @@ class ProjectResourcePlanningSheet(models.Model):
     project_id = fields.Many2one('project.project', u"Project", domain=[('used_in_resource_planning', '=', True)],
                                  required=True)
     overlap = fields.Boolean(u"Overlap", compute='_compute_overlap')
-    date_start = fields.Date(u"Start Date", required=True)
-    date_end = fields.Date(u"End Date", required=True)
-    period_start = fields.Selection(PERIOD, u"Period Start", required=True)
-    period_end = fields.Selection(PERIOD, u"Period End", required=True)
+
+    date_start = fields.Date(u"Start Date")
+    date_end = fields.Date(u"End Date")
+    period_start = fields.Selection(PERIOD, u"Period Start")
+    period_end = fields.Selection(PERIOD, u"Period End")
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
         new_order = orderby or self._order
         return super(ProjectResourcePlanningSheet, self).read_group(
-            domain=domain, fields=fields, groupby=groupby, offset=offset, limit=limit, orderby=new_order, lazy=lazy)
+            domain=domain, fields=fields, groupby=groupby, offset=offset, limit=limit, orderby=new_order, lazy=lazy
+        )
 
     @api.multi
     @api.onchange('datetime_start', 'datetime_end')

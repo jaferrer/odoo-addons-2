@@ -216,7 +216,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             destroy: function () {
-                console.log('destroy')
                 return this._super.apply(this, arguments);
             },
 
@@ -539,9 +538,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             do_search: function (domains, contexts, group_bys) {
-                console.log('do_search', this.timeline.getWindow(), domains, contexts, group_bys);
-                return $.when(this.searchDeferred).then(() => {
-
+                return this.searchDeferred.then(() => {
                     this.current_search.domain = domains;
                     this.current_search.context = contexts;
                     this.current_search.context = contexts;
@@ -559,7 +556,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             reload: function () {
-                console.log('reload')
                 if (this.current_search.domain !== undefined) {
                     this.current_window = this.timeline.getWindow();
                     return this.do_search(this.current_search.domain, this.current_search.context, this.current_search.groupBys);
@@ -1003,7 +999,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 if (this.options.confirm_on_delete) {
                     if (confirm(_t("Are you sure you want to delete this record ?"))) {
-                        return this._unlink(item.evt);
+                        return this._unlink(item.evt).then(res => res ? callback(item) : callback(null));
                     }
                     return callback(null);
                 }
@@ -1026,7 +1022,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         return result.length > 0;
                     })
                 }
-                return $.when(self.dataset.unlink([evt.id]));
+                return self.dataset.unlink([evt.id]);
             },
 
             on_click: function (e) {
@@ -1111,10 +1107,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 const [el1, el2] = this.visData.get(selected);
                 const field_def = this.fields[this.current_search.lastGroupBy];
-                this._write(el1.evt.id, this._swap_write_data(field_def, el1, el2), {}, false);
-                this._write(el2.evt.id, this._swap_write_data(field_def, el2, el1), {}, false);
-                this._internal_do_search([['id', 'in', [el1.evt.id, el2.evt.id]]], this.this.current_search.context)
-            }
+                $.when(
+                    this._write(el1.evt.id, this._swap_write_data(field_def, el1, el2), {}, false),
+                    this._write(el2.evt.id, this._swap_write_data(field_def, el2, el1), {}, false)
+                ).then(() => this._internal_do_search([['id', 'in', [el1.evt.id, el2.evt.id]]]))
+            },
         })
     ;
 
