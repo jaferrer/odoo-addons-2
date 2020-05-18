@@ -29,10 +29,10 @@ class IrActionsReport(models.Model):
 
     async_report = fields.Boolean(u"Asynchronous generation")
 
-    def _create_temporary_report_attachment(self, base64_file, name):
+    def _create_temporary_report_attachment(self, base64_file, name, force_mimetype=None):
         if not base64_file:
             return False
-        mime_type = guess_mimetype(base64.b64decode(base64_file))
+        mime_type = force_mimetype or guess_mimetype(base64.b64decode(base64_file))
         extension = mimetypes.guess_extension(mime_type)
         if extension == '.xlb':
             extension = '.xls'
@@ -102,7 +102,8 @@ class IrActionsReport(models.Model):
                     zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
                                       base64.b64decode(att.with_context(bin_size=False).datas))
             with open(zip_file_path, 'r') as zf:
-                attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
+                attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name,
+                                                                      force_mimetype='application/zip')
         else:
             try:
                 attachment = self.get_attachment_base64_encoded(records_to_print)
