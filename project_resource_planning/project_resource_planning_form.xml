@@ -13,6 +13,7 @@
                           default_group_by="department_id,employee_id"
                           show_current_time="false"
                           show_week_scale="true"
+                          field_event_type="display_type"
                           color_field="project_color"
                           event_open_popup="true"
                           min_zoom="7 * 24 * 60 /**Js expr for 1 week in minutes**/"
@@ -84,6 +85,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//group[@name='misc']" position="inside">
                     <group string="Resource Planning">
+                        <field name="planning_name"/>
                         <field name="used_in_resource_planning"/>
                         <field name="color_code" widget="color"/>
                     </group>

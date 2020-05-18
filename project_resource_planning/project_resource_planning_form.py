@@ -40,6 +40,21 @@ QUERY_EXIST = """SELECT 1
                AND a.id != b.id"""
 
 
+def _round_time(dt=None, round_to=60):
+    """
+    https://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object-python/10854034#10854034
+    Round a datetime object to any time lapse in seconds
+    dt : datetime.datetime object, default now.
+    roundTo : Closest number of seconds to round to, default 1 minute.
+    Author: Thierry Husson 2012 - Use it as you want but don't blame me.
+    """
+    if dt is None:
+        dt = datetime.datetime.now()
+    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+    rounding = (seconds + round_to / 2) // round_to * round_to
+    return dt + datetime.timedelta(0, rounding - seconds, -dt.microsecond)
+
+
 class IrUIView(models.Model):
     _inherit = 'ir.ui.view'
 
@@ -49,8 +64,52 @@ class IrUIView(models.Model):
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
+    planning_name = fields.Char(u"Name display in Planning")
     used_in_resource_planning = fields.Boolean(u"Used In Resource Planning", default=True)
     color_code = fields.Char(u"Color Code", default="#d72571")
+
+    @api.model
+    def create(self, vals):
+        vals['planning_name'] = vals.get('planning_name', vals['name'])
+        return super(ProjectProject, self).create(vals)
+
+
+class HrHolidays(models.Model):
+    """Update analytic lines on status change of Leave Request"""
+    _inherit = 'hr.holidays'
+
+    # Timesheet entry linked to this leave request
+    planning_cell_ids = fields.One2many('resource.planning.cell', 'leave_id', u"Planning Cells")
+
+    @api.multi
+    def action_approve(self):
+        res = super(HrHolidays, self).action_approve()
+        self._auto_create_planning_cells()
+        return res
+
+    @api.multi
+    def _auto_create_planning_cells(self):
+        for rec in self:
+            if rec.type == 'remove' and rec.holiday_status_id.project_id:
+                dt_from = fields.Datetime.from_string(rec.date_from)
+                dt_to = fields.Datetime.from_string(rec.date_to)
+                delta = datetime.timedelta(hours=5, minutes=59)
+                dt_from = _round_time(dt_from - delta, 12 * 60 * 60)
+                dt_to = _round_time(dt_to + delta, 12 * 60 * 60)
+                self.env['resource.planning.cell'].create({
+                    'display_type': 'background',
+                    'project_id': rec.holiday_status_id.project_id.id,
+                    'employee_id': rec.employee_id.id,
+                    'datetime_start': dt_from,
+                    'datetime_end': dt_to,
+                    'leave_id': rec.id,
+                })
+
+    @api.multi
+    def action_refuse(self):
+        res = super(HrHolidays, self).action_refuse()
+        self.mapped('planning_cell_ids').unlink()
+        return res
 
 
 class ProjectResourcePlanningSheet(models.Model):
@@ -62,14 +121,17 @@ class ProjectResourcePlanningSheet(models.Model):
     def name_get(self):
         grp_on = self.env.context.get('grouped_on', 'employee_id')
         if grp_on == 'employee_id':
-            return [(rec.id, rec.project_id.name) for rec in self]
+            return [(rec.id, rec.project_id.planning_name) for rec in self]
         elif grp_on == 'project_id':
             return [(rec.id, rec.employee_id.name) for rec in self]
-        return [(rec.id, u"%s - %s" % (rec.employee_id.name, rec.project_id.name)) for rec in self]
+        return [(rec.id, u"%s - %s" % (rec.employee_id.name, rec.project_id.planning_name)) for rec in self]
 
+    leave_id = fields.Many2one('hr.holidays', u"Leave")
     employee_id = fields.Many2one('hr.employee', u"Employee", required=True)
     department_id = fields.Many2one('hr.department', u"Départment", readonly=True,
                                     related='employee_id.department_id', store=True)
+    display_type = fields.Selection([('background', u"Fond de couleur"), ('range', u"Bloc")],
+                                    u"Format")
     project_color = fields.Char(u"Color Code", related='project_id.color_code', store=True)
     datetime_start = fields.Datetime(u"Start Datetime", required=True)
     datetime_end = fields.Datetime(u"End Datetime", required=True)
