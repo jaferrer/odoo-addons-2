@@ -17,8 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
-
 from dateutil.relativedelta import relativedelta
+
 from odoo import fields, models, api, _, osv
 
 
@@ -113,10 +113,10 @@ class AccountInvoiceRelance(models.Model):
     def action_print_dunning(self):
         self.ensure_one()
         res = self.env['report'].with_context(active_ids=self.ids).get_action(self, self.report_id.report_name)
-        self.write({
-            'state': 'send',
-            'date_done': fields.Date.today(),
-        })
+        vals = {'state': 'send'}
+        if not self.date_done:
+            vals['date_done'] = fields.Date.today()
+        self.write(vals)
         return res
 
     @api.multi
@@ -289,8 +289,9 @@ class MailComposeMessage(models.TransientModel):
         if context.get('default_model') == 'account.invoice.dunning' \
                 and context.get('default_res_id', -1) > 0 \
                 and context.get('final_dunning_state'):
-            self.env['account.invoice.dunning'].browse(context['default_res_id']).write({
-                'state': context.get('final_dunning_state'),
-                'date_done': fields.Date.today(),
-            })
+            dunning = self.env['account.invoice.dunning'].browse(context['default_res_id'])
+            vals = {'state': context.get('final_dunning_state')}
+            if not dunning.date_done:
+                vals['date_done'] = fields.Date.today()
+            dunning.write(vals)
         return super(MailComposeMessage, self).send_mail(auto_commit=auto_commit)

@@ -55,12 +55,14 @@ class SaleOrderRelance(models.Model):
 
     name = fields.Char(u"Name")
     date_done = fields.Date(u"Dunning date done", readonly=True)
+    next_dunning_date = fields.Date(u"Date de prochaine relance", compute='_compute_next_dunning_date', store=True)
     state = fields.Selection([
         ('draft', u"Draft"),
         ('send', u"Sent"),
         ('cancel', u"Cancel"),
         ('done', u"Done")], string=u"State", readonly=True, default='draft', track_visibility='onchange')
     partner_id = fields.Many2one('res.partner', string=u"Partner")
+    attachment_count = fields.Integer(u"# Number of attachment", compute='_compute_attachment_count')
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
     dunning_type_id = fields.Many2one('sale.order.dunning.type', string=u"Dunning Type")
     dunning_type_number = fields.Integer(related='dunning_type_id.number', string=u"Sequence")
@@ -74,10 +76,73 @@ class SaleOrderRelance(models.Model):
     note = fields.Text(u"Notes", track_visibility='onchange')
     user_id = fields.Many2one('res.users', u"Responsible", track_visibility='onchange')
 
+    @api.model
+    def create(self, vals):
+        if vals.get('state') == 'done':
+            vals['date_done'] = vals.get('date_done', fields.Date.today())
+        return super(SaleOrderRelance, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'done':
+            vals['date_done'] = vals.get('date_done', fields.Date.today())
+        return super(SaleOrderRelance, self).write(vals)
+
+    @api.multi
+    def _compute_attachment_count(self):
+        for rec in self:
+            rec.attachment_count = self.env['ir.attachment'].search_count([
+                ('res_model', '=', self._name), ('res_id', '=', rec.id)
+            ])
+
+    @api.multi
+    def action_see_attachments(self):
+        attachment_count = sum(self.mapped('attachment_count'))
+        if attachment_count > 1:
+            return {
+                'name': _(u"Attachments"),
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'ir.attachment',
+                'target': 'new',
+                'domain': [('res_model', '=', self._name), ('res_id', 'in', self.ids)],
+                'context': self.env.context,
+            }
+        if attachment_count == 1:
+            attachment = self.env['ir.attachment'].search([
+                ('res_model', '=', self._name),
+                ('res_id', '=', self.id)
+            ])
+            base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+            record_url = base_url + u"/web/content/%s/%s" % (attachment.id, attachment.name)
+            return {
+                'type': 'ir.actions.act_url',
+                'name': u"%s" % attachment.name,
+                'target': 'new',
+                'url': record_url,
+            }
+
     @api.multi
     def _compute_amounts(self):
         for rec in self:
             rec.amount_total_signed = sum(rec.order_ids.mapped('amount_total'))
+
+    @api.multi
+    @api.depends('order_ids', 'order_ids.next_dunning_date')
+    def _compute_next_dunning_date(self):
+        for rec in self:
+            if rec.state not in ['done', 'cancel']:
+                nearest_next_dunning_date = False
+                for next_dunning_date in sorted(rec.order_ids.mapped('next_dunning_date'), reverse=True):
+                    if next_dunning_date >= fields.Datetime.now():
+                        nearest_next_dunning_date = next_dunning_date
+                if not nearest_next_dunning_date:
+                    date_created = fields.Date.from_string(rec.create_date)
+                    delay = datetime.timedelta(days=rec.dunning_type_id.delay_next_dunning_date)
+                    nearest_next_dunning_date = date_created + delay
+
+                rec.next_dunning_date = nearest_next_dunning_date
 
     @api.model
     def _get_existing_dunning(self, order_id, dunning_config_id):
@@ -86,11 +151,12 @@ class SaleOrderRelance(models.Model):
     @api.multi
     def action_done(self):
         self.write({'state': 'done'})
-        for order in self.order_ids:
-            next_type = order._get_next_dunning_type()
-            if next_type and next_type.delay_next_dunning_date:
-                next_date = datetime.datetime.now() + datetime.timedelta(days=next_type.delay_next_dunning_date)
-                self.order_ids.write({'next_dunning_date': next_date})
+        for rec in self:
+            for order in self.order_ids:
+                next_type = order._get_next_dunning_type()
+                if next_type and next_type.delay_next_dunning_date:
+                    next_date = datetime.datetime.now() + datetime.timedelta(days=next_type.delay_next_dunning_date)
+                    rec.order_ids.write({'next_dunning_date': next_date})
 
     @api.multi
     def action_cancel(self):
@@ -109,10 +175,8 @@ class SaleOrderRelance(models.Model):
     def action_print_dunning(self):
         self.ensure_one()
         res = self.env['report'].with_context(active_ids=self.ids).get_action(self, self.report_id.report_name)
-        self.write({
-            'state': 'send',
-            'date_done': fields.Date.today(),
-        })
+        if self.state != 'done':
+            self.write({'state': 'send'})
         return res
 
     @api.multi
@@ -120,7 +184,6 @@ class SaleOrderRelance(models.Model):
         self.ensure_one()
         if not self.mail_template_id:
             raise UserError(_(u"No Mail Template provided by the dunning type"))
-        compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         ctx = dict(
             default_model=self._name,
             default_res_id=self.id,
@@ -134,8 +197,6 @@ class SaleOrderRelance(models.Model):
             'view_type': 'form',
             'view_mode': 'form',
             'res_model': 'mail.compose.message',
-            'views': [(compose_form.id, 'form')],
-            'view_id': compose_form.id,
             'target': 'new',
             'context': ctx,
         }
@@ -179,8 +240,20 @@ class SaleOrderRelance(models.Model):
             ('next_dunning_date', '<=', fields.Date.today()),
         ]
 
+    @api.multi
+    def _orders_action_confirm(self):
+        for rec in self:
+            if rec.state == 'draft':
+                rec.action_cancel()
+                rec.order_ids.write({'next_dunning_date': False})
+            elif rec.state == 'sent':
+                rec.action_done()
+                rec.order_ids.write({'next_dunning_date': False})
+
     @api.model
     def cron_sale_order_dunning_update(self):
+        self.search([('state', 'not in', ['done', 'cancel'])])._compute_next_dunning_date()
+
         orders = self.env['sale.order'].search(self._get_sale_to_auto_create_dunning_domain())
         for order in orders:
             order._create_dunning(raise_if_not_valid=False)
@@ -196,6 +269,12 @@ class SaleOrder(models.Model):
     sale_order_dunning_ids = fields.Many2many('sale.order.dunning', string=u"Dunnings")
     dunning_number = fields.Integer(u"Number of Dunning send", compute='_compute_dunning_number')
     next_dunning_date = fields.Date(u"Date de prochaine relance", default=_get_default_next_dunning_date)
+
+    @api.multi
+    def action_confirm(self):
+        res = super(SaleOrder, self).action_confirm()
+        self.env['sale.order.dunning'].search([('order_ids', 'in', self.ids)])._orders_action_confirm()
+        return res
 
     @api.multi
     def _compute_dunning_number(self):
@@ -237,12 +316,14 @@ class SaleOrder(models.Model):
     @api.multi
     def _prepare_sale_dunning(self, dunning_type_id):
         self.ensure_one()
+
         return {
             'dunning_type_id': dunning_type_id.id,
             'order_ids': [(4, self.id, None)],
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
             'user_id': self.user_id.id,
+            'next_': self.user_id.id,
             'name': dunning_type_id._get_dunning_name()
         }
 

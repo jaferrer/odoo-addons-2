@@ -22,7 +22,7 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Manufacture',
+    'category': 'Mail',
     'depends': ['mail'],
     'description': """
 Mail Compose restrict templates domain
