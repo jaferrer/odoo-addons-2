@@ -65,6 +65,7 @@ class DeliveryTrackingStockPicking(models.Model):
         warehouse_id = self.location_id and self.location_id.get_warehouse(self.location_id) or False
         warehouse = warehouse_id and self.env['stock.warehouse'].browse(warehouse_id) or False
         transporter, type_produit_id = self.get_produit(self.owner_id, self.move_lines[0].transporter_code)
+        data['save_tracking_number'] = True
         data['picking_id'] = self.id
         data['transporter_id'] = transporter.id
         data['type_produit_id'] = self.type_produit_id.id

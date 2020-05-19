@@ -65,11 +65,11 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
             final_encoded_data = False
             if len(list_files) > 1:
                 filenames = []
-                for index in range(0, len(list_files)):
+                for index, file_content in enumerate(list_files):
                     filename = PATH_TMP + os.sep + "tmp_pdf_label_%s.pdf" % str(index)
                     filenames.append(filename)
-                    with file(filename, 'wb') as f:
-                        f.write(list_files[index])
+                    with file(filename, 'wb') as tmp_file:
+                        tmp_file.write(file_content)
                 if filenames:
                     myobj = StringIO()
                     merger = PdfFileMerger()
@@ -201,18 +201,6 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
     @api.multi
     def generate_one_label_for_all_packages(self):
         self.ensure_one()
-        if self.package_ids:
-            packages_data = []
-            for package in self.package_ids:
-                packages_data += [{
-                    'weight': package.delivery_weight,
-                    'insured_value': 0,
-                    'cod_value': 0,
-                    'custom_value': 0,
-                    'height': 0,
-                    'lenght': 0,
-                    'width': 0,
-                }]
-            return self.with_context(package_ids=self.package_ids.ids).generate_label()
-        else:
+        if not self.package_ids:
             raise UserError(u"Aucun colis trouvé")
+        return self.with_context(package_ids=self.package_ids.ids).generate_label()

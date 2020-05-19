@@ -252,12 +252,20 @@ class TypeProduitExpedition(models.Model):
     name = fields.Char(u"Type de bordereau", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', u"Transporteur")
     code = fields.Char(u"Code Transporteur", readonly=True)
+    is_relais = fields.Boolean(u"Point relais")
     used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
     used_on_demand = fields.Boolean(u"Utilisé à la carte", compute='_compute_used_on_demand', store=True)
     output_printing_type_default_id = fields.Many2one('output.printing.type', u"Format d'impression par défaut")
     report_id = fields.Many2one('ir.actions.report.xml', u"Rapport utilisé pour générer le bordereau",
                                 domain=[('model', '=', 'generate.tracking.labels.wizard')])
+    default_service = fields.Selection([('0', u"Normal"),
+                                ('1', u"Lundi"),
+                                ('2', u"Mardi"),
+                                ('3', u"Mercredi"),
+                                ('4', u"Jeudi"),
+                                ('5', u"Vendredi"),
+                                ('6', u"Samedi")], string=u"Jour de la livraison")
 
     @api.depends('used_from_customer', 'used_to_customer')
     def _compute_used_on_demand(self):
