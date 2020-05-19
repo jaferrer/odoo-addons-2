@@ -38,7 +38,6 @@ class StockPickingBatch(models.Model):
                 'id': batch.id,
                 'name': batch.name,
                 'user': batch.user_id.name or "",
-                'date': batch.date,
             })
 
         return list_batches

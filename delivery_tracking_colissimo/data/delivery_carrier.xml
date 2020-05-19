@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="delivery.carrier.provider" id="chronopost">
+        <field name="name">Colissimo</field>
+        <field name="active" eval="True"/>
+        <field name="carrier">colissimo</field>
+        <field name="image" type="base64" file="delivery_tracking_colissimo/static/img/colissimo_logo.png"/>
+    </record>
+
+    <record model="product.product" id="colissimo_delivery_product">
+        <field name="name">Delivery Carrier Colissimo</field>
+        <field name="default_code">colissimo</field>
+        <field name="type">service</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

@@ -11,7 +11,8 @@ odoo.define('web_ui_packing.PackingRow', function (require) {
 
     return Widget.extend({
         template: 'PickingTableRow',
-        init: function (pickingMainList, picking) {
+        init: function (pickingMainList, picking
+        ) {
             this._super(pickingMainList);
             this.pickingMainList = pickingMainList;
             this.id = picking.id;
