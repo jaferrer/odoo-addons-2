@@ -41,7 +41,6 @@ from datetime import datetime, timedelta
 from dateutil import relativedelta
 
 from openerp import models, fields, api
-from openerp.addons.base.ir.ir_cron import _intervalTypes
 
 
 class BusConfigurationExport(models.Model):
@@ -68,6 +67,7 @@ class BusConfigurationExport(models.Model):
                                            string=u'Last transfer status', compute="_compute_last_transfer")
     last_transfer_id = fields.Many2one('bus.message', string=u"Last message",
                                        compute='_compute_last_transfer')
+    last_sync_date = fields.Datetime(u"Last sync date", help=u"Date of last sync all or sync diff", readonly=True)
     chunk_size = fields.Integer(u"Export chunk size")
     domain = fields.Char(u"Domain", required=True, default="[]", help=u"""
         You can see the additional object/functions in the model bus.configuration.export.
@@ -146,15 +146,18 @@ class BusConfigurationExport(models.Model):
     def sync_all(self, jobify=True):
         """ run the batch, exports all self.model's records matching self.domain"""
         self.ensure_one()
+        self.last_sync_date = fields.Datetime.now()
         self.env['bus.exporter'].run_export(self.id, jobify=jobify)
 
     @api.multi
     def sync_diff(self):
         """ run the batch, exports all self.model's records matching self.domain and created or update
-        since the last last export"""
-        force_domain = "[('write_date_bus', '>', last_send_date)]"
+        since the last export
+        """
+        force_domain = "[('write_date_bus', '>', '%s')]" % self.get_last_send_date()
         job_uuids = {}
         for rec in self:
+            self.last_sync_date = fields.Datetime.now()
             uuid = self.env['bus.exporter'].run_export(rec.id, force_domain)
             job_uuids[rec.id] = uuid
         return job_uuids[self.id] if len(self) == 1 else job_uuids
@@ -228,24 +231,13 @@ class BusConfigurationExport(models.Model):
     def get_last_send_date(self):
         """
         used by sync_diff to get the date of the last time the model have been synchronized
-        :return:
+        NOTE : the time is set before starting execution of sync_xxx to ensure next call to sync_diff will
+        not miss ids changed before start of sync_diff execution and end of execution
+        However, if synchronization fails, the ids are lost for sync_diff, only sync_all will resync them
+        :return: date+time as string, can be used for domain, now if never synchronized
         """
         self.ensure_one()
-        last_send_date = datetime.strptime('1900', '%Y')  # default value
-        if not self.cron_sync_diff and self.last_transfer_id:
-            # Use last_transfer_date if no cron sync_diff
-            last_send_date = fields.Datetime.from_string(self.last_transfer_id.write_date)
-        elif self.cron_sync_diff:
-            negative_interval = self.cron_sync_diff.interval_number * -1
-            last_send_date = fields.Datetime.from_string(self.cron_sync_diff.nextcall) + \
-                _intervalTypes[self.cron_sync_diff.interval_type](negative_interval)
-        if self.cron_sync_all:
-            negative_interval_all = self.cron_sync_diff.interval_number * -1
-            last_send_date_sync_all = fields.Datetime.from_string(self.cron_sync_all.nextcall) + \
-                _intervalTypes[self.cron_sync_all.interval_type](negative_interval_all)
-            if last_send_date_sync_all > last_send_date:
-                last_send_date = last_send_date_sync_all
-        return fields.Datetime.to_string(last_send_date)
+        return self.last_sync_date or fields.Datetime.now()
 
     @api.multi
     def compute_dependency_level(self):
