@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--<odoo noupdate="1"> TODO-->
+<odoo>
+    <record model="delivery.carrier" id="colissimo_6A">
+        <field name="name">Colissimo Domicile - sans signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">DOM</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_6C">
+        <field name="name">Colissimo Domicile - avec signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">DOS</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_6H">
+        <field name="name">Colissimo - Point Retrait – en Bureau de Poste</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">BPR</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_6M">
+        <field name="name">Colissimo - Point Retrait – en relais Pickup ou en consigne Pickup Station</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">A2P</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_8R">
+        <field name="name">Colissimo Retour France</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">CORE</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_6G">
+        <field name="name">Colissimo Flash - sans signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">COLR</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_6V">
+        <field name="name">Colissimo Flash - avec signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">J+1</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_7R">
+        <field name="name">Colissimo Retour International</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">CORI</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_8Q">
+        <field name="name">Colissimo Domicile - sans signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">COM</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_7Q">
+        <field name="name">Colissimo Domicile - avec signature</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">CDS</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_9W">
+        <field name="name">Colissimo Eco OM</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">ECO</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_CF">
+        <field name="name">Colissimo Expert International</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">COlI</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_EN">
+        <field name="name">Offre Economique Grand Export</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">ACCI</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_CM">
+        <field name="name">Colissimo - Point Retrait - en relais</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">CMT</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+    <record model="delivery.carrier" id="colissimo_CG">
+        <field name="name">Colissimo - Point Retrait - Consigne Pickup Station - Sauf France et Belgique</field>
+        <field name="delivery_type">colissimo</field>
+        <field name="carrier_code">PCS</field>
+        <field name="active" eval="False"/>
+        <field name="product_id" ref="colissimo_delivery_product"/>
+        <field name="used_from_customer_ok" eval="True"/>
+        <field name="used_to_customer_ok" eval="True"/>
+    </record>
+
+</odoo>

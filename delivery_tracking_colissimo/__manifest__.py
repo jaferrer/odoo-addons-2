@@ -33,6 +33,8 @@ Delivery Tracking Colissimo
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'data/delivery_carrier.xml',
+        'data/delivery_carrier_product.xml',
         'views/delivery_tracking_colissimo.xml',
     ],
     'demo': [],
