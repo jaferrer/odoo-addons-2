@@ -18,8 +18,8 @@
 #
 import logging
 
-from suds.client import Client
-from suds.plugin import MessagePlugin
+import pprint
+import zeep
 
 from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
 from odoo import models, api
@@ -28,43 +28,6 @@ _logger = logging.getLogger(__name__)
 
 
 _PROVIDER.append(('colissimo', "Colissimo"))
-
-
-class MyPlugin(MessagePlugin):
-
-    def __init__(self, *args, **kwargs):
-        self.binary = False
-
-    @api.model
-    def marshalled(self, context):
-        # on modifie la structure du fichier car elle est mal générée (deux fois generatelabel)
-        envelope = context.envelope
-        generate_label_request = envelope.getChild('Body').getChild('generateLabel').getChild(
-            'generateLabelRequest').detachChildren()
-        envelope.getChild('Body').getChild('generateLabel').detachChildren()
-        envelope.getChild('Body').getChild('generateLabel').append(generate_label_request)
-
-    @api.model
-    def received(self, context):
-        reply = context.reply
-
-        debut_envelope = reply.find(b'<soap:Envelope')
-        fin_envelope = reply.find(b'</soap:Envelope>')
-
-        debut_label = reply.find(b'<label>')
-        fin_label = reply.find(b'</label>')
-
-        envelope = reply[debut_envelope:debut_label] + reply[fin_label + 8:fin_envelope + 16]
-
-        # on met dans binary les données binaires
-        debut_binary = reply.find(b'%PDF', fin_envelope)
-        fin_binary = reply.find(b"--uuid:", debut_binary)
-
-        binary = reply[debut_binary:fin_binary]
-
-        self.binary = binary
-
-        context.reply = envelope
 
 
 class DeliveryCarrierColissimo(models.Model):
@@ -77,7 +40,7 @@ class DeliveryCarrierColissimo(models.Model):
     @api.model
     def _get_service(self, picking):
         return {
-            'name': picking.carrier_id.product_id.default_code,
+            'name': picking.carrier_id.carrier_code,
             'deposit_date': picking.scheduled_date,
             'mail_box_picking': False,
             'mail_box_picking_date': False,
@@ -108,7 +71,7 @@ class DeliveryCarrierColissimo(models.Model):
     def _get_sender(self):
         return {
             'name': self.env.user.company_id.partner_id.name,
-            'address': self.env.user.company_id.partner_id.id,
+            'address': self.env.user.company_id.partner_id,
         }
 
     @api.model
@@ -117,7 +80,7 @@ class DeliveryCarrierColissimo(models.Model):
             'name': picking.partner_id.name,
             'code_bar_for_reference': False,
             'service_info': self.env.user.company_id.name,
-            'address': picking.partner_id.id,
+            'address': picking.partner_id,
         }
 
     @api.model
@@ -133,99 +96,95 @@ class DeliveryCarrierColissimo(models.Model):
         return value_letter
 
     @api.model
-    def odoo2laposte(self, value, client):
+    def odoo2laposte(self, value):
 
         contract_number = value['contract_number']
         password = value['password']
 
-        generate_label = client.factory.create('generateLabel')
+        generate_label = {}
 
-        generate_label_request = generate_label.generateLabelRequest
+        generate_label_request = {}
 
-        output_format = generate_label_request.outputFormat
-        letter = generate_label_request.letter
-        service = letter.service
-        parcel = letter.parcel
-        sender = letter.sender
-        sender_address = sender.address
-        addressee = letter.addressee
-        addressee_address = addressee.address
+        output_format = {}
+        letter = {}
+        service = {}
+        parcel = {}
+        sender = {}
+        sender_address = {}
+        addressee = {}
+        addressee_address = {}
 
         ltr = value['letter']
 
-        output_format.outputPrintingType = value['output_format']
+        output_format['outputPrintingType'] = value['output_format']
 
-        service.productCode = ltr['name']['name']
-        service.depositDate = ltr['name']['deposit_date']
-        service.orderNumber = ltr['name']['order_number']
-        service.commercialName = ltr['name']['name_commercial']
+        service['productCode'] = ltr['name']['name']
+        service['depositDate'] = ltr['name']['deposit_date']
+        service['orderNumber'] = ltr['name']['order_number']
+        service['commercialName'] = ltr['name']['name_commercial']
 
         # parcel.weight = L.parcel.weight
-        parcel.weight = ltr['parcel']['weight']
+        parcel['weight'] = ltr['parcel']['weight']
 
-        sender_address.companyName = ltr['sender']['address'].company_id.name
-        sender_address.line2 = ltr['sender']['address'].street
-        sender_address.line3 = (ltr['sender']['address'].street2 or '') + "-" + (ltr['sender']['address'].street3 or '')
-        sender_address.countryCode = 'FR'
-        sender_address.city = ltr['sender']['address'].city
-        sender_address.zipCode = ltr['sender']['address'].zip
-        sender_address.email = ltr['sender']['address'].email or ''
-        sender_address.phoneNumber = ltr['sender']['address'].phone or ''
+        sender_address['companyName'] = ltr['sender']['address'].company_id.name
+        sender_address['line2'] = ltr['sender']['address'].street
+        sender_address['line3'] = (ltr['sender']['address'].street2 or '')
+        if hasattr(ltr['sender']['address'], "street3"):
+            sender_address['line3'] += "-" + (ltr['sender']['address'].street3 or '')
+        sender_address['countryCode'] = 'FR'
+        sender_address['city'] = ltr['sender']['address'].city
+        sender_address['zipCode'] = ltr['sender']['address'].zip
+        sender_address['email'] = ltr['sender']['address'].email or ''
+        sender_address['phoneNumber'] = ltr['sender']['address'].phone or ''
 
-        sender.senderParcelRef = ltr['sender'].name
-        sender.address = sender_address
+        sender['senderParcelRef'] = ltr['sender']['name']
+        sender['address'] = sender_address
 
         # addressee_address.companyName = L.addressee.address.company_id.name
-        addressee_address.companyName = ""
-        addressee_address.lastName = ltr['addressee']['address'].street or ''
-        addressee_address.firstName = "M"
+        addressee_address['companyName'] = ""
+        addressee_address['lastName'] = ltr['addressee']['address'].street or ''
+        addressee_address['firstName'] = "M"
 
-        addressee_address.line2 = ltr['addressee']['address'].street2 or ''
-        addressee_address.line3 = ltr['addressee']['address'].street3 or ''
-        addressee_address.countryCode = 'FR'
-        addressee_address.city = ltr['addressee']['address'].city
-        addressee_address.zipCode = ltr['addressee']['address'].zip
-        addressee_address.email = ltr['addressee']['address'].email or ''
-        addressee_address.phoneNumber = ltr['addressee']['address'].phone or ''
+        addressee_address['line2'] = ltr['addressee']['address'].street2 or ''
+        if hasattr(ltr['addressee']['address'], "street3"):
+            addressee_address['line3'] = ltr['addressee']['address'].street3 or ''
+        addressee_address['countryCode'] = 'FR'
+        addressee_address['city'] = ltr['addressee']['address'].city
+        addressee_address['zipCode'] = ltr['addressee']['address'].zip
+        addressee_address['email'] = ltr['addressee']['address'].email or ''
+        addressee_address['phoneNumber'] = ltr['addressee']['address'].phone or ''
 
-        addressee.address = addressee_address
+        addressee['address'] = addressee_address
 
-        letter.service = service
-        letter.parcel = parcel
-        letter.sender = sender
-        letter.addressee = addressee
+        letter['service'] = service
+        letter['parcel'] = parcel
+        letter['sender'] = sender
+        letter['addressee'] = addressee
 
-        generate_label_request.contractNumber = contract_number
-        generate_label_request.password = password
+        generate_label_request['contractNumber'] = contract_number
+        generate_label_request['password'] = password
+
+        generate_label_request['outputFormat'] = output_format
+        generate_label_request['letter'] = letter
+
+        generate_label['generateLabelRequest'] = generate_label_request
 
         return generate_label
 
     @api.model
     def _get_label(self, value_colis, picking):
         url_ws = "https://ws.colissimo.fr/sls-ws/SlsServiceWS?wsdl"
-        my_plugin = MyPlugin()
-        client = Client(url_ws, plugins=[my_plugin])
+        client = zeep.Client(url_ws)
 
-        generate_label = self.odoo2laposte(value_colis, client)
+        generate_label = self.odoo2laposte(value_colis)
 
-        reponse = client.service.generateLabel(generate_label)
+        pprint.pprint(generate_label)
+        reponse = client.service.generateLabel(**generate_label)
+        pprint.pprint(reponse)
 
         if reponse:
-            tracking_number = self.env['delivery.carrier.tracking.number'].create({
-                'name': str(reponse.labelResponse.parcelNumber),
-                'carrier_id': picking.carrier_id.id
-            })
-            label_name = "Colis %s" % reponse.labelResponse.parcelNumber
-            self.env['ir.attachment'].create({
-                'name': label_name,
-                'datas': my_plugin.binary,
-                'datas_fname': label_name,
-                'type': 'binary',
-                'res_model': 'delivery.carrier.tracking.number',
-                'res_id': tracking_number.id,
-            })
-            return tracking_number
-        return False
+            return picking.save_tracking_number(str(reponse.labelResponse.parcelNumber), reponse.labelResponse.label)
+        # raise UserError(reponse)
 
     @api.model
     def colissimo_send_shipping(self, pickings):
@@ -234,7 +193,7 @@ class DeliveryCarrierColissimo(models.Model):
             for package in picking.package_ids:
 
                 if package.shipping_weight <= 0:
-                    return False
+                    return []
 
                 value_letter = self._get_letter(picking, package)
 
@@ -270,13 +229,6 @@ class DeliveryCarrierColissimo(models.Model):
             ('carrier_id', '=', picking.carrier_id.id)
         ], limit=1)
         return "https://www.laposte.fr/outils/suivre-vos-envois?code=[%s]" % (tracking_number)
-
-    @api.model
-    def colissimo_cancel_shipment(self, pickings):
-        """
-        Non fournit par l'API colissimo.
-        """
-        return self.env['stock.picking']
 
     @api.model
     def colissimo_get_default_custom_package_code(self):

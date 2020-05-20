@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--<odoo noupdate="1"> TODO-->
-<odoo>
+<odoo noupdate="1"> TODO
+<!--<odoo>-->
     <record model="delivery.carrier" id="chrono_8">
         <field name="name">Chrono 8</field>
         <field name="delivery_type">chronopost</field>

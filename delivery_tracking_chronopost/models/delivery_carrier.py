@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from suds.client import Client
+import zeep
 
 from odoo import models, api
 
@@ -200,14 +200,15 @@ class DeliveryCarrier(models.Model):
     @api.model
     def _chronopost_get_label(self, value, picking):
         url_ws = 'https://ws.chronopost.fr/shipping-cxf/ShippingServiceWS?wsdl'
-        client = Client(url_ws)
+        client = zeep.Client(url_ws)
 
         reponse = client.service.shippingMultiParcelWithReservation(value['letter'])
 
         if reponse:
             tracking_number = self.env['delivery.carrier.tracking.number'].create({
                 'name': str(reponse.labelResponse.parcelNumber),
-                'carrier_id': picking.carrier_id.id
+                'carrier_id': picking.carrier_id.id,
+                'picking_id': picking.id,
             })
             label_name = "Colis %s" % reponse.labelResponse.parcelNumber
             self.env['ir.attachment'].create({

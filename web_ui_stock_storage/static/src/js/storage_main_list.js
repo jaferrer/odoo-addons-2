@@ -25,15 +25,13 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             this.productBarcode = "";
             this.moveLineId = "0";
             this.moveLines = [];
-            this.selected_storage_computer = 0;
             this.barcode_scanner = new BarcodeScanner();
-            this.storageInfos = [];
         },
         renderElement: function () {
             this._super();
             this.picking_table = this.$('#picking_table');
             this.$('#_exit').click((ev) => window.history.back());
-            this.picking_table_body = this.$('#picking_table_body');
+            this.storage_table_body = this.$('#storage_table_body');
             this.picking_split_detail = this.$('#picking_split_detail');
             this.$('#manual_product_scan').addClass('d-none')
             this.$('#manual_location_scan').addClass('d-none')
@@ -192,7 +190,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                     .then((moveLines) => {
                         moveLines.forEach(moveLine => {
                             let row = new StorageRow.Row(this, moveLine);
-                            row.appendTo(this.picking_table_body);
+                            row.appendTo(this.storage_table_body);
                             this.productId = moveLine.product_id;
                             this.productBarcode = moveLine.default_code;
                             this.moveLines.push(moveLine.id);
@@ -265,8 +263,8 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                         console.log("id " + moveLine.id);
                         this.moveLineId = moveLine.id;
                         let row = new StorageRow.Row(this, moveLine);
-                        this.picking_table_body.empty();
-                        row.appendTo(this.picking_table_body);
+                        this.storage_table_body.empty();
+                        row.appendTo(this.storage_table_body);
                         this.$("#qty").text(moveLine.qty);
                         this.$('#span_product_qty').removeClass('d-none');
                         this.$('#span_product_location').removeClass('orange');
@@ -346,7 +344,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 this.$('#span_product_location').addClass('d-none');
                 this.$('#span_product_qty').addClass('d-none');
                 this.$('#span_product_qty_saisie').addClass('d-none');
-                this.picking_table_body.empty();
+                this.storage_table_body.empty();
                 this.state = 2;
             });
         },

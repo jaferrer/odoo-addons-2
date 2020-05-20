@@ -135,7 +135,7 @@
                     <li class="list-group-item d-none" id="span_product_location">
                         <span class="bold">Emplacement:</span>
                         <span id="location"/>
-                        <ul id="picking_table_body"/>
+                        <ul id="storage_table_body"/>
                     </li>
                     <li class="list-group-item d-none" id="span_product_qty">
                         <span class="bold">Quantité demandée:</span>
@@ -153,7 +153,7 @@
             <div class="row d-none" id="need_user_action_modal_hook"/>
         </div>
     </t>
-    <t t-name="PickingTableRow">
+    <t t-name="StorageTableRow">
         <li>
             <t t-esc="widget.picking.location_id"/>
         </li>
