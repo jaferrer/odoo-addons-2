@@ -31,6 +31,7 @@ class ProjectMilestone(models.Model):
     task_ids = fields.One2many('project.task', 'milestone_id', u"Task")
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
     nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
+    nb_tasks_done = fields.Integer(u"Nb Tasks done", compute='_compute_nb_related')
     start_date = fields.Date(u"Start date", required=True)
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
     should_be_closed_at = fields.Date(u"Should be in Prod at", required=True)
@@ -69,6 +70,7 @@ class ProjectMilestone(models.Model):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
             rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
+            rec.nb_tasks_done = len([task for task in rec.task_ids if task.stage_id.type == 'done'])
 
     @api.multi
     def set_to_livred_in_prod(self):

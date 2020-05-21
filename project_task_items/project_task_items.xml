@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
     <data>
         <record model="ir.ui.view" id="project_task_form_sub_items">
             <field name="name">project_task_form_sub_items</field>
@@ -8,15 +8,23 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="description" position="after">
-                    <field name="item_ids" no_label="1">
-                        <tree editable="bottom">
-                            <field name="sequence" widget="handle"/>
-                            <field name="done"/>
-                            <field name="description"/>
-                        </tree>
-                    </field>
+                    <group string="Todo">
+                        <field name="item_ids" nolabel="1" colspan="2">
+                            <tree editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="done"/>
+                                <button name="toggle_done" type="object" icon="fa-check-square-o"/>
+                                <field name="description"/>
+                                <field name="planned_hours" widget="float_time"/>
+                                <field name="is_visible_portal"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="planned_hours_amount" widget="float_time" class="oe_subtotal_footer oe_right"/>
+                    </group>
                 </field>
             </field>
         </record>
     </data>
-</openerp>
+</odoo>
