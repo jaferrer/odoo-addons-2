@@ -18,7 +18,7 @@
         <field name="value" eval="'ir.actions.server,' + str(action_mark_task_as_delivered)"/>
     </record>
 
-        <record id="action_cancel_task_delivery" model="ir.actions.server">
+    <record id="action_cancel_task_delivery" model="ir.actions.server">
         <field name="name">Cancel delivery</field>
         <field name="model_id" ref="project.model_project_task"/>
         <field name="state">code</field>
@@ -55,7 +55,8 @@
         <field name="priority" eval="16"/>
         <field name="arch" type="xml">
             <group expand="0" position="inside">
-                <filter string="Invoice Date" name="group_date_invoiced" context="{'group_by':'date_invoiced:month'}"/>
+                <filter string="Invoice Date" name="group_date_invoiced"
+                        context="{'group_by':'date_invoiced:month'}"/>
             </group>
         </field>
     </record>
@@ -112,10 +113,61 @@
                 <field name="is_lines_qty_equal_tasks_qty" invisible="1"/>
                 <div class="alert alert-warning oe_read_only" role="alert" style="margin-bottom:0px;"
                      attrs="{'invisible':[('is_lines_qty_equal_tasks_qty', '=', True)]}">
-                    <bold>La quantité d'une ligne de vente n'est pas égale à la somme des quantités vendues des tâches liées</bold>
+                    <bold>La quantité d'une ligne de vente n'est pas égale à la somme des quantités vendues des tâches
+                        liées
+                    </bold>
                 </div>
             </header>
         </field>
+    </record>
+
+    <record id="action_invoice_project_task" model="ir.actions.server">
+        <field name="name">To invoice those lines</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).invoice_project_task()
+        </field>
+    </record>
+
+    <record id="value_invoice_project_task" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">To invoice those lines</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_invoice_project_task)"/>
+    </record>
+
+    <record id="invoice_project_task_wizard_form_view" model="ir.ui.view">
+        <field name="name">invoice_project_task_wizard_form_view</field>
+        <field name="model">invoice.project.task.wizard</field>
+        <field name="arch" type="xml">
+            <form string="To Invoice Tasks">
+                <group>
+                    <field name="date_invoiced" widget="date"/>
+                    <field name="has_new_date"/>
+                </group>
+                <label for="task_ids"/>
+                <field name="task_ids">
+                    <tree>
+                        <field name="project_id"/>
+                        <field name="name"/>
+                        <field name="stage_id"/>
+                        <field name="time_spent"/>
+                        <field name="date_invoiced"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="to_invoice_tasks" type="object" string="To Invoice" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="ndp_product_product_other" model="product.product">
+        <field name="name">Other</field>
+        <field name="sale_ok">True</field>
     </record>
 
 </odoo>

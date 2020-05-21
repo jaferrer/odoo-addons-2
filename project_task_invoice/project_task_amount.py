@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 
 
@@ -70,6 +70,23 @@ class ProjectTaskInvoice(models.Model):
                                 u"".format(rec.name, rec.initial_sale_id.name))
             rec.date_delivered, rec.initial_sale_line_id.qty_delivered = False, False
 
+    @api.multi
+    def invoice_project_task(self):
+        ctx = dict(self.env.context)
+        ctx.update({'default_task_ids': self.env.context.get('active_ids')})
+        if any(not rec.partner_id for rec in self):
+            raise UserError(_(u"You can't create an invoice from a task if the task's customer isn't filled"))
+        if len(self.mapped('partner_id')) > 1:
+            raise UserError(_(u"You can't create an invoice for several customers"))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'To Invoice Tasks',
+            'res_model': 'invoice.project.task.wizard',
+            'views': [(False, 'form')],
+            'target': 'new',
+            'context': ctx,
+        }
+
 
 class ProjectTaskInvoiceSaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -109,3 +126,85 @@ class ProjectTaskInvoiceSaleOrderLine(models.Model):
         for rec in self:
             isl_tasks = self.env['project.task'].search([('initial_sale_line_id', '=', rec.id)])
             rec.is_self_qty_equal_tasks_qty = rec.product_uom_qty == sum(isl_tasks.mapped('time_spent'))
+
+
+class InvoiceProjectTask(models.TransientModel):
+    _name = 'invoice.project.task.wizard'
+
+    date_invoiced = fields.Date(u"Billing Date", default=fields.Date.today())
+    has_new_date = fields.Boolean(u"Overwrite Billing Date in Tasks", default=True)
+    task_ids = fields.Many2many('project.task', string=u"Tasks to Invoice")
+
+    @api.multi
+    def create_invoice_lines_from_tasks(self, tasks):
+        res = self.env['account.invoice.line']
+        product = self.env.ref('project_task_invoice.ndp_product_product_other')
+        vals = {
+            'product_id': product.id,
+            'name': product.name,
+            'price_unit': product.list_price,
+            'account_id': self.env.ref('l10n_fr.1_fr_pcg_recv').id,
+        }
+        for task in tasks:
+            vals.update({'quantity': task.time_spent or task.planned_days})
+            res |= self.env['account.invoice.line'].create(vals)
+        return res
+
+    @api.multi
+    def create_invoice_lines_from_order_lines(self, order_lines):
+        res = self.env['account.invoice.line']
+        vals = {'account_id': self.env.ref('l10n_fr.1_fr_pcg_recv').id}
+        for order_line in order_lines:
+            vals.update({
+                'product_id': order_line.product_id.id,
+                'name': order_line.product_id.name,
+                'quantity': order_line.product_uom_qty,
+                'price_unit': order_line.price_unit,
+            })
+            res |= self.env['account.invoice.line'].create(vals)
+        return res
+
+    @api.multi
+    def prepare_invoice_lines(self):
+        self.ensure_one()
+        res = self.env['account.invoice.line']
+        tasks_wo_sol = self.env['project.task']  # tasks without sale order line
+        order_lines = self.env['sale.order.line']
+        for task in self.task_ids:
+            if task.initial_sale_line_id:
+                order_lines |= task.initial_sale_line_id
+            else:
+                tasks_wo_sol |= task
+        res |= self.create_invoice_lines_from_order_lines(order_lines)
+        res |= self.create_invoice_lines_from_tasks(tasks_wo_sol)
+        return res
+
+    @api.multi
+    def to_invoice_tasks(self):
+        if self.has_new_date:
+            self.task_ids.write({'date_invoiced': self.date_invoiced})
+
+        if any(not task.partner_id for task in self.task_ids):
+            raise UserError(_(u"You can't create an invoice from a task if the task's customer isn't filled"))
+        partner = self.task_ids.mapped('partner_id')
+        if len(partner) > 1:
+            raise UserError(_(u"You can't create one invoice for several customers"))
+
+        vals = {
+            'date_invoice': self.date_invoiced,
+            'partner_id': partner.id,
+            'account_id': self.env.ref('l10n_fr.1_fr_pcg_recv').id,
+            'invoice_line_ids': [(6, 0, self.prepare_invoice_lines().ids)],
+        }
+        invoice = self.env['account.invoice'].create(vals)
+        orders = self.task_ids.mapped('initial_sale_id')
+        orders.write({'invoice_ids': [(4, invoice.id, 0)]})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': invoice.name,
+            'res_model': 'account.invoice',
+            'res_id': invoice.id,
+            'views': [(self.env.ref('account.invoice_form').id, 'form')],
+            'target': 'current',
+            'context': self.env.context,
+        }
