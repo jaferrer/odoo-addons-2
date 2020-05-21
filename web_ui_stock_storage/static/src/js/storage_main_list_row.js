@@ -10,7 +10,7 @@ odoo.define('web_ui_storage.StorageRow', function (require) {
     var QWeb = core.qweb;
 
     return Widget.extend({
-        template: 'PickingTableRow',
+        template: 'StorageTableRow',
         init: function (pickingMainList, picking) {
             this._super(pickingMainList);
             this.pickingMainList = pickingMainList;
@@ -23,7 +23,7 @@ odoo.define('web_ui_storage.StorageRow', function (require) {
         },
         renderElement: function () {
             this._super();
-            console.log("PickingTableRow renderElement");
+            console.log("StorageTableRow renderElement");
             this.$('button.js_delete_picking').click(ev => { this.pickingMainList.delete_row(this) });
 
         },
