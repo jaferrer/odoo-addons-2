@@ -163,6 +163,8 @@ class DeliveryCarrierDeliveryTracking(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    cancel_shipment_ok = fields.Boolean("Can cancel tracking", related='carrier_id.cancel_shipment_ok')
+
     @api.multi
     def save_tracking_number(self, name, datas):
         self.ensure_one()
