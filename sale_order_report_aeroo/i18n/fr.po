@@ -58,4 +58,4 @@ msgstr "Devis"
 #. module: sale_order_report_aeroo
 #: model:ir.actions.report,name:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Sale Order"
-msgstr "Sale Order"
+msgstr "Devis"
