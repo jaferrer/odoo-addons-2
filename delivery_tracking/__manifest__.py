@@ -33,6 +33,7 @@ Delivery Tracking
         'views/delivery_carrier_tracking_number.xml',
         'views/delivery_tracking.xml',
         'views/delivery_carrier_provider.xml',
+        'views/stock_picking.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [],

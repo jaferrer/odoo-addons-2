@@ -16,13 +16,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 
-import pprint
+import logging
 import zeep
 
 from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
 from odoo import models, api
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -142,12 +142,11 @@ class DeliveryCarrierColissimo(models.Model):
 
         # addressee_address.companyName = L.addressee.address.company_id.name
         addressee_address['companyName'] = ""
-        addressee_address['lastName'] = ltr['addressee']['address'].street or ''
+        addressee_address['lastName'] = ltr['addressee']['address'].name or ''
         addressee_address['firstName'] = "M"
 
-        addressee_address['line2'] = ltr['addressee']['address'].street2 or ''
-        if hasattr(ltr['addressee']['address'], "street3"):
-            addressee_address['line3'] = ltr['addressee']['address'].street3 or ''
+        addressee_address['line2'] = ltr['addressee']['address'].street or ''
+        addressee_address['line3'] = ltr['addressee']['address'].street2 or ''
         addressee_address['countryCode'] = 'FR'
         addressee_address['city'] = ltr['addressee']['address'].city
         addressee_address['zipCode'] = ltr['addressee']['address'].zip
@@ -178,13 +177,14 @@ class DeliveryCarrierColissimo(models.Model):
 
         generate_label = self.odoo2laposte(value_colis)
 
-        pprint.pprint(generate_label)
         reponse = client.service.generateLabel(**generate_label)
-        pprint.pprint(reponse)
 
         if reponse:
+            if reponse.messages[0].type == 'ERROR':
+                error_code = reponse.messages[0].id
+                error_message = reponse.messages[0].messageContent
+                raise UserError("Erreur d'appel à Colissimo: %s.\n%s" % (error_code, error_message))
             return picking.save_tracking_number(str(reponse.labelResponse.parcelNumber), reponse.labelResponse.label)
-        # raise UserError(reponse)
 
     @api.model
     def colissimo_send_shipping(self, pickings):
@@ -228,7 +228,7 @@ class DeliveryCarrierColissimo(models.Model):
         tracking_number = self.env['delivery.carrier.tracking.number'].search([
             ('carrier_id', '=', picking.carrier_id.id)
         ], limit=1)
-        return "https://www.laposte.fr/outils/suivre-vos-envois?code=[%s]" % (tracking_number)
+        return "https://www.laposte.fr/outils/suivre-vos-envois?code=%s" % tracking_number.name
 
     @api.model
     def colissimo_get_default_custom_package_code(self):
