@@ -28,7 +28,9 @@ from PIL import Image
 
 from lxml import etree
 
-from odoo import models, api, tools
+from odoo import models, api
+from odoo.tools import mail
+
 
 _logger = logging.getLogger(__name__)
 INSTALL_PATH = os.path.dirname(__file__)
@@ -66,6 +68,8 @@ class Parser(models.AbstractModel):
     """
     _inherit = 'report.report_aeroo.abstract'
 
+    # index_html = 0
+
     @api.multi
     def complex_report(self, docids, data, report, ctx):
         ctx = dict(ctx) or {}
@@ -83,47 +87,48 @@ class Parser(models.AbstractModel):
         :returns: the ODT XML from the conversion
         :rtype: str
         """
-        self.index_html = self.index_html + 1
+        # self.index_html = self.index_html + 1
         xhtml = u'<?xml version="1.0"?>' \
                 u'<html xmlns="http://www.w3.org/1999/xhtml">' \
-                u'<head><title></title></head><body></body></html>'
+                u'<head><title></title></head><body>' + xhtml + '</body></html>'
+        return mail.html2plaintext(xhtml)
 
-        xhtml = tools.ustr(xhtml.replace(u'<br>', u'<br/>'))
-        self.options = get_options()
-        xsl_dir = os.path.join(INSTALL_PATH, 'xsl')
-        xslt_doc = etree.parse(os.path.join(xsl_dir, "xhtml2odt.xsl"))
-        transform = etree.XSLT(xslt_doc)
-        xhtml = self.handle_images(xhtml)
-        xhtml = self.handle_links(xhtml)
-
-        try:
-            # must be valid xml at this point
-            xhtml = etree.fromstring(xhtml)
-        except etree.XMLSyntaxError as xml_error:
-            _logger.error(xml_error)
-            raise
-        params = {
-            "url": "/",
-            "heading_minus_level": str(self.options["top_header_level"] - 1),
-        }
-        if self.options["img_width"]:
-            if hasattr(etree.XSLT, "strparam"):
-                params["img_default_width"] = etree.XSLT.strparam(
-                    self.options["img_width"])
-            else:  # lxml < 2.2
-                params["img_default_width"] = "'%s'" % self.options["img_width"]
-        if self.options["img_height"]:
-            if hasattr(etree.XSLT, "strparam"):
-                params["img_default_height"] = etree.XSLT.strparam(
-                    self.options["img_height"])
-            else:  # lxml < 2.2
-                params["img_default_height"] = "'%s'" % self.options["img_height"]
-        odt = transform(xhtml, **params)
-        # DEBUG
-        stra = tools.ustr(odt).replace('<?xml version="1.0" encoding="utf-8"?>', '')
-        stra = stra.replace('<?xml version="1.0"?>\n', '')
-        return (u"<htmlparse>--key--" + tools.ustr(self.index_html) + u"--key--" + stra + u"</htmlparse>")\
-            .replace('\n', ' ')
+        # xhtml = tools.ustr(xhtml.replace(u'<br>', u'<br/>'))
+        # self.options = get_options()
+        # xsl_dir = os.path.join(INSTALL_PATH, 'xsl')
+        # xslt_doc = etree.parse(os.path.join(xsl_dir, "xhtml2odt.xsl"))
+        # transform = etree.XSLT(xslt_doc)
+        # xhtml = self.handle_images(xhtml)
+        # xhtml = self.handle_links(xhtml)
+        #
+        # try:
+        #     # must be valid xml at this point
+        #     xhtml = etree.fromstring(xhtml)
+        # except etree.XMLSyntaxError as xml_error:
+        #     _logger.error(xml_error)
+        #     raise
+        # params = {
+        #     "url": "/",
+        #     "heading_minus_level": str(self.options["top_header_level"] - 1),
+        # }
+        # if self.options["img_width"]:
+        #     if hasattr(etree.XSLT, "strparam"):
+        #         params["img_default_width"] = etree.XSLT.strparam(
+        #             self.options["img_width"])
+        #     else:  # lxml < 2.2
+        #         params["img_default_width"] = "'%s'" % self.options["img_width"]
+        # if self.options["img_height"]:
+        #     if hasattr(etree.XSLT, "strparam"):
+        #         params["img_default_height"] = etree.XSLT.strparam(
+        #             self.options["img_height"])
+        #     else:  # lxml < 2.2
+        #         params["img_default_height"] = "'%s'" % self.options["img_height"]
+        # odt = transform(xhtml, **params)
+        # # DEBUG
+        # stra = tools.ustr(odt).replace('<?xml version="1.0" encoding="utf-8"?>', '')
+        # stra = stra.replace('<?xml version="1.0"?>\n', '')
+        # return (u"<htmlparse>--key--" + tools.ustr(self.index_html) + u"--key--" + stra + u"</htmlparse>")\
+        #     .replace('\n', ' ')
 
     def handle_images(self, xhtml):
         """
