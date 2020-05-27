@@ -1,0 +1,292 @@
+.labelBtn{
+    transition: all 0.15s ease;
+    background: #3bb4ff;
+    border: 0;
+    outline: none;
+    text-transform: capitalize;
+    font-size: 17px;
+    color: white;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 5px;
+    cursor: pointer;
+}
+.simple{
+    padding: 3px 20px;
+    margin: 0;
+}
+.labelBtn:hover{
+    transition: all 0.15s ease;
+    background: #2797dd;
+}
+.badge.timeline2_draggable:before {
+    content: "≣";
+    font-family: Arial, sans-serif;
+    display: inline-block;
+    font-size: inherit;
+    cursor: move;
+}
+.vis-timeline{
+    border: 2px solid #dddddd;
+    border-top: 0;
+    border-left: 0;
+    margin-bottom: 15px;
+}
+
+.vis-panel.vis-left{
+    border-right: 3px solid #999999;
+    border-left: 0;
+    border-top: 0;
+}
+.vis-panel.vis-top{
+    border-left: 3px solid #999999;
+}
+
+
+.vis-item.vis-selected .arrow{
+    color: rgba(0,0,0,1);
+}
+.vis-item.vis-background.marker {
+    border-left: 2px solid green;
+}
+
+
+/* gray background in weekends, white text color */
+.vis-time-axis .vis-text.vis-saturday,
+.vis-time-axis .vis-text.vis-sunday {
+    color: #000;
+}
+
+/*timeline background*/
+.vis-time-axis .vis-minor{
+    background: white;
+}
+/*to fix white parts of background*/
+.vis-time-axis .vis-grid.vis-major{
+    background: white;
+}
+.vis-saturday.vis-major, .vis-sunday.vis-major{
+    background: #d4d4d4 !important;
+}
+/*saturday sunday colors*/
+.vis-background .vis-saturday, .vis-background .vis-sunday, .vis-time-axis.vis-foreground .vis-saturday, .vis-time-axis.vis-foreground .vis-sunday{
+    background: #d4d4d4;
+
+}
+
+
+.vis-item .arrow{
+    color: rgba(0,0,0,0.4);
+}
+.vis-item .vis-item-content{
+    padding: 10px;
+}
+.vis-item .arrow{
+    font-size: 20px;
+    /*! display: inline-flex; */
+    height: 100%;
+    width: 7px;
+    /*! min-width: 5px; */
+    display: inline-block;
+    right: 0px;
+    /*! position: ; */
+}
+.vis-item .arrow i{
+    margin: auto;
+    /* margin-left: 0;
+    margin-right: 0;  */
+}
+.vis-item .span{
+    box-sizing: border-box;
+    display: inline-flex;
+    height: 100%;
+    /*! padding: 10px; */
+    /*! padding-left: 0; */
+    max-width: calc(100% - 40px);
+    overflow: hidden;
+
+    /*! position: relative; */
+    z-index: 1;
+    /*! display: ; */
+    width: 100%;
+    /*! min-width: 80px; */
+}
+
+.vis-box .span, .vis-background .span, .vis-point .span{
+    max-width: 100%;
+}
+
+.vis-item-overflow	.span{
+    margin-left: 20px;
+}
+
+.vis-item span i{
+    transition: all 0.15s ease;
+    margin-right: 15px;
+    color: rgba(0,0,0,0.4);
+    cursor: pointer;
+}
+
+.vis-selected .del{
+    display:inline-block;
+}
+.del{
+    display:none;
+}
+.inf:hover, .del:hover {
+    transition: all 0.15s ease;
+    color: black;
+}
+.vis-item .span span{
+    margin: auto;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.vis-item .arrow-left{
+    /*! float: left; */
+    /*! position: absolute; */
+}
+
+.vis-item .arrow-right{
+    position: absolute;
+    /*! left: calc(100% - 20px); */
+    right: 0px;
+}
+.vis-time-axis .vis-text{
+    color: black;
+}
+.vis-time-axis .vis-minor.vis-text{
+    background: transparent;
+    /* border-left: 2px solid #dddddd; */
+    border-left: 0;
+    /* text-align: center; */
+    font-weight: bold;
+    color: white;
+}
+/*lower time axis text background color*/
+.vis-text.vis-major {
+    background: transparent !important;
+    color:  white !important;
+}
+/*lower time axis background color*/
+.vis-time-axis.vis-foreground {
+    background: #3bb4ff;
+}
+/*make every 26th day more of its width to fix bug*/
+.vis-time-axis .vis-day26{
+    width: 186px !important;
+    /* text-align: left !important; */
+}
+/*left side, color behind group list*/
+.vis-timeline{
+    background: #ebebeb;
+}
+/*left side, group list color*/
+.vis-labelset .vis-label:first-child{
+    border-top:2px solid #dfdfdf;
+}
+.vis-labelset .vis-label{
+    background: white;
+    border-left: 2px solid #dfdfdf;
+    display: flex;
+    color: #666666;
+    font-weight: bold;
+}
+.vis-labelset .vis-label .vis-inner{
+    margin: auto;
+    margin-left: 0;
+}
+/*item style*/
+.vis-item{
+    /* top: 0px !important; */
+    /*! border:none !important; */
+}
+/* .vis-item > .vis-item-overflow{
+	padding: 5px !important;
+} */
+.vis-item.vis-range{
+    /* height: 100%; */
+    max-height: 50px;
+    font-weight: bold;
+    color: #000000;
+    opacity: 0.7;
+}
+.vis-item .vis-item-overflow{
+    padding: 0;
+    margin: 0;
+}
+
+/*.vis-item.vis-selected .vis-item-content::after, .vis-item.vis-selected .vis-item-overflow::after{*/
+/*    transition: opacity 0.15s ease;*/
+/*    opacity: 1;*/
+/*}*/
+.vis-item .vis-item-content::after, .vis-item .vis-item-overflow::after{
+    content: "";
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    box-shadow: 0px 0px 5px 2px rgba(0,0,0,0.35);
+    transition: opacity 0.25s ease;
+    opacity: 0;
+
+}
+.vis-item .vis-item-overflow{
+    position: unset;
+}
+
+.vis-item.vis-range .vis-item-content{
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+.vis-item .vis-item-content {
+    white-space: nowrap;
+    box-sizing: border-box;
+    padding: 0;
+    height: 100%;
+}
+.span-full{
+    padding: 10px 5px !important;
+    margin-left: 0 !important;
+    width: 100%;
+    max-width: 100% !important;
+}
+.span-full i{
+    margin-right: 5px !important;
+}
+.vis-current-time{
+    width: 3px;
+    background: #ff0000;
+}
+#current-time-now{
+    display: block;
+    position: fixed;
+    background: #e0ddd7;
+    color: black;
+    padding: 5px;
+    z-index: 2;
+    margin-top:12px;
+}
+#current-time-now::after{
+    content: "";
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 8px 8px;
+    border-color: transparent transparent #e0ddd7 transparent;
+    position: absolute;
+    top: -8px;
+    left: calc(50% - 11px);
+}
+.oe_timeline2_view {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
