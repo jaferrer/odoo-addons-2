@@ -54,7 +54,7 @@ class SplitLine(models.TransientModel):
                 if float_compare(self.qty, self.line_id.product_qty, precision_rounding=prec) >= 0:
                     raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
         if float_compare(self.qty, done_procs_qty, precision_rounding=prec) < 0:
-            raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
+            raise exceptions.except_orm(_('Error!'), _("Please choose a higher quantity to split"))
         if self.line_id.state == 'confirmed':
             _sum = sum([x.product_qty for x in self.line_id.move_ids if x.state == 'done'])
             _sum_pol_uom = self.env['product.uom']._compute_qty(self.line_id.product_id.uom_id.id, _sum,
