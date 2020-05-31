@@ -1,66 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!--Type jour férié-->
-    <record id="holiday_status_public" model="hr.holidays.status">
-        <field name="name" eval="'Jours fériés '+time.strftime('%Y')"/>
-        <field name="limit" eval="True"/>
-        <field name="color_name">lavender</field>
-    </record>
-
-    <record id="view_hr_holidays_filter_public_holidays" model="ir.ui.view">
-        <field name="name">hr.holidays.filter.ndp.public.holidays</field>
-        <field name="model">hr.holidays</field>
-        <field name="inherit_id" ref="hr_holidays.view_hr_holidays_filter"/>
-        <field name="arch" type="xml">
-            <filter name="year" position="after">
-                <filter name="public_holidays" string="Jours Fériés"
-                        domain="[('holiday_status_id', '=', %(holiday_status_public)d)]"/>
-            </filter>
-        </field>
-    </record>
-
     <record id="public_holiday_search_view" model="ir.ui.view">
-        <field name="name">ndp.public.holiday.search.view</field>
-        <field name="model">ndp.public.holiday</field>
+        <field name="name">public_holiday_search_view</field>
+        <field name="model">hr.public.holiday</field>
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
                 <field name="date"/>
                 <field name="year"/>
-                <field name="holiday_status_id"/>
                 <field name="area"/>
             </search>
         </field>
     </record>
 
     <record id="public_holiday_tree_view" model="ir.ui.view">
-        <field name="name">ndp.public.holiday.tree.view</field>
-        <field name="model">ndp.public.holiday</field>
+        <field name="name">public_holiday_tree_view</field>
+        <field name="model">hr.public.holiday</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree editable="top">
                 <field name="name"/>
                 <field name="date" widget="date"/>
                 <field name="year"/>
-                <field name="holiday_status_id"/>
                 <field name="area"/>
             </tree>
-        </field>
-    </record>
-
-    <record id="public_holiday_form_view" model="ir.ui.view">
-        <field name="name">ndp.public.holiday.form.view</field>
-        <field name="model">ndp.public.holiday</field>
-        <field name="arch" type="xml">
-            <form>
-                <group>
-                    <field name="name"/>
-                    <field name="date" widget="date"/>
-                    <field name="year"/>
-                    <field name="holiday_status_id"/>
-                    <field name="area"/>
-                </group>
-            </form>
         </field>
     </record>
 
@@ -80,9 +42,26 @@
     <record id="open_view_public_holiday" model="ir.actions.act_window">
         <field name="name">Jours fériés</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="res_model">ndp.public.holiday</field>
+        <field name="res_model">hr.public.holiday</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_create_holiday_from_public_holiday" model="ir.actions.act_window">
+        <field name="name">Création des congés</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hr.public.holiday.create</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.values" id="action_create_holiday_from_public_holiday_ir_values">
+        <field name="name">Création des congés</field>
+        <field name="key2">client_action_multi</field>
+        <field name="value" eval="'ir.actions.act_window,' +str(ref('action_create_holiday_from_public_holiday'))" />
+        <field name="key">action</field>
+        <field name="model">hr.public.holiday</field>
     </record>
 
     <menuitem
@@ -101,12 +80,31 @@
         <field name="priority">5</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="nextcall">2020-05-18 04:00:00</field>
+        <field name="nextcall">2020-01-01 04:00:00</field>
         <field name="numbercall">-1</field>
         <field name="doall"/>
-        <field name="model">ndp.public.holiday</field>
-        <field name="function">update_employees_public_holidays</field>
+        <field name="model">hr.public.holiday</field>
+        <field name="function">download_public_holidays</field>
         <field name="args"/>
+    </record>
+
+    <record id="public_holiday_create_form" model="ir.ui.view">
+        <field name="name">public_holiday_create_form</field>
+        <field name="model">hr.public.holiday.create</field>
+        <field name="arch" type="xml">
+            <form name="Création des congés">
+                <group>
+                    <field name="year"/>
+                    <field name="holiday_status_id"/>
+                    <field name="mode"/>
+                    <field name="by_type"/>
+                    <field name="employee_ids" widget="many2many_checkboxes" attrs="{'invisible': [('by_type', '!=', 'employee')]}"/>
+                    <field name="department_ids" widget="many2many_checkboxes"  attrs="{'invisible': [('by_type', '!=', 'department')]}"/>
+                    <field name="auto_confirm_holiday"  attrs="{'invisible': [('mode', '!=', 'add')]}"/>
+                    <field name="delete_refuse" attrs="{'invisible': [('mode', '!=', 'refuse')]}"/>
+                </group>
+            </form>
+        </field>
     </record>
 
 </odoo>

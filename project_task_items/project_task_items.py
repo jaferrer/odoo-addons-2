@@ -24,14 +24,7 @@ class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     item_ids = fields.One2many('project.task.item', 'task_id', u"Items")
-    planned_hours_amount = fields.Float(u"Time estimated", compute='_compute_planned_hours_amount',
-                                        help=u"Computed using the sum of the todo's initially planned hours")
     is_todo_visible_portal = fields.Boolean(compute='_compute_is_todo_visible_portal')
-
-    @api.multi
-    def _compute_planned_hours_amount(self):
-        for rec in self:
-            rec.planned_hours_amount = sum(item.planned_hours for item in rec.item_ids)
 
     @api.multi
     def _compute_is_todo_visible_portal(self):

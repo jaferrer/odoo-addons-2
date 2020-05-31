@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,30 +18,22 @@
 #
 
 {
-    'name': 'Odoo NDP HR Public Holidays',
+    'name': 'Task Invoicing',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': [
-        'hr_holidays'
-    ],
+    'depends': ['project_task_invoice', 'project_milestone'],
     'description': """
-Odoo NDP HR Public Holidays
-===========================
-Ce module permet d'importer et d'utiliser les jours fériés français de la métropole.
-Les jours fériés sont importés de :
-- pour la France : https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/ (url stables).
+Task Invoicing
+==============
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'hr_public_holiday.xml',
-        'security/ir.model.access.csv',
-    ],
+    'data': ['project_task_invoicing_milestone.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
-    'auto_install': False,
+    'installable': True,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

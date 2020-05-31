@@ -139,7 +139,7 @@ class ProjectProjectMilestone(models.Model):
             'name': _(u"Milestones for project %s") % self.display_name,
             'res_model': 'project.milestone',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree,form',
+            'view_mode': 'kanban,timeline2,tree,form',
             'view_type': 'form',
             'context': ctx,
         }
