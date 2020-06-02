@@ -227,6 +227,7 @@ class BusSynchronizationImporter(models.AbstractModel):
         :param message: a bus.message object
         :param record: dictionary containing the fields : value for one record
         :param model: 'model.model'
+        :return False if error, {'external_key': external_key, 'id': local_id}
         """
         external_key = record.pop('external_key')
         translation = record.pop('translation', False)

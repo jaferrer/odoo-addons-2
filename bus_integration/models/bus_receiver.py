@@ -102,11 +102,13 @@ class BusSynchronizationReceiver(models.AbstractModel):
                     self.process_received_message(message.get_parent().id, new_post_demand)
                 elif new_msg and not new_msg.is_error() and new_post_demand and not message.cross_id_origin_parent_id:
                     self.env['bus.exporter'].send_post_dependancy_synchronization_demand(
-                        parent_message_id=message.id, demand=new_post_demand)
+                        parent_message_id=message_id, demand=new_post_demand)
 
         # dependency request
-        elif message.treatment in ['DEPENDENCY_DEMAND_SYNCHRONIZATION', 'POST_DEPENDENCY_DEMAND_SYNCHRONIZATION']:
+        elif message.treatment in ['DEPENDENCY_DEMAND_SYNCHRONIZATION']:
             self.env['bus.exporter'].send_dependency_synchronization_response(message_id)
+        elif message.treatment in ['POST_DEPENDENCY_DEMAND_SYNCHRONIZATION']:
+            self.env['bus.exporter'].send_post_dependency_synchronization_response(message_id)
         # synchronisation response
         elif message.treatment == 'SYNCHRONIZATION_RETURN':
             self.register_synchro_return(message_id)
