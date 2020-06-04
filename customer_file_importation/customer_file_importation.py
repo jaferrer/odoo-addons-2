@@ -263,6 +263,16 @@ class CustomerGeneratedCsvFile(models.Model):
             rec.datas_fname = u"%s.csv" % rec.model
 
     @api.multi
+    def download_generated_csv_file(self):
+        url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        url += '/web/content/%s/%s/generated_csv_file/%s?download=True' % (self._name, self.id, self.datas_fname)
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': '_new',
+        }
+
+    @api.multi
     @api.depends('imported_file_ids', 'imported_file_ids.done', 'imported_file_ids.error')
     def _compute_state(self):
         for rec in self:
