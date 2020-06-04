@@ -17,7 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models
+from openerp.addons.connector.session import ConnectorSession
+from openerp import fields, models, api
+
+from .product_feature.importer import import_features
 
 
 class PrestashopBackend(models.Model):
@@ -37,3 +40,9 @@ class PrestashopBackend(models.Model):
         required=True)
     taxes_included = fields.Boolean(help="Check here if Prestahop send their prices tax included, which should not "
                                          "be the case most of the time.")
+
+    @api.multi
+    def import_product_features(self):
+        session = ConnectorSession.from_env(self.env)
+        for backend_record in self:
+            import_features.delay(session, backend_record.id)
