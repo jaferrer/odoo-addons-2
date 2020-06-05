@@ -23,13 +23,13 @@ from odoo import fields, models, api
 class ResCalendarYear(models.Model):
     _name = 'res.calendar.year'
     _description = "Calendar Year"
-    _order = 'number'
+    _order = 'name'
 
-    number = fields.Integer(u"Number", required=True)
+    name = fields.Integer(u"Number", required=True)
 
     @api.multi
     def name_get(self):
         res = []
         for rec in self:
-            res.append((rec.id, str(rec.number)))
+            res.append((rec.id, str(rec.name)))
         return res

@@ -16,5 +16,22 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from . import merge_purchase_planning_wizard
+{
+    'name': 'Abstract parent name',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Init',
+    'depends': ['base'],
+    'description': """
+Abstract parent name
+====================
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'demo': [],
+    'test': [],
+    'data': [],
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
