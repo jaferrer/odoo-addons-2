@@ -94,8 +94,8 @@
                                 <field name="csv_file_ids">
                                     <tree>
                                         <field name="model" invisible="1"/>
-                                        <field name="datas_fname" invisible="1"/>
-                                        <field name="generated_csv_file" widget="download_link" filename="datas_fname"/>
+                                        <field name="datas_fname"/>
+                                        <button name="download_generated_csv_file" type="object" class="oe_link" icon="fa-download"/>
                                         <field name="fields_to_import"/>
                                         <field name="state"/>
                                         <button name="action_import" string="Launch Importation" type="object"/>
