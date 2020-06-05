@@ -1,0 +1,4 @@
+pycountry==19.8.18
+git+https://github.com/aeroo/currency2text
+sib-api-v3-sdk==6.2.0
+zeep==3.4.0
