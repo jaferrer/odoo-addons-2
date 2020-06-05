@@ -1,0 +1,185 @@
+//@no-cookie-jar
+POST http://localhost:8069/yousign/webhook/procedure_started
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "procedure": {
+    "id": "9fb055b6-da78-409f-b642-cb273b1c6e39",
+    "name": "Procedure CP/0001 - Copropriété A - Lot test",
+    "description": "Sweet description of procedure",
+    "createdAt": "2020-06-05T15:48:58+02:00",
+    "updatedAt": "2020-06-05T15:48:58+02:00",
+    "expiresAt": null,
+    "deleted": null,
+    "deletedAt": null,
+    "status": "active",
+    "creator": null,
+    "creatorIp": "90.49.182.185",
+    "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+    "template": false,
+    "ordered": false,
+    "parent": null,
+    "metadata": [],
+    "config": {
+      "email": {
+        "procedure.started": [
+          {
+            "subject": "Signez votre document avec Yousign",
+            "message": "Bonjour, {{ components.spacer() }} vous êtes invités via Yousign à signer votre document de façon certifiée. Pour cela, veuillez cliquer sur le bouton ci-dessous : {{ components.button('Accéder aux documents', url) }} Cordialement, {{ components.spacer() }} Reanova",
+            "to": [
+              "@members.auto"
+            ],
+            "fromName": "Reanova"
+          }
+        ]
+      },
+      "webhook": {
+        "procedure.started": [
+          {
+            "url": "https://webhook.site/06f78ec9-b191-4f1f-b6f7-4a8a77594dd6/yousign/webhook/procedure_started",
+            "method": "GET",
+            "headers": {
+              "X-Custom-Header": "Yousign Webhook - Test value"
+            }
+          }
+        ],
+        "member.finished": [
+          {
+            "url": "https://webhook.site/06f78ec9-b191-4f1f-b6f7-4a8a77594dd6/yousign/webhook/member_finished",
+            "method": "GET",
+            "headers": {
+              "X-Custom-Header": "Yousign Webhook - Test value"
+            }
+          }
+        ]
+      }
+    },
+    "members": [
+      {
+        "id": "/members/b1ea210c-d2f0-4cbc-bbb8-d3efd591ff44",
+        "user": null,
+        "type": "signer",
+        "firstname": "Prénom copropriétaire test",
+        "lastname": "Nom copropriétaire test",
+        "email": "moi.planul@gmail.com",
+        "phone": "+33699526574",
+        "position": 1,
+        "createdAt": "2020-06-05T15:48:58+02:00",
+        "updatedAt": "2020-06-05T15:49:51+02:00",
+        "status": "done",
+        "fileObjects": [
+          {
+            "id": "/file_objects/b35532ba-95fc-4bc4-9dac-68e08671d420",
+            "file": {
+              "id": "/files/fa4280b6-311c-4e25-9dc9-dbc09d91652d",
+              "name": "Document CP/0001 - Copropriété A - Lot test",
+              "type": "signable",
+              "contentType": "application/pdf",
+              "password": null,
+              "description": null,
+              "createdAt": "2020-06-05T15:48:57+02:00",
+              "updatedAt": "2020-06-05T15:49:51+02:00",
+              "sha256": null,
+              "metadata": {
+                "source": "Odoo Reanova"
+              },
+              "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+              "creator": null,
+              "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+            },
+            "page": 1,
+            "position": "350,50,550,150",
+            "fieldName": null,
+            "mention": "Lu et approuvé",
+            "mention2": null,
+            "createdAt": "2020-06-05T15:48:58+02:00",
+            "updatedAt": "2020-06-05T15:49:51+02:00",
+            "member": null,
+            "revision": "/file_revisions/9f4fd409-c968-4b3a-8ea4-b6993e044da9"
+          }
+        ],
+        "procedure": null,
+        "comment": null,
+        "proof": null,
+        "comments": [],
+        "relatedFiles": null
+      }
+    ],
+    "files": [
+      {
+        "id": "/files/fa4280b6-311c-4e25-9dc9-dbc09d91652d",
+        "name": "Document CP/0001 - Copropriété A - Lot test",
+        "type": "signable",
+        "contentType": "application/pdf",
+        "password": null,
+        "description": null,
+        "createdAt": "2020-06-05T15:48:57+02:00",
+        "updatedAt": "2020-06-05T15:49:51+02:00",
+        "sha256": "9a5a2f332e68f5f46c103863f9900ba5b2ebfad4a0a13de45669d94a1f1b52ce",
+        "metadata": {
+          "source": "Odoo Reanova"
+        },
+        "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+        "creator": null,
+        "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+      }
+    ],
+    "relatedFilesEnable": false,
+    "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+  },
+  "member": {
+    "id": "b1ea210c-d2f0-4cbc-bbb8-d3efd591ff44",
+    "user": null,
+    "type": "signer",
+    "firstname": "Prénom copropriétaire test",
+    "lastname": "Nom copropriétaire test",
+    "email": "moi.planul@gmail.com",
+    "phone": "+33699526574",
+    "position": 1,
+    "createdAt": "2020-06-05T15:48:58+02:00",
+    "updatedAt": "2020-06-05T15:49:51+02:00",
+    "status": "done",
+    "fileObjects": [
+      {
+        "id": "/file_objects/b35532ba-95fc-4bc4-9dac-68e08671d420",
+        "file": {
+          "id": "/files/fa4280b6-311c-4e25-9dc9-dbc09d91652d",
+          "name": "Document CP/0001 - Copropriété A - Lot test",
+          "type": "signable",
+          "contentType": "application/pdf",
+          "password": null,
+          "description": null,
+          "createdAt": "2020-06-05T15:48:57+02:00",
+          "updatedAt": "2020-06-05T15:49:51+02:00",
+          "sha256": null,
+          "metadata": {
+            "source": "Odoo Reanova"
+          },
+          "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+          "creator": null,
+          "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+        },
+        "page": 1,
+        "position": "350,50,550,150",
+        "fieldName": null,
+        "mention": "Lu et approuvé",
+        "mention2": null,
+        "createdAt": "2020-06-05T15:48:58+02:00",
+        "updatedAt": "2020-06-05T15:49:51+02:00",
+        "member": null,
+        "revision": "/file_revisions/9f4fd409-c968-4b3a-8ea4-b6993e044da9"
+      }
+    ],
+    "procedure": null,
+    "comment": null,
+    "proof": null,
+    "comments": [],
+    "relatedFiles": null
+  },
+  "comment": null,
+  "eventName": "member.finished"
+}
+
+###
