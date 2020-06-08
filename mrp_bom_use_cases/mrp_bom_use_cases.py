@@ -80,3 +80,13 @@ class ProductTemplate(models.Model):
             chunk_number += 1
             chunk_products.with_delay().compute_use_case_count()
             products = products[100:]
+
+    @api.multi
+    def action_show_mrp_bom_lines(self):
+        self.ensure_one()
+        action = self.env.ref('mrp_bom_use_cases.act_window_mrp_bom_inverted').read()[0]
+        action['domain'] = [
+            ('product_id', 'in', self.product_variant_ids.ids),
+            ('bom_id.active', '=', True),
+        ]
+        return action

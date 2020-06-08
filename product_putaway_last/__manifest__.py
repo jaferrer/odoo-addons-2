@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,29 +18,27 @@
 #
 
 {
-    'name': 'Odoo NDP HR Public Holidays',
+    'name': 'Last Bin Putaway Strategy',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': [
-        'hr_holidays'
-    ],
+    'category': '',
+    'depends': ['stock'],
     'description': """
-Odoo NDP HR Public Holidays
-===========================
-Ce module permet d'importer et d'utiliser les jours fériés français de la métropole.
-Les jours fériés sont importés de :
-- pour la France : https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/ (url stables).
+Last Bin Putaway Strategy
+=========================
+In a location tree where a stock is a parent location with children locations being the bins, this module implements a
+new putaway strategy which sets the bin to the last bin where the product has been put in this stock.
+
+This strategy need only to be defined once and can be applied to several locations.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'hr_public_holiday.xml',
-        'security/ir.model.access.csv',
+    'data': [],
+    'demo': [
+        'product_putaway_last_demo.xml'
     ],
-    'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

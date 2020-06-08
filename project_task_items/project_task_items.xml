@@ -10,18 +10,15 @@
                 <field name="description" position="after">
                     <group string="Todo">
                         <field name="item_ids" nolabel="1" colspan="2">
-                            <tree editable="bottom">
+                            <tree editable="bottom" decoration-success="done == True" decoration-danger="done == False">
                                 <field name="sequence" widget="handle"/>
-                                <field name="done"/>
-                                <button name="toggle_done" type="object" icon="fa-check-square-o"/>
+                                <button name="toggle_done" field_name="done" type="object" widget="toggle_button" options="{}"/>
+                                <field name="done" invisible="1"/>
                                 <field name="description"/>
-                                <field name="planned_hours" widget="float_time"/>
+                                <field name="planned_hours" widget="float_time" sum="Total"/>
                                 <field name="is_visible_portal"/>
                             </tree>
                         </field>
-                    </group>
-                    <group class="oe_subtotal_footer oe_right">
-                        <field name="planned_hours_amount" widget="float_time" class="oe_subtotal_footer oe_right"/>
                     </group>
                 </field>
             </field>

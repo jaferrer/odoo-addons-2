@@ -16,6 +16,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
     const formats = require('web.formats');
     var data_manager = require('web.data_manager');
     var Sidebar = require('web.Sidebar');
+    var pyeval = require('web.pyeval');
 
     var _t = core._t;
     var _lt = core._lt;
@@ -111,6 +112,10 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
                 this.zoomKey = attrs.zoomKey || '';
                 this.mode = attrs.mode || attrs.default_window || 'fit';
+                if(this.mode === 'custom'){
+                    this.exprCustomStart = attrs.custom_mode_start
+                    this.exprCustomEnd = attrs.custom_mode_end
+                }
                 this.snapTime = attrs.minute_snap ? Function('"use strict";return (' + attrs.minute_snap + ')')() : 0;
                 this.min_zoom = attrs.min_zoom ? Function('"use strict";return (' + attrs.min_zoom + ')')() : null;
                 this.max_zoom = attrs.max_zoom ? Function('"use strict";return (' + attrs.max_zoom + ')')() : null;
@@ -343,6 +348,13 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                             start = new moment().startOf('month');
                             end = new moment().endOf('month');
                             break;
+                        case 'custom':
+                            const context = _.extend({}, {
+                                uid: session.uid,
+                                current_date: moment().format('YYYY-MM-DD')
+                            });
+                            start = pyeval.py_eval(this.exprCustomStart, pyeval.context())
+                            end = pyeval.py_eval(this.exprCustomEnd, pyeval.context())
                     }
                     if (end && start) {
                         options['start'] = start;
@@ -387,7 +399,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 height -= this.$el.find('.oe_timeline2_buttons').height();
                 height -= this.$el.find('#timeline2_drag_item').height()
                 height -= 10
-                if (height > this.min_height) {
+                if (height > this.min_height && this.$timeline.height() > height) {
                     this.timeline.setOptions({
                         height: height + "px"
                     });
@@ -1099,9 +1111,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     start: new moment(),
                     end: new moment().add(24, 'hours')
                 };
-                if (!this.display_scale_button && this.mode !== 'fit') {
+                if (!this.display_scale_button && this.mode !== 'fit' && this.mode !== 'custom') {
                     this.current_window.start = new moment().startOf(this.mode);
                     this.current_window.end = moment().endOf(this.mode);
+                }
+                if(!this.display_scale_button && this.mode === 'custom'){
+                    const context = _.extend({}, {
+                        uid: session.uid,
+                        current_date: moment().format('YYYY-MM-DD')
+                    });
+                    this.current_window.start = pyeval.py_eval(this.exprCustomStart, pyeval.context())
+                    this.current_window.end = pyeval.py_eval(this.exprCustomEnd, pyeval.context())
                 }
 
                 if (this.timeline) {
