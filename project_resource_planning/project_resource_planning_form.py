@@ -121,10 +121,13 @@ class ProjectResourcePlanningSheet(models.Model):
     def name_get(self):
         grp_on = self.env.context.get('grouped_on', 'employee_id')
         if grp_on == 'employee_id':
-            return [(rec.id, rec.project_id.planning_name) for rec in self]
+            return [(rec.id, rec.project_id.planning_name or rec.project_id.name) for rec in self]
         elif grp_on == 'project_id':
             return [(rec.id, rec.employee_id.name) for rec in self]
-        return [(rec.id, u"%s - %s" % (rec.employee_id.name, rec.project_id.planning_name)) for rec in self]
+        return [
+            (rec.id, u"%s - %s" % (rec.employee_id.name, rec.project_id.planning_name or rec.project_id.name))
+            for rec in self
+        ]
 
     leave_id = fields.Many2one('hr.holidays', u"Leave")
     employee_id = fields.Many2one('hr.employee', u"Employee", required=True)
@@ -143,6 +146,7 @@ class ProjectResourcePlanningSheet(models.Model):
     date_end = fields.Date(u"End Date")
     period_start = fields.Selection(PERIOD, u"Period Start")
     period_end = fields.Selection(PERIOD, u"Period End")
+    nb_days = fields.Float(u"#Days", compute='_compute_nb_days', store=True)
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
@@ -150,6 +154,28 @@ class ProjectResourcePlanningSheet(models.Model):
         return super(ProjectResourcePlanningSheet, self).read_group(
             domain=domain, fields=fields, groupby=groupby, offset=offset, limit=limit, orderby=new_order, lazy=lazy
         )
+
+    @api.multi
+    @api.depends('period_start', 'period_end')
+    def _compute_nb_days(self):
+        for rec in self:
+            dt_start = fields.Datetime.from_string(rec.datetime_start)
+            dt_end = fields.Datetime.from_string(rec.datetime_end)
+            delta = (dt_end - dt_start)
+            rec.nb_days = delta.total_seconds() / 3600 / 24
+
+    @api.model
+    def create(self, vals):
+        res = super(ProjectResourcePlanningSheet, self).create(vals)
+        res.with_context(no_recompute=True)._onchange_date_real()
+        return res
+
+    @api.multi
+    def write(self, vals):
+        res = super(ProjectResourcePlanningSheet, self).write(vals)
+        if not self.env.context.get('no_recompute'):
+            self.with_context(no_recompute=True)._onchange_date_real()
+        return res
 
     @api.multi
     @api.onchange('datetime_start', 'datetime_end')
