@@ -28,14 +28,13 @@ class ApiYousignSignature(models.TransientModel):
     _name = 'api.yousign.signature'
     _description = "API Yousign Signature"
 
-    name = fields.Char("Nom pour Yousign")
+    model_name = fields.Char("Model name")
+    model_id = fields.Integer("Model ID")
     firstname = fields.Char("Firstname", required=True)
     lastname = fields.Char("Lastname", required=True)
     email = fields.Char("Email", required=True)
     phone = fields.Char("Phone", required=True)
-    yousign_doc_id = fields.Char("ID document Yousign")
-    yousign_procedure_id = fields.Char("ID procédure Yousign")
-    document_to_sign = fields.Binary("Document à signer")
+    document_to_sign = fields.Binary("Document to sign")
 
     @api.model
     def access_yousign(self):
@@ -43,7 +42,8 @@ class ApiYousignSignature(models.TransientModel):
         Access to Yousign API.
         """
         session = requests.Session()
-        api_key = "fb8917fa5957ee4d3f5cdaa74f29da9b"
+        # api_key = "fb8917fa5957ee4d3f5cdaa74f29da9b"
+        api_key = self.env['ir.config_parameter'].get_param('reanova.yousign_api_key')
         if api_key:
             authorization = "Bearer " + api_key
         else:
@@ -83,12 +83,14 @@ class ApiYousignSignature(models.TransientModel):
     @api.model
     def create_procedure(self, file_id, name, firstname, lastname, email, phone):
         """
-        Create a signature procedure.
+        Create a signature procedure and initialize webhooks to signal the creation of the procedure and its signature.
         """
         session = self.access_yousign()
         id = file_id.replace("/files/", "")
         file_infos = session.get("https://staging-api.yousign.com/files/%s/layout" % id)
         page_number = len(json.loads(file_infos.text).get('pages'))
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        webhook_key = self.env['ir.config_parameter'].get_param('reanova.yousign_webhook_key')
         body = {
             'name': "Procedure %s" % name,
             'description': "Sweet description of procedure",
@@ -109,19 +111,19 @@ class ApiYousignSignature(models.TransientModel):
                 'webhook': {
                     'procedure.started': [
                         {
-                            'url': "https://visum.serveo.net/yousign/webhook/procedure_started",
+                            'url': base_url,
                             'method': "POST",
                             'headers': {
-                                'X-API-key': "Yousign Webhook - Test value"
+                                'X-API-Key': webhook_key
                             }
                         }
                     ],
                     'member.finished': [
                         {
-                            'url': "https://visum.serveo.net/yousign/webhook/procedure_started",
+                            'url': base_url,
                             'method': "POST",
                             'headers': {
-                                'X-API-key': "Yousign Webhook - Test value"
+                                'X-API-Key': webhook_key
                             }
                         }
                     ]
@@ -156,19 +158,17 @@ class ApiYousignSignature(models.TransientModel):
     @api.multi
     def button_send_signature_mail(self):
         """
-        2 options :
-        - No yousign_procedure_id : send the document to sign, create a new procedure and send a email for the client to
-        sign the document.
-        - existing yousign_procedure_id : send a new email for the client to sign the document.
+        Send the document to sign to Yousign, create a new procedure and send a email for the client to sign.
         """
         self.ensure_one()
-        self.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
-            self.document_to_sign,
-            self.name
+        model_record = self.env[self.model_name].browse(self.model_id)
+        model_record.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
+            model_record.document_to_sign,
+            model_record.display_name
         )
-        self.yousign_procedure_id = self.env['api.yousign.signature'].create_procedure(
-            self.yousign_doc_id,
-            self.name,
+        model_record.yousign_procedure_id = self.env['api.yousign.signature'].create_procedure(
+            model_record.yousign_doc_id,
+            model_record.display_name,
             self.firstname,
             self.lastname,
             self.email,
@@ -192,4 +192,4 @@ class ApiYousignMessage(models.TransientModel):
     _name = 'api.yousign.message'
     _description = "API Yousign Message"
 
-    validation_message = fields.Char("Message de validation", readonly=1)
+    validation_message = fields.Char("Validation message", readonly=1)

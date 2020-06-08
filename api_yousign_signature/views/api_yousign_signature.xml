@@ -14,9 +14,9 @@
                     <field name="phone"/>
                 </group>
                 <footer>
-                    <button name="button_send_signature_mail" string="Valider" type="object" class="oe_highlight"/>
-                    ou
-                    <button string="Annuler" class="oe_link" special="cancel"/>
+                    <button name="button_send_signature_mail" string="Validate" type="object" class="oe_highlight"/>
+                    or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
                 </footer>
             </form>
         </field>
