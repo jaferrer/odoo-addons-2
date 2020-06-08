@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="merge_purchase_planning" model="ir.ui.view">
+        <field name="name">merge_purchase_planning</field>
+        <field name="model">merge.purchase.planning.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Merge purchase planning">
+                <group>
+                    <field name="period_id" invisible="1"/>
+                    <field name="year_id" invisible="1"/>
+                    <field name="season_id" invisible="1"/>
+                    <field name="purchase_planning_id" domain="[('year_id', '=', year_id), ('season_id', '=', season_id)]"/>
+                </group>
+                <footer>
+                    <button name="merge" string="Merge" type="object" class="btn-primary"/>
+                    <button name="new" string="New" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -17,5 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase_planning_wizard
-from . import confirm_period_wizard
+from odoo import models
+
+
+class ProductCategory(models.Model):
+    _name = 'product.category'
+    _inherit = [_name, 'abstract.parent.name']

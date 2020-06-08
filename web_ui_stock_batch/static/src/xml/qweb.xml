@@ -66,7 +66,7 @@
 
             <div id="manual_scan_lot" class="jumbotron waiting-background d-none">
                 <h4>
-                    Cet article est rattaché à un numéro de lot/série\nmerci de scanner ce numéro pour continuer
+                    Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro pour continuer
                 </h4>
                 <div class="input-group">
                     <input id="search_product_lot" type="text" class="form-control"

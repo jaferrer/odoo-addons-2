@@ -17,6 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 from odoo import fields, models, api
 
 
@@ -25,6 +28,7 @@ class PeriodPlanning(models.Model):
     _description = "Period Planning"
     _order = 'year_id, season_id'
 
+    name = fields.Char("Name")
     season_id = fields.Many2one('res.calendar.season', u"Season", required=True)
     year_id = fields.Many2one('res.calendar.year', u"Year", required=True)
     purchase_planning_ids = fields.One2many('purchase.planning', 'period_id', "Purchase planning")
@@ -33,24 +37,76 @@ class PeriodPlanning(models.Model):
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
     count_purchase_planning = fields.Integer(compute='_compute_purchase_planning')
-
-    _sql_constraints = [('period_unique', 'unique (season_id, year_id)', u"The period must be unique")]
+    category_ids = fields.Many2many('product.category', string="Product Category")
+    period_warning = fields.Boolean("Period warning")
+    count_product = fields.Integer("Product count", readonly=1, compute='_count_product')
+    count_completed_purchase_planning = fields.Integer(compute='_compute_completed_purchase_planning',
+                                                       string="Purchase planning done")
 
     @api.multi
     def name_get(self):
         res = []
         for rec in self:
-            name = rec.season_id.name + " " + str(rec.year_id.number)
+            name = rec.season_id.name + " " + str(rec.year_id.name)
+            if rec.name:
+                name = rec.name + " (" + name + ")"
             res.append((rec.id, name))
         return res
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         domain = args or []
-        domain += ["|", ("season_id.name", operator, name), ("year_id.number", operator, name)]
+        domain += ["|", ("season_id.name", operator, name), ("year_id.name", operator, name)]
         return self.search(domain, limit=limit).name_get()
 
     @api.multi
     def _compute_purchase_planning(self):
         for rec in self:
-            rec.count_purchase_planning = self.env['purchase.planning'].search_count([('period_id', 'in', self.ids)])
+            rec.count_purchase_planning = self.env['purchase.planning'].search_count([('period_id', '=', rec.id)]) or 0
+
+    @api.multi
+    def _compute_completed_purchase_planning(self):
+        for rec in self:
+            rec.count_completed_purchase_planning = self.env['purchase.planning'].search_count(
+                [('period_id', '=', rec.id), ('retained_qty', '!=', 0)]) or 0
+
+    @api.multi
+    def see_purchase_planning(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Purchase Forecast',
+            'res_model': 'purchase.planning',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'context': self.env.context,
+            'domain': [('period_id', '=', self.id)],
+            'target': 'current',
+        }
+
+    @api.multi
+    def confirm_purchase_planning(self):
+        self.ensure_one()
+        # Récupération des lignes purchase_planning correspondant à season + year
+        # Création d'une liste si retained_qty > 0
+        purchase_plannings = self.purchase_planning_ids.filtered(lambda r: (r.retained_qty > 0))
+        season_date = self.season_id.name_get()
+        # Création des procurement_group
+        group = self.env['procurement.group'].create({'name': season_date})
+        year = self.year_id.name
+        month = self.season_id.start_month_id.number
+        date_start = date.today() + relativedelta(year=year, month=month, day=1)
+        for planning in purchase_plannings:
+            product = planning.product_id
+            stock_location = self.env.ref('stock.stock_location_stock')
+            values = {
+                'group_id': group,
+                'date_planned': date_start,
+            }
+            self.env['procurement.group'].run(product, planning.retained_qty, product.uom_id, stock_location,
+                                              season_date[0][1], season_date[0][1], values)
+        # Changement de statut des purchase_planning
+        self.purchase_planning_ids.write({'state': 'done'})
+        self.write({
+            'purchase_state': 'done',
+        })
