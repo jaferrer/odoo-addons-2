@@ -18,12 +18,15 @@
 import datetime
 from urllib2 import urlopen
 import json
+import logging
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class PublicHoliday(models.Model):
-    _name = 'ndp.public.holiday'
+    _name = 'hr.public.holiday'
     _description = u"Jours fériés"
     _order = 'date'
 
@@ -31,13 +34,12 @@ class PublicHoliday(models.Model):
     name = fields.Char(u"Nom", required=True)
     area = fields.Char(u"Zone", required=True, default='metropole')
     year = fields.Char(u"Année", required=True, default=str(datetime.date.today().year))
-    holiday_status_id = fields.Many2one('hr.holidays.status', u"Type de congé",
-                                        default=lambda self: self.env.ref('hr_public_holiday.holiday_status_public'))
 
-    @api.multi
-    def update_public_holidays(self):
-        self.env['ndp.public.holiday'].search([]).unlink()
-        area, year = 'metropole', datetime.date.today().year
+    @api.model
+    def download_public_holidays(self):
+        self.search([]).unlink()
+        area = 'metropole'
+        year = datetime.date.today().year
         url = u"https://etalab.github.io/jours-feries-france-api/{zone}/{annee}.json".format(zone=area, annee=year)
         response = urlopen(url)
         public_holidays = json.loads(response.read().decode('utf-8'))
@@ -46,25 +48,55 @@ class PublicHoliday(models.Model):
             date = datetime.datetime.strptime(key, '%Y-%m-%d')
             date = datetime.date(date.year, date.month, date.day)
             if date >= datetime.date.today():
-                self.env['ndp.public.holiday'].create({'date': date, 'name': value, 'area': area, 'year': str(year)})
+                self.create({'date': date, 'name': value, 'area': area, 'year': str(year)})
+
+
+class HrPublicHolidayCreate(models.TransientModel):
+    _name = 'hr.public.holiday.create'
+
+    def _get_year(self):
+        years = set(self.env['hr.public.holiday'].search([]).mapped('year'))
+        return [(y, y) for y in sorted(list(years))]
+
+    holiday_status_id = fields.Many2one('hr.holidays.status', u"Type de congé")
+    employee_ids = fields.Many2many('hr.employee', string=u"Employés")
+    department_ids = fields.Many2many('hr.department', string=u"Départements")
+    by_type = fields.Selection([('employee', u"Employé"), ('department', u"Département")], u"Pour")
+    auto_confirm_holiday = fields.Boolean(u"Confirmer les congés automatiquement")
+    mode = fields.Selection([('add', u"Ajouter"), ('refuse', u"Annuler")], u"Mode")
+    delete_refuse = fields.Boolean(u"Supprimer les congés une fois annulés")
+    year = fields.Selection('_get_year', u"Pour l'année", required=True)
 
     @api.multi
-    def update_employees_public_holidays(self):
-        self.update_public_holidays()
-        employees = self.env['hr.employee'].search([])
-        public_holidays = self.env['ndp.public.holiday'].search([])
-
-        for employee in employees:
-            for public_holiday in public_holidays:
-                if not self.env['hr.holidays'].search([('date_start', '=', public_holiday.date),
-                                                       ('employee_id', '=', employee.id), ]):
+    def create_holydays(self):
+        self.ensure_one()
+        employees = self.employee_ids
+        if self.by_type == 'department':
+            deps = self.env['hr.department'].search([('id', 'child_of', self.department_ids.ids)])
+            employees = self.env['hr.employee'].search([('department_id', 'in', deps.ids)])
+        public_holidays = self.env['hr.public.holiday'].search([('year', '=', self.year)])
+        if self.mode == 'add':
+            for employee in employees:
+                for public_holiday in public_holidays:
                     try:
-                        self.env['hr.holidays'].create({'employee_id': employee.id,
-                                                        'name': public_holiday.name,
-                                                        'date_start': public_holiday.date,
-                                                        'holiday_status_id': public_holiday.holiday_status_id.id, })
-                    except Exception:
-                        raise UserError(
-                            u"{} a un déjà un congé pendant le {} à la date du {}".format(
-                                employee.name, public_holiday.name, public_holiday.date)
-                        )
+                        holiday = self.env['hr.holidays'].create({
+                            'employee_id': employee.id,
+                            'name': public_holiday.name,
+                            'date_start': public_holiday.date,
+                            'holiday_status_id': self.holiday_status_id.id,
+                        })
+                        holiday.action_approve()
+                    except ValidationError:
+                        _logger.info(u"%s a un déjà un congé pendant le %s à la date du %s",
+                                     employee.name, public_holiday.name, public_holiday.date
+                                     )
+        else:
+            for public_holiday in public_holidays:
+                holiday = self.env['hr.holidays'].search([
+                    ('employee_id', 'in', employees.ids), ('date_start', '=', public_holiday.date)]
+                )
+                if holiday.state not in ['draft', 'cancel', 'confirm']:
+                    holiday.action_refuse()
+                holiday.action_draft()
+                if self.delete_refuse:
+                    holiday.unlink()
