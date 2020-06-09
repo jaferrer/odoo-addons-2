@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base', 'queue_job', 'web_easy_download'],
+    'depends': ['base', 'queue_job'],
     'description': """
 Odoo Scripts for Console
 ========================
