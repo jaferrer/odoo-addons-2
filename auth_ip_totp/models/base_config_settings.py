@@ -17,8 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import authorized_ip
-from . import base_config_settings
-from . import res_company
-from . import res_users
-from . import res_users_authenticator
+from odoo import fields, models
+
+
+class BaseConfigSettings(models.TransientModel):
+    _inherit = 'base.config.settings'
+
+    authorized_ip_ids = fields.One2many(related='company_id.authorized_ip_ids')

@@ -17,8 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import authorized_ip
-from . import base_config_settings
-from . import res_company
-from . import res_users
-from . import res_users_authenticator
+from odoo import fields, models
+
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    authorized_ip_ids = fields.One2many('authorized.ip', 'company_id', u"Authorized IPs",
+                                        help=u"Users are allowed to connect from these IPs without MFA.")

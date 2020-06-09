@@ -62,7 +62,7 @@ class JsonSecureCookie(SecureCookie):
         try:
             if cls.quote_base64:
                 value = base64.b64decode(value)
-            value = str(value, 'utf-8')
+            value = str(value)
             if cls.serialization_method is not None:
                 value = cls.serialization_method.loads(value)
             return value

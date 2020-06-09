@@ -31,6 +31,7 @@
     },
     'depends': [
         'web',
+        'base_setup',
     ],
     'data': [
         'data/ir_config_parameter.xml',
@@ -39,5 +40,6 @@
         'wizards/res_users_authenticator_create.xml',
         'views/auth_totp.xml',
         'views/res_users.xml',
+        'views/base_config_settings.xml',
     ],
 }

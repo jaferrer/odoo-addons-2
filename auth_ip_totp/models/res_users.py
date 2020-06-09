@@ -19,8 +19,8 @@
 
 from collections import defaultdict
 from uuid import uuid4
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models, tools
+from odoo.exceptions import ValidationError, AccessDenied
 from odoo.http import request
 from ..controllers.main import JsonSecureCookie
 from ..exceptions import MfaLoginNeeded
@@ -32,19 +32,22 @@ class ResUsers(models.Model):
 
     @classmethod
     def _build_model(cls, pool, cr):
-        ModelCls = super(ResUsers, cls)._build_model(pool, cr)
-        ModelCls.SELF_WRITEABLE_FIELDS += ['mfa_enabled', 'authenticator_ids']
-        return ModelCls
+        model_cls = super(ResUsers, cls)._build_model(pool, cr)
+        model_cls.SELF_WRITEABLE_FIELDS += ['mfa_enabled', 'authenticator_ids']
+        return model_cls
 
-    mfa_enabled = fields.Boolean(string='MFA Enabled?')
+    mfa_authorized = fields.Boolean(u"MFA authorized",
+                                    help=u"When checked, the user will be allowed to setup MFA and "
+                                         u"thus access Odoo while roaming.")
+    mfa_enabled = fields.Boolean(string=u"MFA Enabled")
     authenticator_ids = fields.One2many(
         comodel_name='res.users.authenticator',
         inverse_name='user_id',
-        string='Authentication Apps/Devices',
-        help='To delete an authentication app, remove it from this list. To'
-             ' add a new authentication app, please use the button to the'
-             ' right. If the button is not present, you do not have the'
-             ' permissions to do this.',
+        string=u"Authentication Apps/Devices",
+        help=u"To delete an authentication app, remove it from this list. To"
+             u" add a new authentication app, please use the button to the"
+             u" right. If the button is not present, you do not have the"
+             u" permissions to do this.",
     )
     trusted_device_cookie_key = fields.Char(
         compute='_compute_trusted_device_cookie_key',
@@ -71,6 +74,25 @@ class ResUsers(models.Model):
                     ' please add one before you activate this feature.'
                 ))
 
+    @api.multi
+    @api.constrains('mfa_enabled', 'mfa_authorized')
+    def _check_mfa_authorized(self):
+        for rec in self:
+            if rec.mfa_enabled and not rec.mfa_authorized:
+                raise ValidationError(_(u"You are not authorized to setup MFA."))
+
+    @api.model
+    def create(self, values):
+        if 'mfa_authorized' in values and not values['mfa_authorized']:
+            values['mfa_enabled'] = False
+        return super(ResUsers, self).create(values)
+
+    @api.multi
+    def write(self, values):
+        if 'mfa_authorized' in values and not values['mfa_authorized']:
+            values['mfa_enabled'] = False
+        return super(ResUsers, self).write(values)
+
     @classmethod
     def check(cls, db, uid, password):
         """Prevent auth caching for MFA users without active MFA session"""
@@ -85,15 +107,25 @@ class ResUsers(models.Model):
         """Add MFA logic to core authentication process.
 
         Overview:
-            * If user does not have MFA enabled, defer to parent logic.
+            * If request comes from authorized IP, defer to parent logic.
+            * If we are SUPERUSER and no authorized IPs have been set, defer to parent logic
+            to prevent lock-out.
+            * From here, deny access to all users that are not allowed to setup MFA.
             * If user has MFA enabled and has gone through MFA login process
               this session or has correct device cookie, defer to parent logic.
             * If neither of these is true, call parent logic. If successful,
               prevent auth while updating session to indicate that MFA login
               process can now commence.
         """
-        if not self.env.user.mfa_enabled:
+        if request and self.env['authorized.ip'].check_ip(request.httprequest.remote_addr):
             return super(ResUsers, self).check_credentials(password)
+
+        if self.env.uid == tools.SUPERUSER_ID and not self.env['authorized.ip'].ips_defined():
+            # Anti-lockout rule: if no ips are defined, superuser can login directly.
+            return super(ResUsers, self).check_credentials(password)
+
+        if not self.env.user.mfa_enabled:
+            raise AccessDenied()
 
         self._mfa_uid_cache[self.env.cr.dbname].add(self.env.uid)
 

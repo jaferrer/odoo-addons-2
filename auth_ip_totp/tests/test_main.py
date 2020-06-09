@@ -55,6 +55,7 @@ class TestAuthTotp(TransactionCase):
             'secret_key': 'iamatestsecretyo',
             'user_id': self.test_user.id,
         })
+        self.test_user.mfa_authorized = True
         self.test_user.mfa_enabled = True
 
         # Needed when tests are run with no prior requests (e.g. on a new DB)
