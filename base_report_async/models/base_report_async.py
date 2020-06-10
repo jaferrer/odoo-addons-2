@@ -120,7 +120,10 @@ class IrActionsReport(models.Model):
         self.ensure_one()
         name = u"Report"
         if self.print_report_name:
-            name = eval(self.print_report_name, {'object': record, 'time': time})
+            if len(record) == 1:
+                name = eval(self.print_report_name, {'object': record, 'time': time})
+            else:
+                name = self.display_name
         data = {
             'model': record._name,
             'ids': record.ids,
