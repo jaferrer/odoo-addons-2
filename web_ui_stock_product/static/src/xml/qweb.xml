@@ -41,7 +41,7 @@
             </div>
             <div id="need_num_lot_scan" class="jumbotron warning-background d-none">
                 <h4>
-                    Cet article est rattaché à un numéro de lot/série\nmerci de scanner ce numéro ou de supprimer
+                    Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro ou de supprimer
                     l'article pour continuer
                 </h4>
                 <div class="input-group">

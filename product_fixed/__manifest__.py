@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,24 +16,22 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Web Easy Download',
+    'name': 'Product fixed',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Web',
-    'depends': ['web'],
+    'category': 'Init',
+    'depends': ['product', 'abstract_parent_name'],
     'description': """
-web_easy_download
-=================
-This modules allows to download easily any binary content from frontend.
+Product fixed
+=============
+V1 : Fix category name
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'data': [],
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

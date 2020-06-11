@@ -8,34 +8,32 @@
                 <field name="season_id"/>
                 <field name="year_id"/>
                 <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_global_click">
-                                <a type="action" name="%(purchase_planning_view_action)d">
-                                    <div t-attf-class="o_kanban_card_header">
-                                        <div class="o_kanban_card_header_title">
-                                            <field name="season_id"/>
-                                            <field name="year_id"/>
-                                            <span class="float-right text-right">
-                                                <field name="purchase_state" widget="label_selection" options="{'classes': {'done': 'success'}}"/>
-                                            </span>
-                                        </div>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <a type="action" name="%(purchase_planning.purchase_planning_view_action)d">
+                                <div t-attf-class="o_kanban_card_header">
+                                    <div class="o_kanban_card_header_title">
+                                        <field name="count_purchase_planning" invisible="1"/>
+                                        <field name="season_id"/>
+                                        <field name="year_id"/>
+                                        <span class="float-right text-right">
+                                            <field name="purchase_state" widget="label_selection"
+                                                   options="{'classes': {'done': 'success'}}"/>
+                                        </span>
                                     </div>
-                                    <div class="container o_kanban_card_content">
-                                        <div class="col-6 o_kanban_primary_left">
-                                            <div t-if="record.count_purchase_planning.raw_value > 0" class="row">
-                                                <div class="col-9">
-                                                    Forecast
-                                                </div>
-                                                <div class="col-3">
-                                                    <field name="count_purchase_planning"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </t>
-                    </templates>
+                                </div>
+                                <div class="container o_kanban_card_content">
+                                    <button t-if="record.count_completed_purchase_planning.raw_value > 0 and record.purchase_state.raw_value == 'draft'" class="btn btn-primary" name="confirm_purchase_planning" type="object">
+                                        Confirm</button>
+                                </div>
+                                <div class="oe_kanban_bottom_left" style="height:150px">
+                                    <field name="count_completed_purchase_planning" widget="gauge"
+                                           options="{'max_field': 'count_purchase_planning', 'style': 'height: 150px;'}"/>
+                                </div>
+                            </a>
+                        </div>
+                    </t>
+                </templates>
             </kanban>
         </field>
     </record>
@@ -46,4 +44,20 @@
         <field name="res_model">period.planning</field>
         <field name="view_mode">kanban</field>
     </record>
+
+    <record id="period_planning_filter" model="ir.ui.view">
+        <field name="name">period_purchase_planning_filter</field>
+        <field name="model">period.planning</field>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <field name="name" string="Name"/>
+                <field name="season_id" string="Season"/>
+                <field name="year_id" string="Year"/>
+                <field name="purchase_state" string="Purchase forecast statut"/>
+                <filter name="purchase_state_filter" string="Purchase forecast draft" domain="[('purchase_state','=', 'draft')]"/>
+           </search>
+        </field>
+    </record>
+
 </odoo>

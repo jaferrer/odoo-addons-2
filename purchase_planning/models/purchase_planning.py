@@ -56,7 +56,7 @@ class PurchasePlanning(models.Model):
         res = []
         for rec in self:
             name = "%s from %s %s" % (
-                rec.product_id.name, rec.period_id.season_id.name, str(rec.period_id.year_id.number))
+                rec.product_id.name, rec.period_id.season_id.name, str(rec.period_id.year_id.name))
             res.append((rec.id, name))
         return res
 
@@ -78,7 +78,7 @@ class PurchasePlanning(models.Model):
     def _compute_suggest_qty(self):
         for rec in self:
             if not rec.retained_qty:
-                start_date, end_date = rec.period_id.season_id._get_duration(rec.year_id.number - 1)
+                start_date, end_date = rec.period_id.season_id._get_duration(rec.year_id.name - 1)
                 purchase_order_lines = self.env['purchase.order.line'].search([
                     ('date_planned', '>=', start_date),
                     ('date_planned', '<=', end_date),

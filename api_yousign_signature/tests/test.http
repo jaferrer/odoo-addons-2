@@ -1,0 +1,137 @@
+//@no-cookie-jar
+POST https://visum.serveo.net/yousign/webhook/procedure_started
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "procedure": {
+    "id": "c1c83cfa-64cb-4feb-a2b2-23fb72002912",
+    "name": "Procedure CP/0001 - Copropriété A - Lot test",
+    "description": "Sweet description of procedure",
+    "createdAt": "2020-06-08T10:17:21+02:00",
+    "updatedAt": "2020-06-08T10:17:21+02:00",
+    "expiresAt": null,
+    "deleted": null,
+    "deletedAt": null,
+    "status": "active",
+    "creator": null,
+    "creatorIp": "90.49.182.185",
+    "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+    "template": false,
+    "ordered": false,
+    "parent": null,
+    "metadata": [],
+    "config": {
+      "email": {
+        "procedure.started": [
+          {
+            "subject": "Signez votre document avec Yousign",
+            "message": "Bonjour, {{ components.spacer() }} vous êtes invités via Yousign à signer votre document de façon certifiée. Pour cela, veuillez cliquer sur le bouton ci-dessous : {{ components.button('Accéder aux documents', url) }} Cordialement, {{ components.spacer() }} Reanova",
+            "to": [
+              "@members.auto"
+            ],
+            "fromName": "Reanova"
+          }
+        ]
+      },
+      "webhook": {
+        "procedure.started": [
+          {
+            "url": "https://visum.serveo.net/yousign/webhook/procedure_started",
+            "method": "GET",
+            "headers": {
+              "X-API-Key": "blabla"
+            }
+          }
+        ],
+        "member.finished": [
+          {
+            "url": "https://visum.serveo.net/yousign/webhook/member_finished",
+            "method": "GET",
+            "headers": {
+              "X-API-Key": "blabla"
+            }
+          }
+        ]
+      }
+    },
+    "members": [
+      {
+        "id": "/members/dcd090bb-e1fa-4727-a325-fa1a18e5e319",
+        "user": null,
+        "type": "signer",
+        "firstname": "Copro",
+        "lastname": "Priétaire",
+        "email": "moi.planul@gmail.com",
+        "phone": "+33699526574",
+        "position": 1,
+        "createdAt": "2020-06-08T10:17:21+02:00",
+        "updatedAt": "2020-06-08T10:17:21+02:00",
+        "status": "pending",
+        "fileObjects": [
+          {
+            "id": "/file_objects/400c16d8-2830-4926-a9ad-509f69a3c754",
+            "file": {
+              "id": "/files/5bd0af2c-ee2a-461d-bf9c-d2ba620c99d5",
+              "name": "Document CP/0001 - Copropriété A - Lot test",
+              "type": "signable",
+              "contentType": "application/pdf",
+              "password": null,
+              "description": null,
+              "createdAt": "2020-06-08T10:17:18+02:00",
+              "updatedAt": "2020-06-08T10:17:21+02:00",
+              "sha256": null,
+              "metadata": {
+                "source": "Odoo Reanova"
+              },
+              "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+              "creator": null,
+              "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+            },
+            "page": 1,
+            "position": "350,50,550,150",
+            "fieldName": null,
+            "mention": "Lu et approuvé",
+            "mention2": null,
+            "createdAt": "2020-06-08T10:17:21+02:00",
+            "updatedAt": "2020-06-08T10:17:21+02:00",
+            "member": null,
+            "revision": null
+          }
+        ],
+        "procedure": null,
+        "comment": null,
+        "proof": null,
+        "comments": [],
+        "relatedFiles": null
+      }
+    ],
+    "files": [
+      {
+        "id": "/files/5bd0af2c-ee2a-461d-bf9c-d2ba620c99d5",
+        "name": "Document CP/0001 - Copropriété A - Lot test",
+        "type": "signable",
+        "contentType": "application/pdf",
+        "password": null,
+        "description": null,
+        "createdAt": "2020-06-08T10:17:18+02:00",
+        "updatedAt": "2020-06-08T10:17:21+02:00",
+        "sha256": "9a5a2f332e68f5f46c103863f9900ba5b2ebfad4a0a13de45669d94a1f1b52ce",
+        "metadata": {
+          "source": "Odoo Reanova"
+        },
+        "workspace": "/workspaces/f351238e-1bf9-4290-889c-31c00d5680df",
+        "creator": null,
+        "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+      }
+    ],
+    "relatedFilesEnable": false,
+    "company": "/companies/f351238e-1bf9-4290-889c-31c00d5680df"
+  },
+  "member": null,
+  "comment": null,
+  "eventName": "procedure.started"
+}
+
+###

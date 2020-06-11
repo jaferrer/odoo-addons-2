@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import merge_purchase_planning_wizard
+from . import api_yousign_signature

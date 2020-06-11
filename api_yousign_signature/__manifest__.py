@@ -17,5 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase_planning_wizard
-from . import confirm_period_wizard
+{
+    'name': 'API Yousign Signature',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Yousign API',
+    'depends': [],
+    'description': """
+API Yousign Signature
+=====================
+Get a certified signature throughout Yousign process
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/api_yousign_signature.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
