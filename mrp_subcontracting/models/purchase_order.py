@@ -85,10 +85,7 @@ class PurchaseOrder(models.Model):
         result = action.read()[0]
         # override the context to get rid of the default filtering on operation type
         result['context'] = {}
-        pick_ids = self.env['stock.picking'].search([
-            ('origin', '=', self.name),
-            ('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)
-        ])
+        domain = [('origin', '=', self.name), ('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)]
         # choose the view_mode accordingly
         if self.picking_out_count == 1:
             res = self.env.ref('stock.view_picking_form', False)
@@ -97,8 +94,7 @@ class PurchaseOrder(models.Model):
                 result['views'] = form_view + [(state, view) for state, view in result['views'] if view != 'form']
             else:
                 result['views'] = form_view
-            result['res_id'] = pick_ids.id
+            result['res_id'] = self.env['stock.picking'].search(domain, limit=1).id
         else:
-            result['domain'] = "[('origin', '=', self.name)," \
-                               "('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)]"
+            result['domain'] = domain
         return result
