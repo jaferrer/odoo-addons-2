@@ -153,7 +153,8 @@ This is an automated message please do not reply.</span></p>""").format(url, exp
     @api.multi
     def send_mail_report_async_to_user(self, url):
         self.ensure_one()
-        mail = self.env['mail.mail'].create(self.get_mail_data_report_async_success(url))
+        mail = self.env['mail.mail'].create(self.with_context(lang=self.env.user.lang).
+                                            get_mail_data_report_async_success(url))
         mail.send()
 
     @api.multi
