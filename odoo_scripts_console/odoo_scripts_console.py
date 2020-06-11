@@ -33,7 +33,7 @@ class OdooScript(models.Model):
             rec.console_browse_command = rec.id and "script = self.env['odoo.script'].browse(%s)" % rec.id or False
             rec.console_execute_command = rec.id and "self.env['odoo.script'].browse(%s).execute()" % rec.id or False
 
-    @api.multi
+    @api.model
     def list(self):
         scripts = self.search([])
         msg = u""

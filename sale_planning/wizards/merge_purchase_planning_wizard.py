@@ -17,4 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import merge_purchase_planning_wizard
+from odoo import fields, models, api
+
+
+class MergePurchasePlanningWizard(models.TransientModel):
+    _name = 'merge.purchase.planning.wizard'
+    _description = "Merge Planning Wizard"
+
+    period_id = fields.Many2one('period.planning', readonly=True)
+    season_id = fields.Many2one('res.calendar.season', u"Season", readonly=True)
+    year_id = fields.Many2one('res.calendar.year', u"Year", readonly=True)
+    purchase_planning_id = fields.Many2one('period.planning', string="Purchase planning")
+
+    @api.model
+    def new(self):
+        self.period_id.create_purchase_planning()
+
+    @api.multi
+    def merge(self):
+        return self.period_id.merge_purchase_planning(self.purchase_planning_id)

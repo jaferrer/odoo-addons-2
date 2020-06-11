@@ -17,4 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import merge_purchase_planning_wizard
+from odoo import models
+
+
+class StockLocation(models.Model):
+    _name = 'stock.location'
+    _inherit = [_name, 'abstract.parent.name']

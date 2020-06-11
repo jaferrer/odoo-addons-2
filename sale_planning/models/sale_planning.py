@@ -23,6 +23,7 @@ from odoo import fields, models, api
 class SalePlanning(models.Model):
     _name = 'sale.planning'
     _description = "Sale Planning"
+    _rec_name = 'period_id'
 
     product_id = fields.Many2one('product.product', u"Product", required=True, readonly=True)
     stock_qty = fields.Float(u"Quantity in stock", related='product_id.qty_available', readonly=True)
@@ -31,6 +32,7 @@ class SalePlanning(models.Model):
     sale_last_year = fields.Float(u"Last year sales", required=True, readonly=True)
     sale_qty = fields.Float(u"Quantity to sale")
     reserve_qty = fields.Float(u"Quantity to reserve")
+    categ_id = fields.Many2one('product.category', "Product category")
     state = fields.Selection([
         ('draft', u"Draft"),
         ('confirm', "Confirm"),
@@ -48,7 +50,7 @@ class SalePlanning(models.Model):
         result = {}
         for (period_id), product_ids in grouped_val_list.items():
             period = self.env['period.planning'].browse(period_id)
-            start_date, end_date = period.season_id._get_duration(period.year_id.number - 1)
+            start_date, end_date = period.season_id._get_duration(period.year_id.name - 1)
             result_group = self.env['sale.order.line'].read_group(
                 domain=[
                     ('order_id.confirmation_date', '>=', start_date),
