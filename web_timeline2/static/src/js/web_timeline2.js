@@ -898,18 +898,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     callback(null)
                 })
                 dialog.open();
-
-
                 return false;
             },
 
             _create: function (data, options = {}) {
                 return this.dataset.create(data, options)
                     .then(result => {
-                        return this._internal_do_search(
+                        this._internal_do_search(
                             [['id', '=', result]],
                             this.current_search.context
                         )
+                        return false;
                     })
             },
             _create_delegate: function (data, field_def, auto_reload = true) {
@@ -925,10 +924,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     deferred.then(result => {
                         if (!result || !Array.isArray(result) || !result.length) return;
                         this.visData.remove(result);
-                        return this._internal_do_search(
+                        this._internal_do_search(
                             [...this.current_search.domain, ['id', 'in', result]],
                             this.current_search.context,
                         )
+                        return result;
                     })
                 }
                 return deferred;
