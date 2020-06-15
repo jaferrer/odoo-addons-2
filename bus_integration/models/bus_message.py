@@ -154,6 +154,8 @@ class BusMessage(models.Model):
     body = fields.Text(u"body", compute="_compute_message_fields", readonly=True)
     body_root_pretty_print = fields.Text(u"Body root", compute="_compute_message_fields", readonly=True)
     body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_message_fields", readonly=True)
+    body_post_dependencies_pretty_print = fields.Text(u"Body post-dependencies", compute="_compute_message_fields",
+                                                      readonly=True)
     body_models = fields.Text(u"Models", compute="_compute_message_models", readonly=True, store=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
@@ -248,10 +250,13 @@ class BusMessage(models.Model):
 
                 body_dict = message_dict.get('body')
                 dependencies_dict = body_dict.pop('dependency', {})
+                post_dependencies_dict = body_dict.pop('post_dependency', {})
                 rec.body = json.dumps(body_dict)
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
                 rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
+                rec.body_post_dependencies_pretty_print = json.dumps({'post_dependency': post_dependencies_dict},
+                                                                     indent=4)
             except ValueError:
                 rec.body = rec.message
                 rec.body_root_pretty_print = rec.message
