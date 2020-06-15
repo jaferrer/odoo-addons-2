@@ -19,6 +19,7 @@
 
 from odoo import fields, models, api, _ as _t
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 
 
 class ProjectProject(models.Model):
@@ -210,9 +211,9 @@ class ProjectTaskInvoiceSaleOrderLine(models.Model):
     @api.multi
     def _compute_is_self_qty_equal_tasks_qty(self):
         for rec in self:
-            rec.wrong_task_qty = (rec.state not in ['draft', 'cancel', 'done'] and
-                                  rec.initial_task_ids and
-                                  rec.product_uom_qty != sum(rec.initial_task_ids.mapped('time_spent')))
+            sum_time_spent = sum(rec.initial_task_ids.mapped('time_spent'))
+            compare = float_compare(rec.product_uom_qty, sum_time_spent, precision_digits=2)
+            rec.wrong_task_qty = (rec.state not in ['draft', 'cancel', 'done'] and rec.initial_task_ids and compare)
 
 
 class InvoiceProjectTask(models.TransientModel):
