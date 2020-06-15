@@ -212,6 +212,20 @@
         </field>
     </record>
 
+    <record id="task_invoice_tree_private" model="ir.ui.view">
+        <field name="name">Invoicing Tasks</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <tree create="false">
+                <field name="category_id"/>
+                <field name="display_name"/>
+                <field name="stage_id"/>
+                <field name="effective_hours" sum="Total"/>
+                <field name="time_spent" sum="Total"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="project_task_dashboard_invoice_action" model="ir.actions.act_window">
         <field name="name">Invoicing Tasks</field>
         <field name="type">ir.actions.act_window</field>
@@ -233,9 +247,9 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='order_line']//form//field[@name='state']" position="after">
-                <div groups="base.group_no_one">
+                <div>
                     <label for="initial_task_ids"/>
-                    <field name="initial_task_ids" context="{'tree_view_ref': 'project_task_invoice.task_invoice_tree'}"/>
+                    <field name="initial_task_ids" context="{'tree_view_ref': 'project_task_invoice.task_invoice_tree_private'}"/>
                 </div>
             </xpath>
         </field>
