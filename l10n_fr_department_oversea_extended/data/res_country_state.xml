@@ -1,0 +1,45 @@
+<odoo noupdate="1">
+
+    <record id="res_country_state_saint_pierre_et_miquelon" model="res.country.state">
+        <field name="code">PM</field>
+        <field name="country_id" ref="base.pm"/>
+        <field name="name">Saint-Pierre-et-Miquelon</field>
+    </record>
+
+    <record id="res_country_state_saint_barthelemy" model="res.country.state">
+        <field name="code">BL</field>
+        <field name="country_id" ref="base.bl"/>
+        <field name="name">Saint-Barthélemy</field>
+    </record>
+
+    <record id="res_country_state_saint_martin" model="res.country.state">
+        <field name="code">MF</field>
+        <field name="country_id" ref="base.mf"/>
+        <field name="name">Saint-Martin</field>
+    </record>
+
+    <record id="res_country_state_wallis" model="res.country.state">
+        <field name="code">WF</field>
+        <field name="country_id" ref="base.wf"/>
+        <field name="name">Wallis-et-Futuna</field>
+    </record>
+
+    <record id="res_country_state_polynesie_fr" model="res.country.state">
+        <field name="code">PF</field>
+        <field name="country_id" ref="base.pf"/>
+        <field name="name">Polynésie française</field>
+    </record>
+
+    <record id="res_country_state_nouvelle_caledonie" model="res.country.state">
+        <field name="code">NC</field>
+        <field name="country_id" ref="base.nc"/>
+        <field name="name">Nouvelle-Calédonie</field>
+    </record>
+
+    <record id="res_country_state_terres_australes_fr" model="res.country.state">
+        <field name="code">TF</field>
+        <field name="country_id" ref="base.tf"/>
+        <field name="name">Terres australes et antarctiques française</field>
+    </record>
+
+</odoo>
