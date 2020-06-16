@@ -22,6 +22,18 @@ msgid "Cancel"
 msgstr "Annuler"
 
 #. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_filter
+msgid "Category"
+msgstr "Catégorie"
+
+#. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_period_planning__count_completed_sale_planning
+msgid "Completed sale planning"
+msgstr "Plannings terminés"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_form
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_kanban
 #: selection:period.planning,sale_state:0
 #: selection:sale.planning,state:0
 msgid "Confirm"
@@ -31,6 +43,11 @@ msgstr "Confirmé"
 #: model:ir.actions.server,name:sale_planning.confirm_sale_forecast_action
 msgid "Confirm Forecast"
 msgstr "Confirmer le planning"
+
+#. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_period_planning__count_sale_planning
+msgid "Count Sale Planning"
+msgstr "Nombre de plannings"
 
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_confirm_period_wizard
@@ -167,6 +184,27 @@ msgid "Last year sales"
 msgstr "Ventes de la dernière année"
 
 #. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_period_planning__merge_sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.merge_purchase_planning
+msgid "Merge"
+msgstr "Fusionner"
+
+#. module: sale_planning
+#: model:ir.model,name:sale_planning.model_merge_purchase_planning_wizard
+msgid "Merge Planning Wizard"
+msgstr "Assistant de fusion de planning"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.merge_purchase_planning
+msgid "Merge purchase planning"
+msgstr "Fusionner le planning des achats"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.merge_purchase_planning
+msgid "New"
+msgstr "Nouveau"
+
+#. module: sale_planning
 #: model:ir.model.fields,field_description:sale_planning.field_sale_planning__period_id
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_filter
 msgid "Period"
@@ -188,6 +226,21 @@ msgstr "Planning des ventes"
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_filter
 msgid "Product"
 msgstr "Article"
+
+#. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_sale_planning__categ_id
+msgid "Product category"
+msgstr "Catégorie d'article"
+
+#. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_merge_purchase_planning_wizard__purchase_planning_id
+msgid "Purchase planning"
+msgstr "Planning d'achat"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_form
+msgid "Purchase planning"
+msgstr "Achats"
 
 #. module: sale_planning
 #: model:ir.model.fields,field_description:sale_planning.field_sale_planning__stock_qty
@@ -212,8 +265,14 @@ msgstr "Planning des ventes"
 
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_period_planning__merge_sale_period_id
 msgid "Sale Planning"
 msgstr "Planning des ventes"
+
+#. module: sale_planning
+#: model:ir.model.fields,field_description:sale_planning.field_period_planning__sale_state
+msgid "Sale State"
+msgstr "État des ventes"
 
 #. module: sale_planning
 #: model:ir.model,name:sale_planning.model_sale_planning_wizard
@@ -226,12 +285,27 @@ msgid "Sale State"
 msgstr "État des ventes"
 
 #. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_filter
+msgid "Sale forecast draft"
+msgstr "Planning des vente brouillon"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_filter
+msgid "Sale forecast statut"
+msgstr "État du planning des ventes"
+
+#. module: sale_planning
 #: model:ir.actions.act_window,name:sale_planning.sale_planning_view_action
 #: model:ir.model.fields,field_description:sale_planning.field_period_planning__sale_planning_ids
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_form
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_tree
 msgid "Sale planning"
 msgstr "Planning des ventes"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_form
+msgid "Sale planning"
+msgstr "Ventes"
 
 #. module: sale_planning
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_filter
@@ -249,9 +323,19 @@ msgid "State"
 msgstr "État"
 
 #. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_form
+msgid "The period already exist"
+msgstr "La période existe déjà"
+
+#. module: sale_planning
 #: model:ir.model.fields,field_description:sale_planning.field_sale_planning_wizard__year_id
 msgid "Year"
 msgstr "Année"
+
+#. module: sale_planning
+#: model_terms:ir.ui.view,arch_db:sale_planning.period_sale_planning_form
+msgid "products"
+msgstr "articles"
 
 #. module: sale_planning
 #: model_terms:ir.ui.view,arch_db:sale_planning.sale_planning_confirm_wizard
