@@ -1,5 +1,6 @@
 //@no-cookie-jar
-POST https://visum.serveo.net/yousign/webhook/procedure_started
+#POST https://127.0.0.1visum.serveo.net/yousign/webhook/procedure_started
+POST 127.0.0.1:8069/yousign/webhook/procedure_started
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json

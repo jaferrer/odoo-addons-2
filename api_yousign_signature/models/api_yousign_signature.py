@@ -111,7 +111,7 @@ class ApiYousignSignature(models.TransientModel):
                 'webhook': {
                     'procedure.started': [
                         {
-                            'url': base_url,
+                            'url': base_url + "/yousign/webhook/procedure_started",
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key
@@ -120,7 +120,7 @@ class ApiYousignSignature(models.TransientModel):
                     ],
                     'member.finished': [
                         {
-                            'url': base_url,
+                            'url': base_url + "/yousign/webhook/member_finished",
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key

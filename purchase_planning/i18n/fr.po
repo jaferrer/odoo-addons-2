@@ -16,6 +16,11 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_kanban
+msgid "Confirm"
+msgstr "Confirmer"
+
+#. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_confirm_wizard
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_create_view
 msgid "Cancel"
@@ -185,6 +190,13 @@ msgid "Minimum quantity"
 msgstr "Quantité minimum"
 
 #. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__name
+#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__name
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Name"
+msgstr "Nom"
+
+#. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
 msgid "Negative forecast quantity"
 msgstr "Quantité négative"
@@ -213,6 +225,11 @@ msgid "Period planning"
 msgstr "Planning des périodes"
 
 #. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__period_warning
+msgid "Period warning"
+msgstr "Alerte période"
+
+#. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
 msgid "Positive forecast quantity"
 msgstr "Quantité positive"
@@ -225,9 +242,19 @@ msgid "Product"
 msgstr "Article"
 
 #. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__category_ids
+msgid "Product Category"
+msgstr "Catégorie d'article"
+
+#. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__product_tmpl_id
 msgid "Product Template"
 msgstr "Modèle d'article"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__count_product
+msgid "Product count"
+msgstr "Nombre d'articles"
 
 #. module: purchase_planning
 #: model:ir.ui.menu,name:purchase_planning.menu_purchase_planning
@@ -250,16 +277,32 @@ msgid "Purchase State"
 msgstr "Etat d'achat"
 
 #. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Purchase forecast draft"
+msgstr "Planning d'achat brouillon"
+
+#. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Purchase forecast statut"
+msgstr "État du planning d'achat"
+
+#. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__purchase_order_line_id
 msgid "Purchase order line"
 msgstr "Ligne d'achat"
 
 #. module: purchase_planning
+#: model:ir.actions.act_window,name:purchase_planning.purchase_planning_create_action
 #: model:ir.actions.act_window,name:purchase_planning.purchase_planning_view_action
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__purchase_planning_ids
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_form
 msgid "Purchase planning"
 msgstr "Planning d'achat"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__count_completed_purchase_planning
+msgid "Purchase planning done"
+msgstr "Plannings terminés"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__stock_qty
