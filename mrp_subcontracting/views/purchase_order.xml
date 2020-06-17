@@ -9,7 +9,7 @@
             <button type="object"
                 name="action_view_picking_out"
                 class="oe_stat_button"
-                icon="fa-truck" attrs="{'invisible':[('picking_out_count','=','0')]}">
+                icon="fa-truck" attrs="{'invisible':[('picking_out_count', '=', 0)]}">
                 <field name="picking_out_count" widget="statinfo" string="Delivery" help="Outcoming Shipments"/>
             </button>
         </xpath>
