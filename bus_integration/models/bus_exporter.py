@@ -182,6 +182,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         return message_dict
 
     def _generate_msg_body(self, exported_records, model_name):
+        """
+        :param exported_records: recordset
+        :param model_name: 'model.name'
+        :return: the dictionary for message 'body'
+        """
         message_dict = {
             'body': {
                 'root': {},
@@ -201,7 +206,7 @@ class BusSynchronizationExporter(models.AbstractModel):
                 xml_id = self.get_xml_id(model_name, record.id)
                 if xml_id:
                     message_dict['body']['root'][model_name][record_id]['xml_id'] = xml_id
-            list_export_field = object_mapping.get_field_to_export()
+            list_export_field = object_mapping.get_field_to_export()  # list of field.object.mapping
             for field in list_export_field:
                 if field.type_field == 'many2many':
                     message_dict = self.fill_many2many(message_dict, record, field)
@@ -459,20 +464,7 @@ class BusSynchronizationExporter(models.AbstractModel):
 
     @api.model
     def send_dependency_synchronization_response(self, parent_message_id):
-        message = self.env['bus.message'].browse(parent_message_id)
-        message_dict = json.loads(message.message)
-        resp = collections.OrderedDict()
-        dest = message_dict.get('header').get('origin')
-        origin = message_dict.get('header').get('dest')
-        resp['header'] = message_dict.get('header')
-        resp['header']['origin'] = origin
-        resp['header']['dest'] = dest
-        resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
-        resp['body'] = {
-            'dependency': {},
-            'root': {},
-        }
-        demand = message_dict.get('body', {}).get('demand', {})
+        demand, message, resp = self._prepare_dependency_synchro_response(parent_message_id)
         try:
             model_content, dependancy_content, post_dep_content = self._generate_dependance_message(message, demand)
             resp['body']['root'] = model_content
@@ -487,6 +479,41 @@ class BusSynchronizationExporter(models.AbstractModel):
         new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
         new_msg.send(resp)
         return True
+
+    @api.model
+    def send_post_dependency_synchronization_response(self, parent_message_id):
+        demand, message, resp = self._prepare_dependency_synchro_response(parent_message_id)
+        try:
+            model_content, dependancy_content, post_dep_content = self._generate_dependance_message(message, demand)
+            resp['body']['root'] = model_content
+            resp['body']['dependency'] = dependancy_content
+            resp['body']['post_dependency'] = post_dep_content
+        except exceptions.ValidationError as validation_error:
+            message.add_log(validation_error.value, 'error')
+            return False
+
+        resp['header'].pop('cross_id_origin_parent_id')  # we need the responde msg to have no cross_id_origin_parent_id
+        # so the parent message (synchro message that triggered the post-dep request) will not be processed again
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
+        return True
+
+    def _prepare_dependency_synchro_response(self, parent_message_id):
+        message = self.env['bus.message'].browse(parent_message_id)
+        message_dict = json.loads(message.message)
+        resp = collections.OrderedDict()
+        dest = message_dict.get('header').get('origin')
+        origin = message_dict.get('header').get('dest')
+        resp['header'] = message_dict.get('header')
+        resp['header']['origin'] = origin
+        resp['header']['dest'] = dest
+        resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
+        resp['body'] = {
+            'dependency': {},
+            'root': {},
+        }
+        demand = message_dict.get('body', {}).get('demand', {})
+        return demand, message, resp
 
     def _generate_dependance_message(self, message, demand):
         model_content = {}

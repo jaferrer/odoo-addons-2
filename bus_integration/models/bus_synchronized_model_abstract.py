@@ -46,6 +46,8 @@ class BusSynchronizedModelAbstract(models.AbstractModel):
 
     @api.multi
     def write(self, vals):
-        if self._vals_contains_a_mapped_exported_field(vals):
+        # do not update write_date_bus if the update comes from synchro to avoid infinite loop of sync diff
+        if not self.env.context.get('bus_receive_transfer_external_key', False) and\
+                self._vals_contains_a_mapped_exported_field(vals):
             vals['write_date_bus'] = fields.Datetime.now()
         return super(BusSynchronizedModelAbstract, self).write(vals)
