@@ -9,10 +9,13 @@
                 <planning date_start="datetime_start"
                           date_stop="datetime_end"
                           headerOrientation="top"
-                          mode="month"
+                          mode="custom"
+                          custom_mode_start="(context_today() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+                          custom_mode_end="(context_today() + relativedelta(days=22)).strftime('%Y-%m-%d')"
                           default_group_by="department_id,employee_id"
                           show_current_time="false"
                           show_week_scale="true"
+                          field_event_type="display_type"
                           color_field="project_color"
                           event_open_popup="true"
                           min_zoom="7 * 24 * 60 /**Js expr for 1 week in minutes**/"
@@ -46,13 +49,14 @@
                         <field name="datetime_end" invisible="1"/>
                         <group>
                             <field name="project_id"/>
+                            <field name="nb_days"/>
                             <group>
-                                <field name="date_start"/>
-                                <field name="date_end"/>
+                                <field name="date_start" required="1"/>
+                                <field name="date_end" required="1"/>
                             </group>
                             <group>
-                                <field name="period_start"/>
-                                <field name="period_end"/>
+                                <field name="period_start" required="1" widget="label_selection"/>
+                                <field name="period_end" required="1"/>
                             </group>
                         </group>
                     </sheet>
@@ -70,6 +74,9 @@
                     <field name="project_id"/>
                     <field name="employee_id"/>
                     <separator/>
+                    <filter name="my_favorite_project" string="My Project" domain="[('project_id.favorite_user_ids', 'in', uid)]"/>
+                    <filter name="me" string="Me" domain="[('employee_id.user_id', '=', uid)]"/>
+                    <filter string="This Month" name="thismonth" domain="[('date_start','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
                     <filter name="grp_employee_id" string="Employee" context="{'group_by': 'employee_id'}"/>
                     <filter name="grp_project_id" string="Project" context="{'group_by': 'project_id'}"/>
                     <filter name="grp_department_id" string="Department" context="{'group_by': 'department_id'}"/>
@@ -84,6 +91,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//group[@name='misc']" position="inside">
                     <group string="Resource Planning">
+                        <field name="planning_name"/>
                         <field name="used_in_resource_planning"/>
                         <field name="color_code" widget="color"/>
                     </group>
@@ -99,8 +107,9 @@
                 <tree editable="top">
                     <field name="department_id"/>
                     <field name="employee_id"/>
-                    <field name="date_start"/>
-                    <field name="date_end"/>
+                    <field name="datetime_start"/>
+                    <field name="datetime_end"/>
+                    <field name="nb_days"/>
                     <field name="project_id"/>
                 </tree>
             </field>
@@ -116,6 +125,22 @@
                 <p class="oe_view_nocontent_create">
                     Click to add a new Planning.
                 </p>
+            </field>
+        </record>
+
+        <record id="resource_planning_cell_pivot" model="ir.ui.view">
+            <field name="name">resource_planning_cell_pivot</field>
+            <field name="model">resource.planning.cell</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <pivot>
+                    <field name="datetime_start" interval="month" type="col"/>
+                    <field name="datetime_start" interval="week" type="col"/>
+
+                    <field name="project_id" type="row"/>
+
+                    <field name="nb_days" type="measure"/>
+                </pivot>
             </field>
         </record>
 

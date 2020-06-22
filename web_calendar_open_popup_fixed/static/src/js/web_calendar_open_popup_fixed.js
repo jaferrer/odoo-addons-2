@@ -2,7 +2,7 @@ odoo.define('web_calendar_open_popup_fixed.CalendarView', function (require) {
     "use strict";
 
     var CalendarView = require('web_calendar.CalendarView');
-    var QuickCreate = require('web_calendar.widgets');
+    var QuickCreate = require('web_calendar.widgets.QuickCreate');
 
     var form_common = require('web.form_common');
 
@@ -10,7 +10,7 @@ odoo.define('web_calendar_open_popup_fixed.CalendarView', function (require) {
         return _.isUndefined(value) || _.isNull(value);
     }
 
-    QuickCreate.QuickCreate.include({
+    QuickCreate.include({
 
         start: function (action_id) {
             var self = this;
