@@ -76,7 +76,13 @@ class ProductPackaging(models.Model):
     @api.depends('package_carrier_type')
     def _compute_provider_id(self):
         for rec in self:
-            rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.package_carrier_type)
+            if rec.package_carrier_type != 'other':
+                rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.package_carrier_type)
+            else:
+                provider_ids = self.env['delivery.carrier.provider']._get_by_code(rec.package_carrier_type)
+                for provider in provider_ids:
+                    if rec.name.endswith(provider.name):
+                        rec.provider_id = provider
 
 
 class DeliveryCarrierDeliveryTracking(models.Model):
@@ -110,7 +116,13 @@ class DeliveryCarrierDeliveryTracking(models.Model):
     @api.depends('delivery_type')
     def _compute_carrier_id(self):
         for rec in self:
-            rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.delivery_type)
+            if rec.delivery_type != 'other':
+                rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.delivery_type)
+            else:
+                provider_ids = self.env['delivery.carrier.provider']._get_by_code(rec.delivery_type)
+                for provider in provider_ids:
+                    if rec.name.endswith(provider.name):
+                        rec.provider_id = provider
 
     @api.multi
     def _compute_number_related(self):
