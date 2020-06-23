@@ -15,6 +15,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
     var session = require('web.session');
     const formats = require('web.formats');
     var data_manager = require('web.data_manager');
+    var Sidebar = require('web.Sidebar');
+    var pyeval = require('web.pyeval');
 
     var _t = core._t;
     var _lt = core._lt;
@@ -74,10 +76,15 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.showMajorLabels = utils.toBoolElse(attrs.show_major_labels || '', true);
                 this.showWeekScale = utils.toBoolElse(attrs.show_week_scale || '', false);
                 this.horizontalScroll = utils.toBoolElse(attrs.horizontal_scroll || '', false);
+                this.inUtc = utils.toBoolElse(attrs.use_utc || '', true);
+                this.pager = utils.toBoolElse(attrs.pager || '', true);
+                this.multiSelect = utils.toBoolElse(attrs.multi_select || '', false);
+                this.showSideBar = utils.toBoolElse(attrs.show_sidebar || '', false);
                 this.headerOrientation = attrs['headerOrientation']
                 this.overlap_field = attrs['overlap_field']
                 this.readonly_field = attrs['readonly_field']
                 this.delegate_model_field = attrs['delegate_model_field']
+                this.min_height = attrs['min_height'] || 300
 
                 this.defaultColor = attrs.default_color_code; //Default value, same as colors="'#COLOR_CODE':True"
                 this.parse_colors(attrs.colors) //or a python expression '#COLOR_CODE1': expr;'#COLOR_CODE2':expr2; ...
@@ -100,11 +107,15 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.create = utils.toBoolElse(attrs.create || '', true);
                 this.unlink = utils.toBoolElse(attrs.unlink || '', true);
                 this.editable = utils.toBoolElse(attrs.editable || '', true);
-                this.swap_element = utils.toBoolElse(attrs.swap_enable || '', false);
+                this.swapEnable = utils.toBoolElse(attrs.swap_enable || '', false);
                 this.disableClickOnGroup = utils.toBoolElse(attrs.disable_click_on_group || '', false);
 
                 this.zoomKey = attrs.zoomKey || '';
                 this.mode = attrs.mode || attrs.default_window || 'fit';
+                if(this.mode === 'custom'){
+                    this.exprCustomStart = attrs.custom_mode_start
+                    this.exprCustomEnd = attrs.custom_mode_end
+                }
                 this.snapTime = attrs.minute_snap ? Function('"use strict";return (' + attrs.minute_snap + ')')() : 0;
                 this.min_zoom = attrs.min_zoom ? Function('"use strict";return (' + attrs.min_zoom + ')')() : null;
                 this.max_zoom = attrs.max_zoom ? Function('"use strict";return (' + attrs.max_zoom + ')')() : null;
@@ -133,6 +144,23 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     this.open_popup_action = attrs.event_open_popup;
                 }
 
+            },
+
+            render_sidebar: function ($node) {
+                console.log(this.sidebar, this.options.sidebar, this.showSideBar)
+                if (this.showSideBar && !this.sidebar && this.options.sidebar) {
+                    this.sidebar = new Sidebar(this, {editable: this.is_action_enabled('edit')});
+                    if (this.fields_view.toolbar) {
+                        this.sidebar.add_toolbar(this.fields_view.toolbar);
+                    }
+                    var canDuplicate = this.is_action_enabled('create') && this.is_action_enabled('duplicate');
+                    this.sidebar.add_items('other', _.compact([
+                        this.is_action_enabled('delete') && {label: _t('Delete'), callback: this.on_button_delete},
+                        canDuplicate && {label: _t('Duplicate'), callback: this.on_button_duplicate}
+                    ]));
+                    this.sidebar.appendTo($node);
+                    this.sidebar.do_hide();
+                }
             },
 
             get_perm: function (name) {
@@ -185,6 +213,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 } else {
                     this.$(".scale_button").addClass('o_hidden')
                 }
+                if (this.pager) {
+                    this.$(".pager").removeClass('o_hidden')
+                    this.$(".timeline2_pager_previous").click(() => this.page_previous())
+                    this.$(".timeline2_pager_next").click(() => this.page_next())
+                }
                 this.$('#swap_button').click(() => this.swap_action())
 
                 this.current_window = {
@@ -215,20 +248,19 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     });
             },
 
+
             destroy: function () {
                 return this._super.apply(this, arguments);
             },
 
             _get_option_timeline: function () {
-                // const height = $(window).height() - this.$timeline.offset().top;
                 let options = {
                     groupOrder: this.group_order,
                     selectable: true,
-                    // height: 700,
+                    minHeight: this.min_height,
                     showCurrentTime: this.showCurrentTime,
                     showMinorLabels: this.showMinorLabels,
                     showMajorLabels: this.showMajorLabels,
-                    horizontalScroll: this.horizontalScroll,
                     orientation: this.headerOrientation || 'both',
                     onAdd: this.on_add,
                     onMove: this.on_move,
@@ -238,11 +270,15 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     stack: this.stack,
                     stackSubgroups: this.stackSubgroups,
                     showWeekScale: this.showWeekScale,
-                    moment: function (date) {
-                        return vis.moment(date).utc();
-                    },
+                    verticalScroll: true,
+
                 };
-                if (this.swap_element) {
+                if(this.inUtc){
+                    options.moment = function (date) {
+                        return vis.moment(date).utc();
+                    }
+                }
+                if (this.swapEnable || this.multiSelect) {
                     options.multiselect = true;
                 }
                 if (this.axis) {
@@ -312,6 +348,13 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                             start = new moment().startOf('month');
                             end = new moment().endOf('month');
                             break;
+                        case 'custom':
+                            const context = _.extend({}, {
+                                uid: session.uid,
+                                current_date: moment().format('YYYY-MM-DD')
+                            });
+                            start = pyeval.py_eval(this.exprCustomStart, pyeval.context())
+                            end = pyeval.py_eval(this.exprCustomEnd, pyeval.context())
                     }
                     if (end && start) {
                         options['start'] = start;
@@ -345,10 +388,28 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 return options
             },
+            on_attach_callback: function () {
+                this._compute_height()
+            },
+            on_data_loaded: function (result) {
+                this._compute_height()
+            },
+            _compute_height: function () {
+                let height = this.$el.parent().height();
+                height -= this.$el.find('.oe_timeline2_buttons').height();
+                height -= this.$el.find('#timeline2_drag_item').height()
+                height -= 10
+                if (height > this.min_height && this.$timeline.height() > height) {
+                    this.timeline.setOptions({
+                        height: height + "px"
+                    });
+                }
+            },
 
             init_timeline: function () {
                 this.timeline = new vis.Timeline(this.$timeline.empty().get(0));
-                this.timeline.setOptions(this._get_option_timeline());
+                const options = this._get_option_timeline()
+                this.timeline.setOptions(options);
                 this.timeline.setGroups(this.visGroups);
                 this.timeline.setItems(this.visData);
                 if (this.mode && this['on_scale_' + this.mode + '_clicked']) {
@@ -360,7 +421,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (this.default_group_by) {
                     this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.default_group_by))
                 }
-
             },
 
             _init_drap_and_drop: function (drag_data) {
@@ -550,7 +610,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     // self.convert_data_to_timeline(res, ...it)
                     this.current_search.lastGroupBy = _.last(this.current_search.groupBys);
                     this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.current_search.lastGroupBy));
-                    this.searchDeferred = this._load_all_data();
+                    this.searchDeferred = this._load_all_data().done((...res) => this.on_data_loaded(res));
                     return this.searchDeferred;
                 });
             },
@@ -838,18 +898,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     callback(null)
                 })
                 dialog.open();
-
-
                 return false;
             },
 
             _create: function (data, options = {}) {
                 return this.dataset.create(data, options)
                     .then(result => {
-                        return this._internal_do_search(
+                        this._internal_do_search(
                             [['id', '=', result]],
                             this.current_search.context
                         )
+                        return false;
                     })
             },
             _create_delegate: function (data, field_def, auto_reload = true) {
@@ -865,10 +924,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     deferred.then(result => {
                         if (!result || !Array.isArray(result) || !result.length) return;
                         this.visData.remove(result);
-                        return this._internal_do_search(
-                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
+                        this._internal_do_search(
+                            [...this.current_search.domain, ['id', 'in', result]],
                             this.current_search.context,
                         )
+                        return result;
                     })
                 }
                 return deferred;
@@ -945,7 +1005,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         if (!result || !Array.isArray(result) || !result.length) return;
                         this.visData.remove(result);
                         return this._internal_do_search(
-                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
+                            [...this.current_search.domain, ['id', 'in', result]],
                             this.current_search.context,
                         )
                     })
@@ -1051,9 +1111,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     start: new moment(),
                     end: new moment().add(24, 'hours')
                 };
-                if (!this.display_scale_button && this.mode !== 'fit') {
+                if (!this.display_scale_button && this.mode !== 'fit' && this.mode !== 'custom') {
                     this.current_window.start = new moment().startOf(this.mode);
                     this.current_window.end = moment().endOf(this.mode);
+                }
+                if(!this.display_scale_button && this.mode === 'custom'){
+                    const context = _.extend({}, {
+                        uid: session.uid,
+                        current_date: moment().format('YYYY-MM-DD')
+                    });
+                    this.current_window.start = pyeval.py_eval(this.exprCustomStart, pyeval.context())
+                    this.current_window.end = pyeval.py_eval(this.exprCustomEnd, pyeval.context())
                 }
 
                 if (this.timeline) {
@@ -1081,12 +1149,59 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (this.timeline) {
                     this.current_window = this.timeline.getWindow();
                     this.current_window.end = moment(this.current_window.start).add(1, factor);
+                    this.mode = factor;
+                    this.timeline.setWindow(this.current_window);
+                }
+            },
+
+            page_previous: function () {
+                if (this.timeline) {
+                    const current_window = this.timeline.getWindow();
+                    const start = new Date(current_window.start);
+                    const end = new Date(current_window.end);
+                    this.current_window.start = new Date(start.valueOf() - (end - start));
+                    this.current_window.end = start;
+                    this.timeline.setWindow(this.current_window);
+                }
+            },
+
+            page_next: function () {
+                if (this.timeline) {
+                    const current_window = this.timeline.getWindow();
+                    const start = new Date(current_window.start);
+                    const end = new Date(current_window.end);
+                    this.current_window.start = end;
+                    this.current_window.end = new Date(end.valueOf() + (end - start));
                     this.timeline.setWindow(this.current_window);
                 }
             },
 
             _on_select: function (evt) {
-                this.$('#swap_button').toggleClass('o_hidden', evt.items.length !== 2)
+                if (this.swapEnable){
+                    this.$('#swap_button').toggleClass('o_hidden', evt.items.length !== 2)
+                }
+                if (this.sidebar) {
+                    console.log("On select", evt.items)
+                    if (evt.items.length > 0) {
+                        console.log('show')
+                        this.sidebar.do_show();
+                    } else {
+                        console.log('hide')
+                        this.sidebar.do_hide();
+                    }
+
+                }
+            },
+
+            get_selected_ids: function () {
+                if(!this.timeline){
+                    return [];
+                }
+                const selected = this.timeline.getSelection();
+                if (selected.length <= 0) {
+                    return [];
+                }
+                return this.visData.get(selected).map((el) => el.evt.id);
             },
 
             _swap_write_data: function (group_by_field_def, source, target) {

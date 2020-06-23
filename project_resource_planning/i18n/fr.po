@@ -148,7 +148,7 @@ msgstr "Date de début"
 #. module: project_resource_planning
 #: model:ir.model.fields,field_description:project_resource_planning.field_resource_planning_cell_datetime_start
 msgid "Start Datetime"
-msgstr "Date et heure de fin"
+msgstr "Date et heure de début"
 
 #. module: project_resource_planning
 #: model:ir.model.fields,field_description:project_resource_planning.field_project_project_used_in_resource_planning

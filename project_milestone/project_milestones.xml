@@ -76,7 +76,7 @@
                     <field name="should_be_closed_at"/>
                     <filter name="open" string="Open" domain="[('state', '!=', 'closed')]"/>
                     <group expand="0" string="Group By...">
-                        <filter string="Project" icon="terp-stock_align_left_24" domain="[]"
+                        <filter name="grp_project_id" string="Project" icon="terp-stock_align_left_24" domain="[]"
                                 context="{'group_by':'project_id'}"/>
                     </group>
                 </search>
@@ -144,7 +144,8 @@
                         </group>
                         <notebook>
                             <page string="Tâches" name="task_page">
-                                <field name="task_ids" nolabel="1" context="{'default_project_id': project_id, 'default_milestone_id': active_id}">
+                                <field name="task_ids" nolabel="1"
+                                       context="{'default_project_id': project_id, 'default_milestone_id': active_id}">
                                     <tree nolabel="1" create="false" delete="false">
                                         <field name="name"/>
                                         <field name="user_id"/>
@@ -170,9 +171,79 @@
             <field name="type">timeline2</field>
             <field name="arch" type="xml">
                 <timeline2 date_start="qualif_should_be_livred_at"
-                          date_stop="should_be_closed_at"
-                          default_group_by="project_id"
-                          colors="#ec7063: project_id == False;"/>
+                           date_stop="should_be_closed_at"
+                           default_group_by="project_id"
+                           colors="#ec7063: project_id == False;"/>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_milestone_kanban">
+            <field name="name">project.milestone.kanban</field>
+            <field name="model">project.milestone</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="project_id"/>
+                    <field name="state"/>
+                    <field name="start_date"/>
+                    <field name="should_be_closed_at"/>
+                    <field name="livred_in_qualif_at"/>
+                    <field name="nb_tasks"/>
+                    <field name="nb_tasks_done"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_details">
+                                    <div class="row">
+                                        <div class="col-sm-6 pull-left">
+                                            <field name="state" widget="kanban_label_selection"/>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="pull-right">
+                                                <field name="project_id" widget="kanban_label_selection"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h3>
+                                        <field name="name"/>
+                                    </h3>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Start:</strong>
+                                                    <field name="start_date"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Qualif:</strong>
+                                                    <field name="livred_in_qualif_at"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Prod:</strong>
+                                                    <field name="should_be_closed_at"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" name="gauge_row">
+                                        <div class="col-sm-6" name="gauge_task">
+                                            <a name="see_tasks" type="object">
+                                                <field name="nb_tasks_done" widget="gauge"
+                                                       style="width:120px;height:90;cursor:pointer;"
+                                                       options="{'max_field':'nb_tasks'}">Tâches faites
+                                                </field>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
             </field>
         </record>
 
@@ -180,8 +251,8 @@
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form,timeline2</field>
-            <field name="context">{'search_default_open': True}</field>
+            <field name="view_mode">kanban,tree,form,timeline2</field>
+            <field name="context">{'search_default_open': True, 'default_default_grp_project_id': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click to add a new Milestone.
