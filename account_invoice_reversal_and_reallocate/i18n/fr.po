@@ -2,9 +2,9 @@
 
 
 #. module: account_invoice_reversal_and_reallocate
-#: field:account.move,ligne_compte_tiers:0
-msgid "Has a third party line of account"
-msgstr "Possède une ligne de compte tiers"
+#: field:account.move,ligne_compte_tiers_avec_facture:0
+msgid "Has a third party line of account with an invoice"
+msgstr "Possède une ligne de compte tiers avec une facture"
 
 #. module: account_invoice_reversal_and_reallocate
 #: field:account.move,reimputation_parent_id:0
@@ -23,9 +23,9 @@ msgid "Is in re-allocate : Enter your final journal entries, all lines of the pr
 msgstr "Est en réimputation : Saisir votre écriture finales, toutes les lignes de l'écriture précédentes seront inversées (hors ligne de compte de tiers)"
 
 #. module: account_invoice_reversal_and_reallocate
-#: field:account.move.line,compte_tiers:0
-msgid "Third party line of account"
-msgstr "Ligne de compte de tiers"
+#: field:account.move.line,compte_tiers_avec_facture:0
+msgid "Third party line of account with an invoice"
+msgstr "Ligne de compte de tiers avec une facture"
 
 #. module: account_invoice_reversal_and_reallocate
 #: field:account.move,extourne_parent_id:0
