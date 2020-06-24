@@ -28,3 +28,12 @@ class MoUpdateMrpProduction(models.Model):
         return self.search([('id', 'in', self.ids),
                             ('backorder_id', '=', False),
                             ('state', 'not in', ['draft', 'done', 'cancel'])])
+
+    @api.model
+    def action_produce(self, production_id, production_qty, production_mode, wiz=False):
+        result = super(MoUpdateMrpProduction, self).action_produce(production_id, production_qty,
+                                                                   production_mode, wiz=wiz)
+        production = self.browse(production_id)
+        if production.state not in ['done', 'cancel']:
+            production.update_moves()
+        return result
