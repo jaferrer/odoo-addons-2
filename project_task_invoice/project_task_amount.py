@@ -72,7 +72,6 @@ class ProjectTaskInvoice(models.Model):
         domain=[('order_id.state', '!=', 'cancel')]
     )
     product_to_invoice_id = fields.Many2one('product.product', u"Product To Invoice")
-    price = fields.Float(u"Price of this task", compute='_compute_task_price')
     initial_sale_id = fields.Many2one('sale.order', u"Sale Order")
     stage_is_delivered = fields.Boolean(u"Is Delivered", related='stage_id.is_delivered', store=True)
 
@@ -84,20 +83,6 @@ class ProjectTaskInvoice(models.Model):
     def _onchange_initial_sale_id(self):
         if self.initial_sale_line_id.order_id != self.initial_sale_id:
             self.initial_sale_line_id = False
-
-    @api.multi
-    @api.depends('initial_sale_line_id', 'product_to_invoice_id')
-    def _compute_task_price(self):
-        for rec in self:
-            if rec.initial_sale_line_id:
-                rec.price = rec.initial_sale_line_id.price_unit * rec.time_spent
-            elif rec.product_to_invoice_id:
-                rec.price = rec.product_to_invoice_id.with_context(
-                    partner_id=self.project_partner_id.id,
-                    pricelist=self.project_partner_id.property_product_pricelist.id
-                ).price * rec.time_spent
-            else:
-                rec.price = 0
 
     @api.multi
     def action_mark_as_delivered(self):
