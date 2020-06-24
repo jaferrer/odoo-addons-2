@@ -225,7 +225,7 @@ class UpdateChangeProductionQty(models.TransientModel):
                 order = self.env['mrp.production'].browse(self.env.context.get('active_id'))
                 # Raise if MO is linked to a procurement, in order not to allow a difference between procurement and
                 # its origin moves (which are production moves of the MO)
-                if order.procurement_id:
+                if order.procurement_id and not self.env.context.get('force_mo_qty_change'):
                     raise ForbiddenChangeQtyMO(order.id,
                                                t(u"%s: impossible to change the quantity of a manufacturing order "
                                                  u"created by Odoo. Please create an extra manufacturing order or "
