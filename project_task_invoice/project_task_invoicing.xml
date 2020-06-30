@@ -100,7 +100,6 @@
                                    attrs="{'invisible':[('initial_sale_id', '=', False)]}"
                                    domain="[('order_id', '=', initial_sale_id)]"/>
                             <field name="product_to_invoice_id" attrs="{'invisible': [('initial_sale_line_id', '!=', False)]}"/>
-                            <field name="price"/>
                         </group>
                         <group>
                             <label for="date_delivered"/>

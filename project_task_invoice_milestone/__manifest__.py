@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Task Invoicing',
+    'name': 'Task Invoicing Milestone',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
