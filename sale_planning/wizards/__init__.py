@@ -18,3 +18,4 @@
 #
 
 from . import merge_purchase_planning_wizard
+from . import add_product_planning_wizard
