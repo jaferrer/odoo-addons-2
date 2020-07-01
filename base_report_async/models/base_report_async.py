@@ -13,6 +13,8 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 from unidecode import unidecode
 
+from genshi.template.eval import UndefinedError
+
 from odoo.addons.queue_job.job import job
 from odoo.addons.http_routing.models.ir_http import slugify
 
@@ -91,7 +93,7 @@ class IrActionsReport(models.Model):
                     new_attachment = self.get_attachment_base64_encoded(record_to_print)
                     attachments_to_zip |= new_attachment
                 except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
-                        ValueError) as error:
+                        ValueError, UndefinedError) as error:
                     self.send_failure_mail(error)
                     return
             zip_file_name = '%s' % (slugify(self.name.replace('/', '-')) or 'documents')
@@ -108,7 +110,8 @@ class IrActionsReport(models.Model):
         else:
             try:
                 attachment = self.get_attachment_base64_encoded(records_to_print)
-            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm, ValueError) as error:
+            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
+                    ValueError, UndefinedError) as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
