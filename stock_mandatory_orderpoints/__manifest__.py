@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import ir_action_report
-from . import base_report_async
+{
+    'name': 'Stock Mandatory Orderpoints',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Warehouse',
+    'depends': ['stock', 'queue_job'],
+    'description': """
+Stock Mandatory OrderPoint
+==========================
+
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'res_config.xml',
+        'cron.xml'
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

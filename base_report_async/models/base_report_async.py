@@ -99,10 +99,11 @@ class IrActionsReport(models.Model):
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                 for att in attachments_to_zip:
-                    zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
-                                      base64.b64decode(att.with_context(bin_size=False).datas))
-            with open(zip_file_path, 'r') as zf:
-                attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name,
+                    b64_data = att.with_context(bin_size=False).datas
+                    zip_file.writestr(att.datas_fname.replace(os.sep, '-'), base64.b64decode(b64_data))
+            with open(zip_file_path, 'rb') as zf:
+                b64_data = base64.b64encode(zf.read())
+                attachment = self._create_temporary_report_attachment(b64_data, zip_file_name,
                                                                       force_mimetype='application/zip')
         else:
             try:
