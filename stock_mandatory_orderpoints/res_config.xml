@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="stock_mandatory_orderpoints_res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">stock_mandatory_orderpoints_res_config_settings_view_form</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[div/div/div/field[@name='module_stock_barcode']]" position="inside">
+                    <h2>Required OrderPoints</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <label for="mandatory_orderpoint_location_ids"/>
+                                <field name="mandatory_orderpoint_location_ids" widget="many2many_tags"/>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="stock_mandatory_orderpoints_rule" model="ir.ui.view">
+            <field name="name">stock_mandatory_orderpoints_rule</field>
+            <field name="model">stock.location.route</field>
+            <field name="inherit_id" ref="stock.stock_location_route_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <sheet position="inside">
+                    <separator string="OrderPoints Required For Location"/>
+                    <field name="mandatory_orderpoint_location_ids" widget="many2many_tags"/>
+                </sheet>
+            </field>
+        </record>
+
+    </data>
+</openerp>
