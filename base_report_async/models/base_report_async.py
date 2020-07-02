@@ -93,7 +93,7 @@ class IrActionsReport(models.Model):
                     new_attachment = self.get_attachment_base64_encoded(record_to_print)
                     attachments_to_zip |= new_attachment
                 except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
-                        ValueError, UndefinedError) as error:
+                        ValueError, UndefinedError, AttributeError, TypeError) as error:
                     self.send_failure_mail(error)
                     return
             zip_file_name = '%s' % (slugify(self.name.replace('/', '-')) or 'documents')
@@ -111,7 +111,7 @@ class IrActionsReport(models.Model):
             try:
                 attachment = self.get_attachment_base64_encoded(records_to_print)
             except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
-                    ValueError, UndefinedError) as error:
+                    ValueError, UndefinedError, AttributeError, TypeError) as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
