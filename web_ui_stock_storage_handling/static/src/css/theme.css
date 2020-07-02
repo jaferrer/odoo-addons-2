@@ -1,0 +1,17 @@
+.choose-button {
+    width: 300px;
+    height: 200px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.space-between {
+    margin-right: 40px;
+}
+
+.ask-direct-clean-button {
+    width: 150px;
+    height: 100px;
+    font-size: 22px;
+    font-weight: bold;
+}

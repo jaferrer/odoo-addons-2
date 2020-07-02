@@ -19,7 +19,10 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
         init: function (parent, action, options) {
             this._super(parent, action, options);
             this.pickingTypeId = parseInt(options.picking_type_id || "0");
+            this.storageScreen = options.storage_screen || false;
             this.state = 1;
+            // On a un nom de picking lorsque l'on veut ranger directement un chariot qu'on vient de créer
+            this.pickingName = options.picking_name || "";
             this.pickingId = "0";
             this.productId = "0";
             this.productBarcode = "";
@@ -120,6 +123,15 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 this.$('#search_tracking').val('');
                 this.$('#search_tracking').focus()
             });
+            // Si on arrive sur cet écran depuis le gestionnaire de chariot
+            if (this.storageScreen) {
+                this.$('#back_to_handling_screen').removeClass('d-none');
+            }
+            this.$('#back_to_handling_screen').click(() => { this.back_to_handling_screen() });
+            // Si on arrive sur cet écran après la création d'un chariot
+            if (this.pickingName) {
+                this.scan(this.pickingName)
+            }
         },
         _set_view_title: function (title) {
             $("#view_title").text(title);
@@ -358,6 +370,11 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             rpc.query(do_validate_scan_params).then(() => {
                 window.history.back()
             })
+        },
+        back_to_handling_screen: function () {
+            // supprime la vue de scan
+            this.$('#big_helper').parent().parent().empty();
+            this.do_action('stock.ui.storage_handling', {'picking_type_id': this.pickingTypeId});
         }
     });
 

@@ -40,6 +40,9 @@
         <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
             <div class="container">
                 <div class="navbar-header navbar-form navbar-left">
+                    <button id="back_to_handling_screen"
+                            type="button"
+                            class="btn btn-primary button-back-to-choice d-none fa fa-arrow-left"/>
                     <span id="view_title" style="color:white;"/>
                 </div>
                 <div class="navbar-header navbar-form navbar-left">
@@ -52,14 +55,14 @@
                     <button id="validate_scan" type="button"
                             class="btn btn-success btn-margin-left pull-right js_validate_scan">Valider
                     </button>
-                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    <button id="_exit" type="button" class="btn btn-danger btn-margin-left pull-right">Quitter</button>
                 </div>
             </div>
         </nav>
 
         <div class="container">
             <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'ecran de Storage!</h1>
+                <h1>Bienvenue dans l'écran de rangement de chariot</h1>
                 <p>Veuiller scanner un bon de rangement pour commencer</p>
                 <p>Ou</p>
                 <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
@@ -104,7 +107,7 @@
                     </span>
                 </div>
             </div>
-            <div class="row breadcrumb">
+            <div id="breadcrumb" class="row breadcrumb">
                 <nav aria-label="breadcrumb">
                     <ul class="breadcrumb">
                         <li id="wait_product" class="breadcrumb-item">Attente article</li>

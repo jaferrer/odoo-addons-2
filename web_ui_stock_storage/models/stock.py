@@ -76,7 +76,7 @@ class StockPickingType(models.Model):
 
     @api.multi
     def web_ui_get_storage_validate_move(self, picking_id):
-        self.env['picking.type'].browse(picking_id).action_done()
+        self.env['stock.picking.type'].browse(picking_id).action_done()
 
 
 class StockMoveLine(models.Model):

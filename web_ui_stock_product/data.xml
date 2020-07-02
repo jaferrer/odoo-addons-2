@@ -3,7 +3,7 @@
     <data>
 
         <record id="web_ui_action_product" model="stock.picking.type.web.ui.action">
-            <field name="name">Écran de réception</field>
+            <field name="name">Écran de création de chariot</field>
             <field name="action">stock.ui.product</field>
         </record>
 

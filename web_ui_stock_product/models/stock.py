@@ -95,6 +95,10 @@ class StockPickingTypeWebUiStockProduct(models.Model):
                 'location_dest_id': self.env.ref('stock.stock_location_stock').id,
             })
         moves._action_confirm()
+        picking = moves[0].picking_id
+        picking.action_assign()
+
+        return picking.name
 
 
 class ProductProductWebUiStockProduct(models.Model):

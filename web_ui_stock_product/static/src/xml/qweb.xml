@@ -6,6 +6,9 @@
         <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
             <div class="container">
                 <div class="navbar-header navbar-form navbar-left">
+                    <button id="back_to_handling_screen"
+                            type="button"
+                            class="btn btn-primary button-back-to-choice d-none fa fa-arrow-left"/>
                     <span id="view_title" style="color:white;"/>
                 </div>
                 <div class="navbar-header navbar-form navbar-left button-group" role="group"
@@ -17,14 +20,14 @@
                             class="btn btn-success btn-margin-left pull-right js_validate_scan">
                         Valider
                     </button>
-                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    <button id="_exit" type="button" class="btn btn-danger btn-margin-left pull-right">Quitter</button>
                 </div>
             </div>
         </nav>
 
         <div class="container">
             <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'ecran de scanner d'article!</h1>
+                <h1>Bienvenue dans l'écran de création de chariot</h1>
                 <p>Veuiller scanner un code barre pour commencer</p>
                 <p>Ou</p>
                 <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
@@ -259,7 +262,7 @@
     </t>
 
     <t t-name="ScanProductRow.Error">
-        <tr class="danger" data-error-row="1">
+        <tr id="error_text" class="danger" data-error-row="1">
             <td>
                 <t t-esc="widget.error.title"/>
             </td>
