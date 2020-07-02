@@ -37,6 +37,7 @@ class PeriodPlanning(models.Model):
                                                    string="Completed sale planning")
     merge_sale_planning = fields.Boolean("Merge")
     merge_sale_period_id = fields.Many2one('period.planning', "Sale Planning")
+    count_product = fields.Integer("Product count", readonly=1, compute='_count_product')
 
     @api.multi
     def _compute_sale_planning(self):
@@ -61,7 +62,7 @@ class PeriodPlanning(models.Model):
         for rec in self:
             list_cat = self._get_all_category(rec.category_ids)
             rec.category_ids = [(6, 0, list_cat)]
-            rec.count_product = rec._count_product()
+            rec._count_product()
             rec.period_warning = False
             res = self.env['period.planning'].search(
                 [('season_id', '=', rec.season_id.id), ('year_id', '=', rec.year_id.id)])
@@ -150,7 +151,7 @@ class PeriodPlanning(models.Model):
             'name': 'Sale Forecast Products',
             'res_model': 'product.product',
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'form',
             'context': self.env.context,
             'domain': [('id', 'in', products.ids)],
             'target': 'current',
@@ -180,6 +181,22 @@ class PeriodPlanning(models.Model):
                 'context': ctx,
             }
         self.create_purchase_planning()
+
+    @api.multi
+    def add_product(self):
+        view = self.env.ref('sale_planning.add_product_planning_wizard')
+        ctx = {'default_period_id': self.id}
+        return {
+            'name': _t('Add product'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree',
+            'res_model': 'add.product.planning.wizard',
+            'views': [(view.id, 'form')],
+            'view_id': view.id,
+            'target': 'new',
+            'context': ctx,
+        }
 
     @api.multi
     def create_purchase_planning(self):
@@ -240,6 +257,15 @@ class PeriodPlanning(models.Model):
             'context': self.env.context,
             'domain': [('period_id', '=', purchase_planning.id)],
         }
+
+    @api.multi
+    def merge_products(self, product_ids):
+        return self.env['sale.planning'].create([{
+            'period_id': self.id,
+            'product_id': product.id,
+            'state': 'draft',
+            'categ_id': product.categ_id.id,
+        } for product in product_ids])
 
     @api.model
     def _get_dict_product(self, sale_plannings):

@@ -41,6 +41,7 @@ Settle the sale planning
         'views/period_planning.xml',
         'wizards/merge_purchase_planning_wizard.xml',
         'views/sale_planning_menu.xml',
+        'wizards/add_product_planning_wizard.xml',
     ],
     'demo': [],
     'test': [],

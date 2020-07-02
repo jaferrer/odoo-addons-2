@@ -18,7 +18,7 @@
 #
 from odoo import fields, models, api
 
-_PROVIDER = [('other', "Other")]
+_PROVIDER = [('manual', "Manual")]
 
 
 class DeliveryCarrierProvider(models.Model):
@@ -39,8 +39,13 @@ class DeliveryCarrierProvider(models.Model):
     send_shipping_ok = fields.Boolean("Can send shipping", compute='_compute_integration')
     get_default_custom_package_code_ok = fields.Boolean("Can get default custom package code",
                                                         compute='_compute_integration')
-    carrier = fields.Selection(_PROVIDER, "Provider", required=True, default='other')
+    carrier = fields.Selection(_PROVIDER, "Provider", required=True)
     delivery_carrier_ids = fields.One2many('delivery.carrier', 'provider_id', string="Delivery carriers")
+
+    _sql_constraints = [
+        ('carrier_unique', 'UNIQUE(carrier)', 'The Carrier Code must be unique'),
+        ('carrier_not_manual', "CHECK(carrier != 'manual')", "The Carrier Code can't be manual")
+    ]
 
     @api.multi
     def write(self, vals):

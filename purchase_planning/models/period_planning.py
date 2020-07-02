@@ -39,7 +39,6 @@ class PeriodPlanning(models.Model):
     count_purchase_planning = fields.Integer(compute='_compute_purchase_planning')
     category_ids = fields.Many2many('product.category', string="Product Category")
     period_warning = fields.Boolean("Period warning")
-    count_product = fields.Integer("Product count", readonly=1, compute='_count_product')
     count_completed_purchase_planning = fields.Integer(compute='_compute_completed_purchase_planning',
                                                        string="Purchase planning done")
 

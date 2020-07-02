@@ -84,6 +84,7 @@
                         <field name="name"
                                attrs="{'invisible':[('period_warning', '=', False)], 'required': [('merge_sale_planning', '=', False), ('period_warning', '=', True)]}"/>
                         <field name="category_ids" widget="many2many_tags"/>
+                        <button name="add_product" string="Add product" type="object" class="btn-primary" attrs="{'invisible':[('sale_state', 'not in', ('draft'))]}"/>
                     </group>
                     <group>
                         <div>
