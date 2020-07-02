@@ -18,17 +18,15 @@
 #
 
 {
-    'name': 'Console progress bar',
+    'name': 'ndp tools',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Module Client',
-    'depends': [
-        'mrp',
-    ],
+    'depends': [],
     'description': """
-Afficher une barre de progression sur une seule ligne dans la console odoo
-==========================================================================
+python utilities
+================
 voir le fichier py pour l'exemple
 """,
     'website': 'http://www.ndp-systemes.fr',
