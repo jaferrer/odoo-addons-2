@@ -29,7 +29,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
         },
         renderElement: function () {
             this._super();
-            this.$('#_exit').click((ev) => window.history.back());
+            this.$('#_exit').click((ev) => { this.exit_scan() });
             this.$('button.js_validate_batch').click((ev) => { this.do_validate_batch() });
             this.batch_selection_table_body = this.$('#batch_selection_table_body');
             this.move_line_table_body = this.$('#move_line_table_body');
@@ -465,6 +465,20 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
             };
             rpc.query(do_validate_batch_params).then(() => { window.history.back() })
         },
+
+        exit_scan: function () {
+            // Enlève les doublons de move lines à terminer si on arrête l'application en plein milieu d'une séquence
+            if (this.selected_batch) {
+                let do_clear_siblings_move_lines_batch_params = {
+                    model: 'stock.move.line',
+                    method: 'do_clear_siblings_move_lines_batch',
+                    args: [[this.scanned_row.id]],
+                };
+                rpc.query(do_clear_siblings_move_lines_batch_params).then(console.log('aaaaaaa'))
+            }
+            window.history.back()
+        },
+
     });
 
 

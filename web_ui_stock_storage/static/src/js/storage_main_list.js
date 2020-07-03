@@ -26,6 +26,9 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             this.pickingId = "0";
             this.productId = "0";
             this.productBarcode = "";
+            this.productName = "";
+            this.changing_location = false;
+            this.moveLineQty = "0";
             this.moveLineId = "0";
             this.moveLines = [];
             this.barcode_scanner = new BarcodeScanner();
@@ -36,10 +39,12 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             this.$('#_exit').click((ev) => window.history.back());
             this.storage_table_body = this.$('#storage_table_body');
             this.picking_split_detail = this.$('#picking_split_detail');
-            this.$('#manual_product_scan').addClass('d-none')
-            this.$('#manual_location_scan').addClass('d-none')
-            this.$('#manual_tracking_scan').addClass('d-none')
+            this.$('#manual_product_scan').addClass('d-none');
+            this.$('#manual_location_scan').addClass('d-none');
+            this.$('#manual_tracking_scan').addClass('d-none');
             this.$('#error').addClass('d-none');
+            this.$('button.js_change_location').click(ev => { this.allow_change_location() });
+            this.$('button.js_confirm_location').click(ev => { this.confirm_location() });
             this.$('button.js_open_numpad').click(ev => {
                 this.open_numpad()
             });
@@ -93,7 +98,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 this._disconnect_scanner();
                 this.$('#search_location').on('keyup', (e) => {
                     if (e.key == 'Enter') {
-                        this.scan(this.$('#search_location').val())
+                        this.scan(this.$('#search_location').val(), this.changing_location)
                     }
                 })
             });
@@ -149,7 +154,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
         get_header: function () {
             return this.getParent().get_header();
         },
-        scan: function (ean) {
+        scan: function (ean, changing_location=false) {
             console.log(ean);
             this.$('#search_picking').val('');
             let spt_picking_info_params = {
@@ -166,6 +171,11 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 model: 'stock.picking.type',
                 method: 'web_ui_get_storage_location_info_by_name',
                 args: [[this.pickingTypeId], ean, this.moveLines],
+            };
+            let spt_new_location_info_params = {
+                model: 'stock.picking.type',
+                method: 'web_ui_get_storage_new_location_info_by_name',
+                args: [[this.pickingTypeId], ean, this.moveLineId],
             };
             let spt_tracking_info_params = {
                 model: 'stock.picking.type',
@@ -205,6 +215,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                             row.appendTo(this.storage_table_body);
                             this.productId = moveLine.product_id;
                             this.productBarcode = moveLine.default_code;
+                            this.productName = moveLine.name;
                             this.moveLines.push(moveLine.id);
                             this.$("#product_name").text(moveLine.name);
                             this.$("#product_code").text(moveLine.default_code);
@@ -269,24 +280,21 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             }
             if (this.state == 3) {
                 console.log("Recherche d'un emplacement");
+                if (!changing_location) {
                 rpc.query(spt_location_info_params)
                     .then((moveLine) => {
                         this.moveLines.push(moveLine.id);
                         console.log("id " + moveLine.id);
                         this.moveLineId = moveLine.id;
+                        this.moveLineQty = moveLine.qty;
                         let row = new StorageRow.Row(this, moveLine);
                         this.storage_table_body.empty();
                         row.appendTo(this.storage_table_body);
-                        this.$("#qty").text(moveLine.qty);
-                        this.$('#span_product_qty').removeClass('d-none');
-                        this.$('#span_product_location').removeClass('orange');
-                        this.$('#manual_product_scan').removeClass('d-none');
-                        this.$('#manual_location_scan').addClass('d-none');
-                        this.$('#wait_location').addClass('ok');
-                        this.$('#wait_location').removeClass('active')
-                        this.$('#confirm_product').addClass('active')
                         this.$('#error').addClass('d-none');
-                        this.state = 4;
+                        this.$('#helper_location').removeClass('d-none');
+                        this.$('#manual_location_scan').addClass('d-none');
+                        this.$('button.js_change_location').removeClass('d-none');
+                        this.$('button.js_confirm_location').removeClass('d-none');
                     })
                     .fail((errors, event) => {
                         console.log("Error print", errors, event);
@@ -294,10 +302,35 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                         this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
                         event.preventDefault();
                     });
+                }
+                else {
+                    rpc.query(spt_new_location_info_params)
+                        .then((moveLine) => {
+                            this.update_location(moveLine, ean);
+                            this.moveLines.push(moveLine.id);
+                            console.log("id " + moveLine.id);
+                            this.moveLineId = moveLine.id;
+                            this.moveLineQty = moveLine.qty;
+                            let row = new StorageRow.Row(this, moveLine);
+                            this.storage_table_body.empty();
+                            row.appendTo(this.storage_table_body);
+                            this.$('#error').addClass('d-none');
+                            this.$('#helper_location').removeClass('d-none');
+                            this.$('#manual_location_scan').addClass('d-none');
+                            this.$('button.js_change_location').removeClass('d-none');
+                            this.$('button.js_confirm_location').removeClass('d-none');
+                        })
+                        .fail((errors, event) => {
+                            console.log("Error print", errors, event);
+                            this.$('#error').removeClass('d-none');
+                            this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
+                            event.preventDefault();
+                        });
+                }
             }
             if (this.state == 4) {
                 console.log("Recherche d'un produit");
-                if (this.productBarcode == ean) {
+                if (this.productBarcode == ean || this.productName == ean) {
                     console.log("Saisie de la quantité");
                     this.$('#manual_location_scan').addClass('d-none');
                     this.$('#confirm_product').addClass('ok');
@@ -311,6 +344,43 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                     this.$('#error_text').text(ean + " - Produit différent");
                 }
             }
+        },
+        confirm_location: function() {
+            this.changing_location = false;
+            this.state = 4;
+            this.$("#qty").text(this.moveLineQty);
+            this.$('#span_product_qty').removeClass('d-none');
+            this.$('#span_product_location').removeClass('orange');
+            this.$('#manual_product_scan').removeClass('d-none');
+            this.$('#manual_location_scan').addClass('d-none');
+            this.$('#manual_location_scan').removeClass('waiting-background');
+            this.$('#wait_location').addClass('ok');
+            this.$('#wait_location').removeClass('active');
+            this.$('#confirm_product').addClass('active');
+            this.$('#helper_location').addClass('d-none');
+            this.$('button.js_change_location').addClass('d-none');
+            this.$('button.js_confirm_location').addClass('d-none');
+            this.$('#scan_location_classic').removeClass('d-none');
+            this.$('#scan_location_change').addClass('d-none');
+        },
+        allow_change_location: function() {
+            this.changing_location = true;
+            this.$('#helper_location').addClass('d-none');
+            this.$('#manual_location_scan').removeClass('d-none');
+            this.$('#manual_location_scan').addClass('waiting-background');
+            this.$('#scan_location_classic').addClass('d-none');
+            this.$('#scan_location_change').removeClass('d-none');
+        },
+        update_location: function (moveLine, location_name) {
+            let sml_update_move_line_info_params = {
+                model: 'stock.move.line',
+                method: 'change_location_from_scan_storage',
+                args: [[this.id], location_name],
+            };
+            rpc.query(sml_update_move_line_info_params)
+                .then(() => {
+                    moveLine.location_id = location_name;
+            });
         },
         open_numpad: function () {
             console.log("Open numpad");
@@ -348,6 +418,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 this.$('#search_location').val('');
                 this.$('#open_numpad').addClass('d-none');
                 this.productBarcode = "";
+                this.productName = "";
                 this.$("#product_name").text("");
                 this.$("#product_code").text("");
                 this.$("#qty").text("");

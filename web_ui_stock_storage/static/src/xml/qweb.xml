@@ -88,7 +88,8 @@
                 </div>
             </div>
             <div id="manual_location_scan" class="jumbotron">
-                <h4>Vous pouvez scanner un emplacement ou le saisir à la main!</h4>
+                <h4 id="scan_location_classic">Veuillez scanner l'emplacement demandé ou le saisir à la main</h4>
+                <h4 id="scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité ou le saisir à la main</h4>
                 <div class="input-group">
                     <input id="search_location" type="text" class="form-control"
                            placeholder="Saisie emplacement manuel"/>
@@ -96,6 +97,11 @@
                         <button id="clear_search_location" class="btn btn-danger" type="button">x</button>
                     </span>
                 </div>
+            </div>
+            <div id="helper_location" class="jumbotron d-none waiting-background">
+                <h4>Veuillez valider l'emplacement pour continuer</h4>
+                <h4>Ou</h4>
+                <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
             </div>
             <div id="manual_tracking_scan" class="jumbotron">
                 <h4>Vous pouvez scanner un numéro de lot/série ou le saisir à la main!</h4>
@@ -119,7 +125,7 @@
                 </nav>
             </div>
             <div class="row" id="error">
-                <span id="error_text"/>
+                <span id="error_text" class="text-danger"/>
             </div>
             <div class="row" id="screen">
                 <ul class="list-group list-group-flush">
@@ -137,7 +143,10 @@
                     </li>
                     <li class="list-group-item d-none" id="span_product_location">
                         <span class="bold">Emplacement:</span>
-                        <span id="location"/>
+                        <span id="location">
+                            <button type="button" class="btn btn-primary js_change_location fa fa-cubes d-none"/>
+                            <button type="button" class="btn btn-success js_confirm_location fa fa-check d-none"/>
+                        </span>
                         <ul id="storage_table_body"/>
                     </li>
                     <li class="list-group-item d-none" id="span_product_qty">

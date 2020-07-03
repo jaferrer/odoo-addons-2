@@ -68,6 +68,35 @@ class StockPickingType(models.Model):
         return stock_move_line[:1].web_ui_get_move_line_info_one()
 
     @api.multi
+    def web_ui_get_storage_new_location_info_by_name(self, name, move_line):
+        self.ensure_one()
+        name = name.strip()
+        location = self.env['stock.location'].search([('barcode', '=ilike', name)])
+        stock_move_line = self.env['stock.move.line'].browse(move_line)
+        if not location:
+            raise WebUiError(name, "Emplacement non valide")
+        if not stock_move_line:
+            raise WebUiError(name, "Problème avec la ligne")
+        move_line_infos = stock_move_line.web_ui_get_move_line_info_one()
+        move_line_infos.update({'location_id': location.name})
+        return move_line_infos
+
+    @api.multi
+    def web_ui_get_storage_location_id_by_name(self, name):
+        """
+        Recherche un emplacement par son barcode.
+        """
+        name = name.strip()
+        location = self.env['stock.location'].search([('barcode', '=ilike', name)])
+        if not location:
+            raise WebUiError(name, "Aucun emplacement n'a été trouvé : %s" % ", ".join(location.mapped('barcode')))
+        if len(location) > 1:
+            raise WebUiError(name, "Plusieurs emplacements ont été trouvés : %s" % ", ".join(
+                location.mapped('barcode')))
+
+        return location.id
+
+    @api.multi
     def web_ui_get_storage_add_move(self, move_line_id, quantity):
         stock_move_line = self.env['stock.move.line'].browse(move_line_id)
         stock_move_line.write({
@@ -98,3 +127,12 @@ class StockMoveLine(models.Model):
         if production_lot:
             res = dict(res, num_lot=production_lot.name)
         return res
+
+    @api.multi
+    def change_location_from_scan_storage(self, location_name):
+        """
+        Modifie l'emplacement d'origine du move line.
+        """
+        self.ensure_one()
+        location_id = self.picking_id.picking_type_id.web_ui_get_storage_location_id_by_name(location_name)
+        self.location_dest_id = self.env['stock.location'].browse(location_id)
