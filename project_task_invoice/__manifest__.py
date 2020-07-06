@@ -29,7 +29,7 @@ Task Invoicing
 ==============
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_invoicing.xml'],
+    'data': ['project_task_invoicing.xml', 'data/data.xml'],
     'demo': [],
     'test': [],
     'installable': True,

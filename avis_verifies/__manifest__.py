@@ -42,6 +42,7 @@ Get reviews from the avis-verfies API
         'security/groups.xml',
         'security/ir.model.access.csv',
         'data/cron.xml',
+        'views/avis_verifies_assets.xml',
         'views/sale_config_settings.xml',
         'views/avis_verifies_review.xml',
     ],

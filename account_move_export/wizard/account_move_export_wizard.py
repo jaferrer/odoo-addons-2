@@ -129,8 +129,7 @@ class AccountMoveExportWizard(models.TransientModel):
         vals = {
             'destination': 'ftp',
             'line_selection': get_param('account_move_export.export_line_selection'),
-            'journal_ids': self.env['account.journal'].browse(safe_eval(get_param(
-                'account_move_export.export_journal_ids', '[]'))),
+            'journal_ids': [(6, 0, safe_eval(get_param('account_move_export.export_journal_ids', '[]')))],
             'group_by_account': safe_eval(get_param('account_move_export.export_group_by_account', 'False')),
             'ftp_url': get_param('account_move_export.export_ftp_url'),
             'ftp_login': get_param('account_move_export.export_ftp_login'),

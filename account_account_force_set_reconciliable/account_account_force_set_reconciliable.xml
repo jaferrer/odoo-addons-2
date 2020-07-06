@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="action_server_open_force_reconcile_wizard" model="ir.actions.server">
+            <field name="name">Force set accounts to reconcilable</field>
+            <field name="model_id" ref="account.model_account_account"/>
+            <field name="state">code</field>
+            <field name="code">action = model.open_force_reconcile_wizard()</field>
+        </record>
+
+        <record id="value_open_force_reconcile_wizard" model="ir.values">
+            <field name="name">Force set accounts to reconcilable</field>
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">account.account</field>
+            <field name="value" eval="'ir.actions.server,'+str(ref('account_account_force_set_reconciliable.action_server_open_force_reconcile_wizard'))"/>
+        </record>
+
+        <record id="account_account_force_reconciliable_form" model="ir.ui.view">
+            <field name="name">account_account_force_reconciliable_form</field>
+            <field name="model">account.account.force.reconciliable</field>
+            <field name="arch" type="xml">
+                <form >
+                    <p>Pay attention, this action may create data inconsistencies. Do not use it if possible.</p>
+                    <group>
+                        <field name="account_ids" widget="many2many_tags"/>
+                    </group>
+                    <footer>
+                        <button name="set_reconciliable" string="Set to reconciliable" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Annuler" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

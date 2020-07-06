@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo noupdate="1">
+    <record id="cookie_security" model="ir.config_parameter">
+        <field name="key">auth_ip_totp.secure_cookie</field>
+        <field name="value" eval="1"/>
+    </record>
+</odoo>

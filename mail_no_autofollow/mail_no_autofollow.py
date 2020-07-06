@@ -26,7 +26,7 @@ class MailThreadExtended(models.AbstractModel):
     @api.multi
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
         if partner_ids and not config["test_enable"]:
-            users = self.env['res.users'].search([('partner_id', 'in', partner_ids)])
+            users = self.env['res.users'].sudo().search([('partner_id', 'in', partner_ids)])
             partner_ids = [user.partner_id.id for user in users]
         return super(MailThreadExtended, self).message_subscribe(partner_ids=partner_ids,
                                                                  channel_ids=channel_ids,
