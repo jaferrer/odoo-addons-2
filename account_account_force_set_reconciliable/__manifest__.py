@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,24 +16,25 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Task Invoicing Milestone',
+    'name': 'Account Account - Set reconciliable',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project_task_invoice', 'project_milestone'],
+    'category': 'Account',
+    'depends': ['account'],
     'description': """
-Task Invoicing
-==============
+Account Account - Set reconciliable
+===================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_invoicing_milestone.xml'],
     'demo': [],
     'test': [],
+    'data': [
+        'account_account_force_set_reconciliable.xml',
+    ],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
