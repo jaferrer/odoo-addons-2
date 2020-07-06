@@ -29,32 +29,29 @@ class ConsoleProgressBar:
     how to:
     . add 'ndp_tools' to module dependencies
     . usage:
-    .   from odoo.addons.console_progress_bar.console_progress_bar import ConsoleProgressBar
-    example 1:
-    * console_progress_bar = ConsoleProgressBar("TASK BEING EXECUTED DESC", len(recordset))
-    * for rec in recordset:
-    *   console_progress_bar.next_val()
-    example 2:
-    * progress = ConsoleProgressBar("TASK BEING EXECUTED DESC", len(recordset), chunk_size=500)
-    * chunk = progress.next_val(recordset)
-    * while chunk:
-    *   chunk. [..treatment..]
-    *   chunk = progress.next_val(recordset)
+        from odoo.addons.console_progress_bar.console_progress_bar import ConsoleProgressBar
+
+        progress = ConsoleProgressBar("TASK BEING EXECUTED DESC", len(recordset))
+        for rec in recordset:
+            progress.step_up()
     """
-    def __init__(self, current_treatment_description, iterable_len, chunk_size=1):
+    def __init__(self, description, iterable_len, chunk_size=1):
         super(ConsoleProgressBar, self).__init__()
         self.cpt = 0
         self.chunk_size = chunk_size
-        self.chunk_count = int(math.ceil((iterable_len or 1) / chunk_size))
-        _logger.info(current_treatment_description)
+        self.chunk_count = 1
+        if iterable_len:
+            self.chunk_count = iterable_len // chunk_size + (iterable_len % chunk_size and 1 or 0)
+        _logger.info(description)
         self._show_progress()
         if not iterable_len:
-            self.next_val()
+            self.step_up()
 
     def __str__(self):
         return "(%d/%d)" % (self.cpt, self.chunk_count)
 
-    def _show_progress(self, desc=False):
+    def _show_progress(self, desc=""):
+        """ displays one line progress bar into the console """
         pb_pos = int(math.ceil(100.0 / self.chunk_count * self.cpt))
         sys.stdout.write('\r')
         line = "[%-100s] %s" % ('=' * pb_pos, str(self))
@@ -63,19 +60,16 @@ class ConsoleProgressBar:
         sys.stdout.write(line)
         sys.stdout.flush()
 
-    def next_val(self, iterable=None, desc=""):
+    def step_up(self, console_step_info=""):
         """
         step up progress indicator
-        :param iterable: iterable used to find current treatment item or chunk
-        :param desc: additional information on current process step to display at the end of the line
-        :return: current treatment item or chunk
+        :param console_step_info: additional information on current process step to display at the end of the line
+        into console
+        :return: True if stepped up false otherwise
         """
         self.cpt += 1
-        self._show_progress(desc=desc)
+        self._show_progress(desc=console_step_info)
         if self.cpt >= self.chunk_count:
-            _logger.info(" => OK")
+            _logger.info(" => end")  # stop writing on the same line 'LF'
             return False
-        if not iterable:
-            return True
-        items_done = (self.cpt - 1) * self.chunk_size
-        return iterable[items_done:items_done + self.chunk_size] if iterable else True
+        return True
