@@ -29,7 +29,7 @@ class ProjectDelivery(models.Model):
     set_task_stage_id = fields.Many2one('project.task.type', u"Step to set for tasks")
     set_task_tags_ids = fields.Many2many('project.tags', string=u"Labels to add on tasks")
     type_id = fields.Many2one('project.delivery.type', string="Deliver type", required=True)
-    effective_date = fields.Date(u"Date of delivery", required=True, default=fields.Date.today())
+    effective_date = fields.Date(u"Date of delivery", required=True, default=fields.Date.context_today)
     done_effective_date = fields.Date(u"Date of delivery", readonly=True)
     assignee_id = fields.Many2one('res.users', u"Assignee", required=True, default=lambda self: self.env.user.id)
     done_by_id = fields.Many2one('res.users', u"Deliver", readonly=True)
@@ -41,6 +41,10 @@ class ProjectDelivery(models.Model):
             rec.state = 'done'
             rec.done_by_id = self.env.user.id
             rec.done_effective_date = fields.Date.today()
+            if rec.set_task_stage_id:
+                rec.task_ids.write({'stage_id': rec.set_task_stage_id.id})
+            if rec.set_task_tags_ids:
+                rec.task_ids.write({'tags_ids': [(4, tag_id) for tag_id in rec.set_task_tags_ids.ids]})
 
 
 class ProjectDeliveryType(models.Model):

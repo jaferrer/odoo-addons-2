@@ -21,7 +21,7 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Init',
+    'category': 'Mail',
     'depends': ['auto_resend_mail', 'queue_job_cron'],
     'description': """
 Emails - No send to wrong addresses

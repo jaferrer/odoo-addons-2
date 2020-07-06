@@ -41,7 +41,8 @@
                     <button class="oe_stat_button"
                             name="%(act_window_mrp_bom_inverted)d"
                             icon="fa-gears"
-                            type="action"  attrs="{'invisible':[('type', '!=', 'product')]}">
+                            type="action"
+                            attrs="{'invisible':[('type', '!=', 'product')]}">
                         <field string="Use Cases" name="use_case_count" widget="statinfo"/>
                     </button>
                 </xpath>
@@ -57,9 +58,10 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='button_box']" position="inside">
                     <button class="oe_stat_button"
-                            name="%(act_window_mrp_bom_inverted)d"
+                            name="action_show_mrp_bom_lines"
                             icon="fa-gears"
-                            type="action"  attrs="{'invisible':[('type', '!=', 'product')]}">
+                            type="object"
+                            attrs="{'invisible':[('type', '!=', 'product')]}">
                         <field string="Use Cases" name="use_case_count" widget="statinfo"/>
                     </button>
                 </xpath>

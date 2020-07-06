@@ -3,6 +3,7 @@
     <data>
 
         <menuitem id="top_menu_importation" name="Importation" sequence="1000"
+                  web_icon="customer_file_importation,static/img/logo_folder.png"
                   groups="customer_file_importation.group_customer_file_importation"/>
 
         <record model="ir.ui.view" id="customer_importation_log_line_tree">
@@ -48,6 +49,7 @@
 
         <record id="action_set_to_import" model="ir.actions.server">
             <field name="name">Set "to import"</field>
+            <field name="type">ir.actions.server</field>
             <field name="model_id" ref="customer_file_importation.model_customer_file_to_import"/>
             <field name="state">code</field>
             <field name="code">
@@ -90,7 +92,7 @@
                             <field name="extension"/>
                             <field name="asynchronous"/>
                             <field name="chunk_size" attrs="{'invisible': [('asynchronous', '=', False)]}"/>
-                            <field name="file"  filename="datas_fname"/>
+                            <field name="file" filename="datas_fname"/>
                             <field name="nb_columns"/>
                         </group>
                         <notebook>
