@@ -28,13 +28,12 @@ Form List View Sticky Header
 ============================
 """,
     'website': 'http://www.ndp-systemes.fr',
-        'depends': ['base'],
-
+    'depends': ['base'],
     'data': [
         'views/assets.xml',
     ],
     'qweb': [
-        "static/src/xml/qweb.xml",
+        'static/src/xml/qweb.xml',
     ],
     'demo': [],
     'test': [],
