@@ -31,8 +31,8 @@
             </div>
 
             <div id="manual_scan_location" class="jumbotron d-none">
-                <h4 id="#scan_location_classic">Veuillez scanner l'emplacement demandé</h4>
-                <h4 id="#scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité</h4>
+                <h4 id="#scan_location_classic">Veuillez scanner l'emplacement demandé ou le saisir à la main</h4>
+                <h4 id="#scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité ou le saisir à la main</h4>
                 <div class="input-group">
                     <input id="search_location" type="text" class="form-control"
                            placeholder="Saisie emplacement manuel"/>

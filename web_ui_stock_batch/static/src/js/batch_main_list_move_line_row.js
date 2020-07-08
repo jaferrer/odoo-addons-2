@@ -123,28 +123,17 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.$('#move_line_quantity').text(this.display_qty);
             this.batchMainList.exit_numpad();
         },
-        update_move_line_qty_to_do: function () {
-            let sml_update_move_line_info_params = {
-                model: 'stock.move.line',
-                method: 'change_qty_to_do_from_scan_batch',
-                args: [[this.id], this.quantity_done],
-            };
-            rpc.query(sml_update_move_line_info_params)
-                .then(() => {
-                    this.quantity_to_do = this.quantity_done;
-                    this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
-                    this.$('#move_line_quantity').text(this.display_qty);
-            })
-        },
         confirm_qty: function () {
             this.batchMainList.$('#change_qty_header').addClass('d-none');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#change_qty_body').addClass('d-none')
+                move_line_row.$('#change_qty_body').addClass('d-none');
+                move_line_row.$('#confirm_qty_body').addClass('d-none');
             });
             this.$('button.js_open_numpad').addClass('d-none');
             this.batchMainList.$('#confirm_qty_header').addClass('d-none');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#change_qty_body').addClass('d-none')
+                move_line_row.$('#change_qty_body').addClass('d-none');
+                move_line_row.$('#confirm_qty_body').addClass('d-none');
             });
             this.$('button.js_confirm_qty').addClass('d-none');
             this.$('#move_line_quantity').addClass('text-success');
@@ -158,9 +147,12 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.batchMainList.$('#manual_scan_product').toggleClass('d-none');
             this.batchMainList.$('#manual_scan_product').removeClass('warning-background');
             this.batchMainList.$('#manual_scan_picking').toggleClass('d-none');
+            // Si l'on a pas pris la quantité demandée, crée une nouvelle ligne avec la quantité restante à faire
             if (this.quantity_done !== this.quantity_to_do) {
                 this.batchMainList.create_new_move_line(this);
-                this.update_move_line_qty_to_do();
+                this.quantity_to_do = this.quantity_done;
+                this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
+                this.$('#move_line_quantity').text(this.display_qty);
             }
         },
         send_qty_done_to_odoo: function () {
