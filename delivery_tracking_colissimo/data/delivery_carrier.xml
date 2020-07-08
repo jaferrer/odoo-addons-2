@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record model="delivery.carrier.provider" id="chronopost">
+    <record model="delivery.carrier.provider" id="colissimo">
         <field name="name">Colissimo</field>
         <field name="active" eval="True"/>
         <field name="carrier">colissimo</field>
