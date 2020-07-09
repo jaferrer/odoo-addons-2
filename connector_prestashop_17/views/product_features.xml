@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="product_feature_tree">
+            <field name="name">product_feature_tree</field>
+            <field name="model">product.feature</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_product_features">
+            <field name="name">Caractéristiques</field>
+            <field name="res_model">product.feature</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_product_features" name="Caractéristiques" action="act_window_product_features"
+                  parent="product.prod_config_main" sequence="10"/>
+
+        <record model="ir.ui.view" id="product_feature_value_tree">
+            <field name="name">product_feature_value_tree</field>
+            <field name="model">product.feature.value</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                    <field name="feature_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_product_feature_values">
+            <field name="name">Valeurs de caractéristiques</field>
+            <field name="res_model">product.feature.value</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_product_feature_values" name="Valeurs de caractéristiques"
+                  action="act_window_product_feature_values" parent="product.prod_config_main" sequence="11"/>
+
+    </data>
+</odoo>

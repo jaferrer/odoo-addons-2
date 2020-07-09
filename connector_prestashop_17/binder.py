@@ -17,11 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import account_invoice
-from . import product_category
-from . import product_template
-from . import product_image
-from . import product_feature
-from . import prestashop_backend
-from . import res_partner
-from . import sale_order
+from openerp.addons.connector_prestashop.unit.binder import PrestashopBinder
+
+from .backend import prestashop_1_7
+
+
+@prestashop_1_7
+class PrestashopBinderExtended(PrestashopBinder):
+    """ Generic Binder for Prestashop """
+
+    _external_field = 'prestashop_id'
+    _openerp_field = 'odoo_id'
+
+    _model_name = [
+        'prestashop.product.feature',
+        'prestashop.product.feature.value',
+    ]

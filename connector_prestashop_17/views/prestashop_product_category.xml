@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="prestashop_product_category_form_prestashop_17">
+            <field name="name">prestashop_product_category_form_prestashop_17</field>
+            <field name="model">prestashop.product.category</field>
+            <field name="inherit_id" ref="connector_prestashop.product_category_connector_prestashop_form_view"/>
+            <field name="arch" type="xml">
+                <field name="position" position="after">
+                    <field name="prestashop_active"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="prestashop_product_category_tree_prestashop_17">
+            <field name="name">prestashop_product_category_tree_prestashop_17</field>
+            <field name="model">prestashop.product.category</field>
+            <field name="inherit_id" ref="connector_prestashop.product_category_connector_prestashop_tree_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <button name="resync"
+                            type="object"
+                            string="Resync" />
+                </tree>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="prestashop_backend_form_17">
+            <field name="name">prestashop_backend_form_17</field>
+            <field name="model">prestashop.backend</field>
+            <field name="inherit_id" ref="connector_prestashop.view_prestashop_backend_form"/>
+            <field name="arch" type="xml">
+                <page name="import" position="inside">
+                    <group>
+                        <label string="Import features" class="oe_inline"/>
+                        <div>
+                            <button name="import_product_features"
+                                    type="object"
+                                    class="oe_highlight"
+                                    string="Import in background"/>
+                        </div>
+                    </group>
+                </page>
+            </field>
+        </record>
+
+    </data>
+</odoo>
