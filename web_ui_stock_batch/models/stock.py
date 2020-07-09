@@ -47,15 +47,21 @@ class StockPickingBatch(models.Model):
         list_move_lines = []
         picking_batch = self.browse(batch_id)
         batch_move_lines = picking_batch.mapped('picking_ids').mapped('move_line_ids_without_package').filtered(
-            lambda x: x.product_uom_qty != x.qty_done).sorted(key=lambda x: (x.location_id.name, x.product_id.name))
+            lambda x: x.qty_done == 0).sorted(key=lambda x: (x.location_id.name, x.product_id.name))
         for move_line in batch_move_lines:
             product_infos = self.env['stock.picking.type'].web_ui_get_product_info_by_name(move_line.product_id.name)
+            # On ne peut pas se fier à la quantité réservée, on recherche uniquement ce qu'il reste à faire pour chaque
+            # article.
+            same_product_move_lines = picking_batch.mapped('picking_ids').mapped(
+                'move_line_ids_without_package').filtered(lambda x: x.product_id == move_line.product_id)
+            quantity = sum(same_product_move_lines.mapped('product_uom_qty')) - \
+                sum(same_product_move_lines.mapped('qty_done'))
             list_move_lines.append({
                 'id': move_line.id,
                 'location': move_line.location_id.name,
                 'location_barcode': move_line.location_id.barcode,
                 'product': product_infos,
-                'quantity': move_line.product_uom_qty,
+                'quantity': quantity,
                 'product_uom': move_line.product_uom_id.name,
                 'picking': move_line.picking_id.name,
             })
@@ -121,30 +127,24 @@ class StockMoveLineScanBatch(models.Model):
         self.location_id = self.env['stock.location'].browse(location_id)
 
     @api.multi
-    def change_qty_to_do_from_scan_batch(self, new_qty_to_do):
-        """
-        Modifie la quantité à faire du move line pour mettre la quantité sélectionnée dans le scanner.
-        """
-        self.ensure_one()
-        self.product_uom_qty = new_qty_to_do
-
-    @api.multi
     def create_move_line_from_scan_batch(self, qty_left):
         """
         Crée une move line à partir d'une autre dont toute la quantité n'a pas pu être scannée.
         """
         self.ensure_one()
         new_move_line = self.copy({
-            'product_uom_qty': qty_left,
+            'product_uom_qty': 0,
             'qty_done': 0,
+            'move_id': False,
         })
         self.picking_id.move_line_ids_without_package |= new_move_line
+        product_infos = self.picking_id.picking_type_id.web_ui_get_product_info_by_name(new_move_line.product_id.name)
         return {
             'id': new_move_line.id,
             'location': new_move_line.location_id.name,
             'location_barcode': new_move_line.location_id.barcode,
-            'product': new_move_line.product_id.display_name,
-            'quantity': new_move_line.product_uom_qty,
+            'product': product_infos,
+            'quantity': qty_left,
             'product_uom': new_move_line.product_uom_id.name,
             'picking': new_move_line.picking_id.name,
         }
@@ -153,6 +153,21 @@ class StockMoveLineScanBatch(models.Model):
     def web_ui_update_odoo_qty_batch(self, qty_done):
         self.ensure_one()
         self.qty_done = qty_done
+
+    @api.multi
+    def do_clear_siblings_move_lines_batch(self):
+        """
+        Permet de supprimer les move lines identiques de quantité réservée et réalisée à 0. Car on peut avoir deux fois
+        la même si on quitte l'application au milieu d'une ligne.
+        """
+        self.ensure_one()
+        empty_move_line_siblings = self.picking_id.move_line_ids_without_package.filtered(
+            lambda x: x.product_uom_qty == 0 and
+            x.qty_done == 0 and
+            x.product_id == self.product_id and
+            x.location_id == self.location_id
+        )
+        empty_move_line_siblings[1:].unlink()
 
 
 class PosteBatch(models.Model):
