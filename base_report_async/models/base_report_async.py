@@ -115,7 +115,7 @@ class IrActionsReport(models.Model):
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        url = base_url + "/web/content/%s/%s" % (attachment.id, attachment.name)
+        url = base_url + "/web/content/%s/%s?download=true" % (attachment.id, attachment.name)
         self.send_mail_report_async_to_user(url)
         return u"report generated"
 
