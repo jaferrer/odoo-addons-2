@@ -52,7 +52,7 @@
 
         <div class="container">
             <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'ecran de Packing!</h1>
+                <h1>Bienvenue dans l'écran de Packing</h1>
                 <p>Veuiller scanner un numéro de BBPICK pour commencer</p>
                 <p>Ou</p>
                 <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>

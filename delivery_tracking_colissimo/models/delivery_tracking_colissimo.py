@@ -20,14 +20,10 @@
 import logging
 import zeep
 
-from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
 from odoo import models, api
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
-
-
-_PROVIDER.append(('colissimo', "Colissimo"))
 
 
 class DeliveryCarrierColissimo(models.Model):

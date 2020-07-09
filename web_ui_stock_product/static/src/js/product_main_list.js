@@ -19,6 +19,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
         init: function (parent, action, options) {
             this._super(parent, action, options);
             this.pickingTypeId = parseInt(options.picking_type_id || "0");
+            this.storageScreen = options.storage_screen || false;
             this.rows = [];
             this.lot_row = false;
             this.selected_scan_product_computer = 0;
@@ -60,7 +61,6 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 console.log('btn_delete_all_rows');
                 this.$('[data-error-row]').remove();
                 this.rows.forEach((row) => this.delete_row(row));
-
             });
             this.$('#btn_process_all_rows').click(() => {
                 console.log('btn_process_all_rows');
@@ -85,6 +85,11 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 this.$('#search_product_lot').val('');
                 this.$('#search_product_lot').focus()
             });
+            // Si on arrive sur cet écran depuis le gestionnaire de chariot
+            if (this.storageScreen) {
+                this.$('#back_to_handling_screen').removeClass('d-none');
+            }
+            this.$('#back_to_handling_screen').click(() => { this.back_to_handling_screen() });
 
         },
         _init_scan_product_computer: function () {
@@ -265,8 +270,22 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 method: 'do_validate_scan',
                 args: [[this.pickingTypeId], product_infos],
             };
-            rpc.query(do_validate_scan_params).then(() => { window.history.back() })
+            rpc.query(do_validate_scan_params).then((pickingName) => { this.back_to_handling_screen(pickingName) })
         },
+        back_to_handling_screen: function (pickingName="") {
+            // Supprime toutes les lignes avant de revenir à l'écran de gestion
+            console.log('btn_delete_all_rows');
+            this.$('[data-error-row]').remove();
+            this.rows.forEach((row) => this.delete_row(row));
+
+            // supprime la vue de scan
+            this.$('#big_helper').parent().parent().empty();
+
+            this.do_action('stock.ui.storage_handling', {
+                'picking_type_id': this.pickingTypeId,
+                'picking_name': pickingName
+            });
+        }
     });
 
 
