@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="assets_backend" name="groupby_expand assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/web_groupby_auto_expand/static/src/js/web_groups_expand.js"/>
+            <link rel='stylesheet' href='/web_groupby_auto_expand/static/src/css/style.css'/>
+        </xpath>
+    </template>
+
+</odoo>
