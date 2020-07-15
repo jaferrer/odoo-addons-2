@@ -323,7 +323,6 @@ class SaleOrder(models.Model):
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
             'user_id': self.user_id.id,
-            'next_': self.user_id.id,
             'name': dunning_type_id._get_dunning_name()
         }
 
