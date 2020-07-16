@@ -82,7 +82,6 @@ class IrActionsReport(models.Model):
     @api.multi
     def job_asynchronous_report_generation(self, records_to_print):
         self.ensure_one()
-        # needs module web_report_improved
         if 'type_multi_print' in self._fields and self.type_multi_print == 'zip' and len(records_to_print) > 1:
             attachments_to_zip = self.env['ir.attachment']
             index = 0
