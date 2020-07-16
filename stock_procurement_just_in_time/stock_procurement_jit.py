@@ -38,8 +38,8 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 
     def __init__(self, proc_id):
         self.proc_id = proc_id
-        super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
-                                                                  _(u"You can't cancel a protected procurement"))
+        super(ForbiddenCancelProtectedProcurement,
+              self).__init__(_(u"Error!"), _(u"You can't cancel a protected procurement (ID=%s)") % proc_id)
 
 
 @job(default_channel='root.procurement_just_in_time_chunk')
