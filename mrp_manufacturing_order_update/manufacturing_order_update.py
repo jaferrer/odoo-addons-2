@@ -33,7 +33,7 @@ def run_mrp_production_update(session, model_name, mrp_ids, context):
 
 
 class MoUpdateMrpProduction(models.Model):
-    _inherit = "mrp.production"
+    _inherit = 'mrp.production'
 
     product_lines = fields.One2many(readonly=False)
     bom_id = fields.Many2one('mrp.bom', readonly=False, track_visibility='onchange')
@@ -66,7 +66,7 @@ class MoUpdateMrpProduction(models.Model):
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
                     if not self.env.context.get('ignore_done_moves'):
-                        total_done_moves =\
+                        total_done_moves = \
                             sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
                                  and x.state == 'done' and x.location_dest_id.usage == 'production'])
                     else:
@@ -162,11 +162,28 @@ class MoUpdateMrpProduction(models.Model):
         self.with_context(manual_mo_update=True).button_update()
 
     @api.multi
+    def get_orders_to_update(self):
+        return self.search([('id', 'in', self.ids),
+                            ('state', 'not in', ['draft', 'done', 'cancel'])])
+
+    @api.multi
+    def get_remaining_qty_to_produce(self):
+        self.ensure_one()
+        remaining_qty_to_produce = self.product_qty
+        for move in self.move_created_ids2:
+            if move.state == 'done':
+                remaining_qty_to_produce -= self.env['product.uom']._compute_qty(move.product_uom.id,
+                                                                             move.product_uom_qty,
+                                                                             self.product_uom.id)
+        return remaining_qty_to_produce
+
+    @api.multi
     def button_update(self):
-        running_orders = self.search([('id', 'in', self.ids),
-                                      ('state', 'not in', ['draft', 'done', 'cancel'])])
-        running_orders._action_compute_lines()
-        running_orders.update_moves()
+        orders_to_update = self.get_orders_to_update()
+        for order in orders_to_update:
+            remaining_qty_to_produce = order.get_remaining_qty_to_produce()
+            order.with_context(force_production_qty=remaining_qty_to_produce)._action_compute_lines()
+            order.with_context(force_production_qty=remaining_qty_to_produce).update_moves()
 
     @api.model
     def get_mrp_ids_to_check(self):

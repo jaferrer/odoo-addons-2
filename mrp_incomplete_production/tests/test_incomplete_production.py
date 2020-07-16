@@ -272,8 +272,6 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertTrue(mrp_production1.child_order_id)
         mrp_production2 = mrp_production1.child_order_id
         self.assertEqual(mrp_production2.product_id, self.product_to_manufacture1)
-        mrp_production2.button_update()
-        self.assertEqual(len(mrp_production2.move_lines), 2)
 
     def test_60_incomplete_production(self):
         """Returning raw materials provided by several quants."""
