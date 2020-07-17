@@ -362,15 +362,15 @@ class TestOrderUpdate(common.TransactionCase):
         self.assertEqual(self.mrp_production1.move_lines2, move)
         self.assertEqual(move.product_uom_qty, 10)
         self.assertEqual(len(self.mrp_production1.move_lines), 8)
-        moves_data = [[move.product_id, move.product_uom_qty, move.state] for move in self.mrp_production1.move_lines]
-        self.assertIn([self.product1, 5, 'confirmed'], moves_data)
-        self.assertIn([self.product3, 15, 'confirmed'], moves_data)
-        self.assertIn([self.product1, 20, 'confirmed'], moves_data)
-        self.assertIn([self.product2, 25, 'confirmed'], moves_data)
-        self.assertIn([self.product3, 30, 'confirmed'], moves_data)
-        self.assertIn([self.product1, 25, 'confirmed'], moves_data)
-        self.assertIn([self.product2, 35, 'confirmed'], moves_data)
-        self.assertIn([self.product3, 45, 'confirmed'], moves_data)
+        moves_data = [[move.product_id, move.product_uom_qty] for move in self.mrp_production1.move_lines]
+        self.assertIn([self.product1, 5], moves_data)
+        self.assertIn([self.product3, 15], moves_data)
+        self.assertIn([self.product1, 20], moves_data)
+        self.assertIn([self.product2, 25], moves_data)
+        self.assertIn([self.product3, 30], moves_data)
+        self.assertIn([self.product1, 25], moves_data)
+        self.assertIn([self.product2, 35], moves_data)
+        self.assertIn([self.product3, 45], moves_data)
 
     def test_50_try_to_cancel_available_move(self):
 
