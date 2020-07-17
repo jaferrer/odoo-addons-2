@@ -429,7 +429,7 @@ WHERE coalesce(to_delete, FALSE) IS TRUE""")
                 move_to_delete_id = move_to_delete_ids[0]
                 move_to_delete_ids = move_to_delete_ids[1:]
                 _logger.info(u"Poping job for move ID=%s (%s remaining)",
-                             move_to_delete_id, len(procurement_to_delete_ids))
+                             move_to_delete_id, len(move_to_delete_ids))
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
                                                            'stock.move', [move_to_delete_id])
                 self.env.cr.commit()
