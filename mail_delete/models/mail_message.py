@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,23 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Task Invoicing Milestone',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project_task_invoice', 'project_milestone'],
-    'description': """
-Task Invoicing
-==============
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_invoicing_milestone.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': True,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from odoo import models, api, SUPERUSER_ID
+from odoo.exceptions import UserError
+
+
+class MailMessage(models.Model):
+    _name = 'mail.message'
+    _inherit = 'mail.message'
+
+    @api.multi
+    def unlink(self):
+        if self._context.get('mail_delete'):
+            if self._uid != SUPERUSER_ID:
+                raise UserError(u"Seul un administrateur peut supprimer un message.")
+        return super(MailMessage, self).unlink()

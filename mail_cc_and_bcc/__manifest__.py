@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,26 @@
 #
 
 {
-    'name': 'Task Invoicing Milestone',
+    'name': 'Mail cc and bcc',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project_task_invoice', 'project_milestone'],
+    'category': 'Mail',
+    'depends': [
+        'mail'
+    ],
     'description': """
-Task Invoicing
-==============
+Mail cc and bcc
+===============
+Ce module permet d'ajouter des destinataire en cc ou en bcc dans les mails
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_invoicing_milestone.xml'],
+    'data': [
+        'views/mail_cc_and_bcc.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': True,
     'license': 'AGPL-3',
-    'application': False,
 }

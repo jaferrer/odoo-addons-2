@@ -31,7 +31,7 @@
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_validate" type="object" string="Export" class="btn-primary"/>
+                    <button name="button_action_validate" type="object" string="Export" class="btn-primary"/>
                     <button special="cancel" string="Cancel" class="btn-default"/>
                 </footer>
             </form>

@@ -74,7 +74,7 @@ class StockQuickMoveWizard(models.TransientModel):
         self.ensure_one()
         picking = self.env['stock.picking'].create({
             'picking_type_id': self.picking_type_id.id,
-            'location_src_id': self.location_src_id.id,
+            'location_id': self.location_src_id.id,
             'location_dest_id': self.location_dest_id.id,
             'move_lines': [(0, 0, {
                 'name': self.product_id.display_name,
