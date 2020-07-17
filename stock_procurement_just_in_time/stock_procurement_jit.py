@@ -38,8 +38,8 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 
     def __init__(self, proc_id):
         self.proc_id = proc_id
-        super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
-                                                                  _(u"You can't cancel a protected procurement"))
+        super(ForbiddenCancelProtectedProcurement,
+              self).__init__(_(u"Error!"), _(u"You can't cancel a protected procurement (ID=%s)") % proc_id)
 
 
 @job(default_channel='root.procurement_just_in_time_chunk')
@@ -1053,16 +1053,15 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s (%s remaining) items: %s",
-                                         len(chunk_line), len(controller_lines_no_run) // POP_PROCESS_CHUNK,
-                                         chunk_line.ids)
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s controler lines, %s remaining",
+                                         len(chunk_line), len(controller_lines_no_run))
                             job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
-                            _logger.info(u"Pop job generated, UUID: %s", job_uuid)
                             chunk_line.write({'job_uuid': job_uuid,
                                               'job_creation_date': fields.Datetime.now()})
-                            _logger.info(u"Controller lines updated")
+                            # We want the stock scheduler to start immediately
+                            self.env.cr.commit()
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
