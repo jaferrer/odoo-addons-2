@@ -25,8 +25,6 @@ from odoo import models, fields, api, _
 
 URL_BASE_API_STAGING = "https://staging-api.yousign.com"
 URL_BASE_API_PRODUCTION = "https://api.yousign.com"
-URL_WEB_APP_STAGING = "https://staging-app.yousign.com"
-URL_WEB_APP_PRODUCTION = "https://webapp.yousign.com"
 
 
 class ApiYousignSignature(models.TransientModel):
@@ -51,7 +49,6 @@ class ApiYousignSignature(models.TransientModel):
         Access to Yousign API.
         """
         session = requests.Session()
-        # api_key = "fb8917fa5957ee4d3f5cdaa74f29da9b"
         api_key = self.env['ir.config_parameter'].get_param('yousign_api_key')
         if api_key:
             authorization = "Bearer " + api_key
@@ -100,6 +97,9 @@ class ApiYousignSignature(models.TransientModel):
         file_infos = session.get(url)
         page_number = len(json.loads(file_infos.text).get('pages'))
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        url_procedure_started = base_url + "/yousign/webhook/procedure_started"
+        url_procedure_finished = base_url + "/yousign/webhook/member_finished"
+
         webhook_key = self.env['ir.config_parameter'].get_param('yousign_webhook')
         body = {
             'name': "Procedure %s" % name,
@@ -121,7 +121,7 @@ class ApiYousignSignature(models.TransientModel):
                 'webhook': {
                     'procedure.started': [
                         {
-                            'url': base_url + "/yousign/webhook/procedure_started",
+                            'url': url_procedure_started,
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key
@@ -130,7 +130,7 @@ class ApiYousignSignature(models.TransientModel):
                     ],
                     'member.finished': [
                         {
-                            'url': base_url + "/yousign/webhook/member_finished",
+                            'url': url_procedure_finished,
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key
@@ -165,6 +165,14 @@ class ApiYousignSignature(models.TransientModel):
             raise UserError(_("HTTP Request returned a %d error : %s" % (ans.status_code, ans.text)))
 
         return json.loads(ans.text).get('id')
+
+    @api.model
+    def get_signed_document(self, file_id):
+        session = self.access_yousign()
+        url = "%s/files/%s/download" % (URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION,
+                                        file_id)
+        response = session.get(url)
+        return response.content
 
     @api.multi
     def button_send_signature_mail(self):
