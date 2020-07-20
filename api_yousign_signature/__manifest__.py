@@ -31,6 +31,8 @@ Get a certified signature throughout Yousign process
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'data/ir_config_parameter.xml',
+        'views/res_config.xml',
         'views/api_yousign_signature.xml',
     ],
     'demo': [],
