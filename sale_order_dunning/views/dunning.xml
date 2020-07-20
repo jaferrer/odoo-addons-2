@@ -94,7 +94,7 @@
                 <field name="dunning_type_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="state"/>
-                <filter name="to_do" string="À faire" domain="[('next_dunning_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="to_do" string="À faire" domain="[('state', 'in', ['draft', 'sent']), ('next_dunning_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="sent" string="Sent" domain="[('state', '=', 'send')]"/>
                 <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
@@ -116,7 +116,7 @@
         <field name="res_model">sale.order.dunning</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{'search_default_draft':True, 'search_default_sent':True, 'search_default_to_do':True}</field>
+        <field name="context">{'search_default_to_do':True}</field>
     </record>
 
     <menuitem name="Dunnings"

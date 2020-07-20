@@ -1,0 +1,124 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_quick_move
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-12 13:25+0000\n"
+"PO-Revision-Date: 2020-06-12 15:27+0200\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 2.3\n"
+
+#. module: stock_quick_move
+#: model:ir.ui.view,arch_db:stock_quick_move.stock_quick_move_wizard_form
+msgid "Apply"
+msgstr "Appliquer"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_available_qty
+msgid "Available Quantity"
+msgstr "Quantité disponible"
+
+#. module: stock_quick_move
+#: model:ir.ui.view,arch_db:stock_quick_move.stock_quick_move_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,help:stock_quick_move.field_stock_quick_move_wizard_product_uom_id
+msgid "Default Unit of Measure used for all stock operation."
+msgstr "Unité de mesure par défaut utilisée pour toutes les opérations de stock."
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_location_dest_id
+msgid "Destination Location"
+msgstr "Emplacement de destination"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_id
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_lot_id
+msgid "Lot / Serial"
+msgstr "Numéro de lot / série"
+
+#. module: stock_quick_move
+#: code:addons/stock_quick_move/wizard/stock_quick_move_wizard.py:97
+#, python-format
+msgid "New Picking"
+msgstr "Nouveau transfert"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_picking_type_id
+msgid "Picking Type"
+msgstr "Type de préparation"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_product_id
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_product_qty
+msgid "Quantity"
+msgstr "Quantité"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_location_src_id
+msgid "Source Location"
+msgstr "Emplacement d'origine"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_product_uom_id
+msgid "Unit Of Measure"
+msgstr "Unité de mesure"
+
+#. module: stock_quick_move
+#: model:ir.model.fields,field_description:stock_quick_move.field_stock_quick_move_wizard_validate_picking
+msgid "Validate picking"
+msgstr "Valider le transfert"
+
+#. module: stock_quick_move
+#: model:ir.model,name:stock_quick_move.model_stock_quick_move_wizard
+msgid "stock.quick.move.wizard"
+msgstr "stock.quick.move.wizard"

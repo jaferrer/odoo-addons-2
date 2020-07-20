@@ -42,4 +42,4 @@ class AnalyticLine(models.Model):
                         "This line is protected against editing because it "
                         "was created automatically by a leave request. "
                         "Please edit the leave request instead."))
-        super(AnalyticLine, self).write(vals)
+        return super(AnalyticLine, self).write(vals)

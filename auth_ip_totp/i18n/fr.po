@@ -1,0 +1,328 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* auth_ip_totp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-09 13:05+0000\n"
+"PO-Revision-Date: 2020-06-09 15:26+0200\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 2.3\n"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.res_users_authenticator_create_view_form
+msgid ""
+"<span>Please provide a name for your app/device. </span>\n"
+"                        <span>Then scan the QR code or enter the secret code below to add this account to your authenticator app and enter in the six digit code produced by the app.</span>"
+msgstr ""
+"<span>Merci de donner un nom à votre appareil. </span>\n"
+"                        <span>Puis scannez le QR code ou entrez le code secret ci-dessous pour ajouter ce compte à votre application d'authentification. Entrez enfin le code à 6 chiffre donné par l'application.</span>"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.mfa_login
+msgid "<span>Remember this device</span>"
+msgstr "<span>Se rappeler de cet appareil</span>"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_authenticator_create_name
+msgid "A name that will help you remember this authentication app/device"
+msgstr "Un nom qui vous aidera à retenir cet appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.view_users_form_simple_modif
+msgid "Add New App/Device"
+msgstr "Ajouter un appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_name
+msgid "Address"
+msgstr "Adresse"
+
+#. module: auth_ip_totp
+#: model:ir.model,name:auth_ip_totp.model_authorized_ip
+msgid "An IP from which connection is authorized without MFA"
+msgstr "Une IP depuis laquelle la connexion est autorisée sans authentification forte"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_user_id
+msgid "Associated User"
+msgstr "Utilisateur associé"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_name
+msgid "Authentication App/Device Name"
+msgstr "Nom de l'appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_ids
+msgid "Authentication Apps/Devices"
+msgstr "Appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.res_users_authenticator_create_view_form
+msgid "Authenticator Info"
+msgstr "Info de l'authentificateur"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_base_config_settings_authorized_ip_ids
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_company_authorized_ip_ids
+msgid "Authorized IPs"
+msgstr "IP autorisées"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.res_users_authenticator_create_view_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: auth_ip_totp
+#: model:ir.model,name:auth_ip_totp.model_res_company
+msgid "Companies"
+msgstr "Sociétés"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.mfa_login
+msgid "Confirm"
+msgstr "Confirmer"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_confirmation_code
+msgid "Confirmation Code"
+msgstr "Code de confirmation"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.res_users_authenticator_create_view_form
+msgid "Create"
+msgstr "Créer"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_create_uid
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_create_uid
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_create_date
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_create_date
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_display_name
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_display_name
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_authenticator_create_confirmation_code
+msgid "Enter the latest six digit code generated by your authentication app"
+msgstr "Entrez le dernier code à 6 chiffre généré par votre appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_id
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_id
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_id
+msgid "ID"
+msgstr "ID"
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/models/authorized_ip.py:50
+#, python-format
+msgid "Invalid IP: %s"
+msgstr "IP invalide: %s"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip___last_update
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator___last_update
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_write_uid
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_write_uid
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_authorized_ip_write_date
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_write_date
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.base_config_settings_ip_totp
+msgid "Login Security"
+msgstr "Sécurité de l'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.model,name:auth_ip_totp.model_res_users_authenticator
+msgid "MFA App/Device"
+msgstr "Appareils d'authentification forte"
+
+#. module: auth_ip_totp
+#: model:ir.actions.act_window,name:auth_ip_totp.res_users_authenticator_create_action
+#: model:ir.model,name:auth_ip_totp.model_res_users_authenticator_create
+msgid "MFA App/Device Creation Wizard"
+msgstr "Assistant d'enregistrement d'appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.mfa_login
+msgid "MFA Confirmation Code"
+msgstr "Code de confirmation"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_mfa_enabled
+msgid "MFA Enabled"
+msgstr "Activer l'authentification forte"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.view_users_form
+#: model:ir.ui.view,arch_db:auth_ip_totp.view_users_form_simple_modif
+msgid "MFA Settings"
+msgstr "Paramètres d'authentification forte"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_mfa_authorized
+msgid "MFA authorized"
+msgstr "Authentification forte autorisée"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.view_users_form_simple_modif
+msgid "Note: Please add at least one authentication app/device before enabling MFA."
+msgstr "Note: Ajoutez au moins un appareil d'authentification avant d'activer l'authentification forte."
+
+#. module: auth_ip_totp
+#: model:ir.ui.view,arch_db:auth_ip_totp.view_users_form
+msgid ""
+"Note: Please have user add at least one authentication app/device before enabling\n"
+"                        MFA."
+msgstr ""
+"Note: Assurez-vous que l'utilisateur a ajouté au moins un appareil d'authentification\n"
+"                        avant d'activer l'authentification forte."
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_qr_code_tag
+msgid "QR Code"
+msgstr "QR Code"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_authenticator_create_qr_code_tag
+msgid "Scan this image with your authentication app to add your account"
+msgstr "Scannez cette image avec votre application d'authentification pour ajouter votre compte"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_create_secret_key
+msgid "Secret Code"
+msgstr "Code secret"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_secret_key
+msgid "Secret key"
+msgstr "Clé secrète"
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/models/authorized_ip.py:35
+#, python-format
+msgid "Supplied IP address is invalid"
+msgstr "L'IP fournie est invalide"
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/models/res_users_authenticator.py:39
+#: sql_constraint:res.users.authenticator:0
+#, python-format
+msgid "There is already an MFA app/device with this name associated with your account. Please pick a new name and try again."
+msgstr "Il existe déjà un appareil d'authentification avec ce nom associé à votre compte. Merci de choisir un autre nom et d'essayer à nouveau."
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_authenticator_create_user_id
+msgid "This is the user whose account the new authentication app/device will be tied to"
+msgstr "Il s'agit de l'utilisateur au compte duquel sera rattaché l'appareil d'authentification"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_authenticator_ids
+msgid "To delete an authentication app, remove it from this list. To add a new authentication app, please use the button to the right. If the button is not present, you do not have the permissions to do this."
+msgstr "Pour supprimer un appareil d'authentification, retirez-le de la liste. Pour ajouter un nouvel appareil d'authentification, utilisez le bouton de droite. Si le bouton n'apparait pas, c'est que vous n'avez pas l'autorisation de le faire."
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_trusted_device_cookie_key
+msgid "Trusted device cookie key"
+msgstr "Clé du cookie de sécurité de l'appareil"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,field_description:auth_ip_totp.field_res_users_authenticator_user_id
+msgid "User id"
+msgstr "Identifiant"
+
+#. module: auth_ip_totp
+#: model:ir.model,name:auth_ip_totp.model_res_users
+msgid "Users"
+msgstr "Utilisateurs"
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_base_config_settings_authorized_ip_ids
+#: model:ir.model.fields,help:auth_ip_totp.field_res_company_authorized_ip_ids
+msgid "Users are allowed to connect from these IPs without MFA."
+msgstr "Les utilisateurs sont autorisés à se connecter depuis ces IP sans authentification forte."
+
+#. module: auth_ip_totp
+#: model:ir.model.fields,help:auth_ip_totp.field_res_users_mfa_authorized
+msgid "When checked, the user will be allowed to setup MFA and thus access Odoo while roaming."
+msgstr "Si la case est cochée, l'utilisateur sera autorisé à mettre en place l'authentification forte et ainsi accéder à Odoo en itinérance."
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/models/res_users.py:82
+#, python-format
+msgid "You are not authorized to setup MFA."
+msgstr "Vous n'êtes pas autorisés à mettre en place l'authentification forte."
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/models/res_users.py:71
+#, python-format
+msgid "You have MFA enabled but do not have any authentication apps/devices set up. To keep from being locked out, please add one before you activate this feature."
+msgstr "L'authentification forte est activée, mais vous n'avez pas enregistré d'appareil d'authentification. Pour vous éviter d'être blocké, merci d'ajouter un appareil d'authentification avant d'activer cette fonction."
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/controllers/main.py:126
+#, python-format
+msgid "You must log in with a password before starting the MFA login process."
+msgstr "Vous devez vous authentifier avec un mot de passe avant de commencer le processus d'authentification forte."
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/wizards/res_users_authenticator_create.py:119
+#, python-format
+msgid "Your confirmation code is not correct. Please try again, making sure that your MFA device is set to the correct time and that you have entered the most recent code generated by your authentication app."
+msgstr "Votre code de confirmation n'est pas correct. Merci d'essayer à nouveau en vérifiant que votre appareil est réglé à l'heure et que vous avez entré le code le plus récent généré par votre application d'authentification."
+
+#. module: auth_ip_totp
+#: code:addons/auth_ip_totp/controllers/main.py:140
+#, python-format
+msgid "Your confirmation code is not correct. Please try again."
+msgstr "Votre code de confirmation n'est pas correct. Merci d'essayer à nouveau."
+
+#. module: auth_ip_totp
+#: model:ir.model,name:auth_ip_totp.model_base_config_settings
+msgid "base.config.settings"
+msgstr "base.config.settings"
