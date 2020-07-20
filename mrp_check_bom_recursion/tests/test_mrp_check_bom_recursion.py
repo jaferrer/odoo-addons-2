@@ -53,7 +53,6 @@ class TestOrderUpdate(common.TransactionCase):
             "product_uom_id": self.unit.id,
         })
         line1 = self.env['mrp.bom.line'].create({
-            "type": 'normal',
             "product_id": self.product1.id,
             "product_qty": 2.0,
             "product_uom_id": self.unit.id,
@@ -62,7 +61,6 @@ class TestOrderUpdate(common.TransactionCase):
 
         with self.assertRaises(exceptions.UserError):
             self.env['mrp.bom.line'].create({
-                "type": 'normal',
                 "product_id": self.product_to_manufacture1.id,
                 "product_qty": 3.0,
                 "product_uom_id": self.unit.id,
@@ -79,7 +77,6 @@ class TestOrderUpdate(common.TransactionCase):
             "product_uom_id": self.unit.id,
         })
         line2 = self.env['mrp.bom.line'].create({
-            "type": 'normal',
             "product_id": self.product2.id,
             "product_qty": 3.0,
             "product_uom_id": self.unit.id,
@@ -88,7 +85,6 @@ class TestOrderUpdate(common.TransactionCase):
 
         with self.assertRaises(exceptions.UserError):
             self.env['mrp.bom.line'].create({
-                "type": 'normal',
                 "product_id": self.product_to_manufacture1.id,
                 "product_qty": 2.0,
                 "product_uom_id": self.unit.id,
