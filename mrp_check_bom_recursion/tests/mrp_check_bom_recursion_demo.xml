@@ -7,7 +7,6 @@
             <field name="type">product</field>
         </record>
 
-
         <record id="product1" model="product.product">
             <field name="name">Test Product 1 (BoM Recursion)</field>
             <field name="type">product</field>
@@ -34,7 +33,6 @@
         </record>
 
         <record id="line1" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product1"/>
             <field name="product_qty" eval="5"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
@@ -42,7 +40,6 @@
         </record>
 
         <record id="line2" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product2"/>
             <field name="product_qty" eval="10"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
@@ -50,7 +47,6 @@
         </record>
 
         <record id="line3" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product3"/>
             <field name="product_qty" eval="15"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
@@ -58,7 +54,6 @@
         </record>
 
         <record id="line4" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product1"/>
             <field name="product_qty" eval="20"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
@@ -66,7 +61,6 @@
         </record>
 
         <record id="line5" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product2"/>
             <field name="product_qty" eval="25"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
@@ -74,7 +68,6 @@
         </record>
 
         <record id="line6" model="mrp.bom.line">
-            <field name="type">normal</field>
             <field name="product_id" ref="product3"/>
             <field name="product_qty" eval="30"/>
             <field name="product_uom_id" ref="product.product_uom_unit"/>
