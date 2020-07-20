@@ -35,7 +35,7 @@ class ApiYousignWebhook(http.Controller):
         x_api_key = request.jsonrequest.get(
             'procedure').get('config').get('webhook').get('procedure.started')[0].get('headers').get('X-API-Key')
         if x_api_key:
-            webhook_key = request.env['ir.config_parameter'].sudo().get_param('reanova.yousign_webhook_key')
+            webhook_key = request.env['ir.config_parameter'].sudo().get_param('yousign_webhook')
             if x_api_key != webhook_key:
                 raise exceptions.UserError("Error : Invalid API-Key value.")
         else:
@@ -57,7 +57,7 @@ class ApiYousignWebhook(http.Controller):
         x_api_key = request.jsonrequest.get(
             'procedure').get('config').get('webhook').get('procedure.started')[0].get('headers').get('X-API-Key')
         if x_api_key:
-            webhook_key = request.env['ir.config_parameter'].sudo().get_param('reanova.yousign_webhook_key')
+            webhook_key = request.env['ir.config_parameter'].sudo().get_param('yousign_webhook')
             if x_api_key != webhook_key:
                 raise exceptions.UserError("Error : Invalid API-Key value.")
         else:
