@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,6 +16,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import models, fields
 
-from . import api_yousign_signature
-from . import res_config_settings
+
+class ApiYousignConfig(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    # Configuration Yousign
+    yousign_api_key = fields.Char("Clef API Yousign", config_parameter='yousign_api_key')
+    yousign_webhook = fields.Char("Clef Webhook", config_parameter='yousign_webhook')
+    yousign_staging = fields.Boolean("Staging env", config_parameter='yousign_staging')
