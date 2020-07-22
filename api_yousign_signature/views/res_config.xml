@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
         <record model="ir.ui.view" id="yousign_res_config">
             <field name="name">res config inherited Yousign</field>
             <field name="model">res.config.settings</field>
