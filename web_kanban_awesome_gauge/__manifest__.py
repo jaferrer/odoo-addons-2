@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import api_yousign_signature
-from . import res_config_settings
+{
+    'name': 'Web Kanban Awesome Gauge',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'web',
+    'depends': ['web'],
+    'description': """
+Web Kanban Awesome Gauge
+========================
+Gauge avec plus d'options
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/assets.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

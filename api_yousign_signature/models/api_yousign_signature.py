@@ -23,6 +23,9 @@ import requests
 from odoo.exceptions import UserError
 from odoo import models, fields, api, _
 
+URL_BASE_API_STAGING = "https://staging-api.yousign.com"
+URL_BASE_API_PRODUCTION = "https://api.yousign.com"
+
 
 class ApiYousignSignature(models.TransientModel):
     _name = 'api.yousign.signature'
@@ -37,13 +40,16 @@ class ApiYousignSignature(models.TransientModel):
     document_to_sign = fields.Binary("Document to sign")
 
     @api.model
+    def is_test_env(self):
+        return self.env['ir.config_parameter'].get_param('yousign_staging')
+
+    @api.model
     def access_yousign(self):
         """
         Access to Yousign API.
         """
         session = requests.Session()
-        # api_key = "fb8917fa5957ee4d3f5cdaa74f29da9b"
-        api_key = self.env['ir.config_parameter'].get_param('reanova.yousign_api_key')
+        api_key = self.env['ir.config_parameter'].get_param('yousign_api_key')
         if api_key:
             authorization = "Bearer " + api_key
         else:
@@ -73,8 +79,8 @@ class ApiYousignSignature(models.TransientModel):
                 'source': "Odoo Reanova"
             }
         }
-
-        ans = session.post("https://staging-api.yousign.com/files", json=body)
+        url = "%s/files" % URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION
+        ans = session.post(url, json=body)
         if ans.status_code != 201:
             raise UserError(_("HTTP Request returned a %d error %s" % (ans.status_code, ans.text)))
 
@@ -87,10 +93,14 @@ class ApiYousignSignature(models.TransientModel):
         """
         session = self.access_yousign()
         id = file_id.replace("/files/", "")
-        file_infos = session.get("https://staging-api.yousign.com/files/%s/layout" % id)
+        url = "%s/files/%s/layout" % (URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION, id)
+        file_infos = session.get(url)
         page_number = len(json.loads(file_infos.text).get('pages'))
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
-        webhook_key = self.env['ir.config_parameter'].get_param('reanova.yousign_webhook_key')
+        url_procedure_started = base_url + "/yousign/webhook/procedure_started"
+        url_procedure_finished = base_url + "/yousign/webhook/member_finished"
+
+        webhook_key = self.env['ir.config_parameter'].get_param('yousign_webhook')
         body = {
             'name': "Procedure %s" % name,
             'description': "Sweet description of procedure",
@@ -111,7 +121,7 @@ class ApiYousignSignature(models.TransientModel):
                 'webhook': {
                     'procedure.started': [
                         {
-                            'url': base_url + "/yousign/webhook/procedure_started",
+                            'url': url_procedure_started,
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key
@@ -120,7 +130,7 @@ class ApiYousignSignature(models.TransientModel):
                     ],
                     'member.finished': [
                         {
-                            'url': base_url + "/yousign/webhook/member_finished",
+                            'url': url_procedure_finished,
                             'method': "POST",
                             'headers': {
                                 'X-API-Key': webhook_key
@@ -149,11 +159,20 @@ class ApiYousignSignature(models.TransientModel):
             'status': "active"
         }
 
-        ans = session.post("https://staging-api.yousign.com/procedures", json=body)
+        url = "%s/procedures" % URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION
+        ans = session.post(url, json=body)
         if ans.status_code != 201:
             raise UserError(_("HTTP Request returned a %d error : %s" % (ans.status_code, ans.text)))
 
         return json.loads(ans.text).get('id')
+
+    @api.model
+    def get_signed_document(self, file_id):
+        session = self.access_yousign()
+        url = "%s/files/%s/download" % (URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION,
+                                        file_id)
+        response = session.get(url)
+        return response.content
 
     @api.multi
     def button_send_signature_mail(self):
@@ -162,8 +181,10 @@ class ApiYousignSignature(models.TransientModel):
         """
         self.ensure_one()
         model_record = self.env[self.model_name].browse(self.model_id)
+        b64_pdf_file = model_record.get_document_to_sign()
+
         model_record.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
-            model_record.document_to_sign,
+            b64_pdf_file,
             model_record.display_name
         )
         model_record.yousign_procedure_id = self.env['api.yousign.signature'].create_procedure(
