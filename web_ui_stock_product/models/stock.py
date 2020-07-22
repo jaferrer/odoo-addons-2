@@ -40,7 +40,8 @@ class StockPickingTypeWebUiStockProduct(models.Model):
         On peut rechercher un article, soit par le nom de son code, soit par son nom, soit par son numéro de série/lot.
         """
         name = name.strip()
-        product = self.env['product.product'].search(['|', ('name', '=ilike', name), ('default_code', '=ilike', name)])
+        product = self.env['product.product'].search(
+            ['|', '|', ('name', '=ilike', name), ('default_code', '=ilike', name), ('barcode', '=ilike', name)])
         production_lot = self.env['stock.production.lot']
         if not product:
             production_lot = self.web_ui_get_production_lot_by_name(name)
@@ -94,11 +95,11 @@ class StockPickingTypeWebUiStockProduct(models.Model):
                 'location_id': self.env.ref('radiscapucine_data.rc_stock_location_sorting').id,
                 'location_dest_id': self.env.ref('stock.stock_location_stock').id,
             })
-        moves._action_confirm()
-        picking = moves[0].picking_id
-        picking.action_assign()
-
-        return picking.name
+        if moves:
+            moves._action_confirm()
+            picking = moves[0].picking_id
+            picking.action_assign()
+            return picking.name
 
 
 class ProductProductWebUiStockProduct(models.Model):
