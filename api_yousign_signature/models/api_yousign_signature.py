@@ -40,8 +40,9 @@ class ApiYousignSignature(models.TransientModel):
     document_to_sign = fields.Binary("Document to sign")
 
     @api.model
-    def is_test_env(self):
-        return self.env['ir.config_parameter'].get_param('yousign_staging')
+    def _get_yousign_base_url(self):
+        is_test_env = self.env['ir.config_parameter'].get_param('yousign_staging')
+        return URL_BASE_API_STAGING if is_test_env else URL_BASE_API_PRODUCTION
 
     @api.model
     def access_yousign(self):
@@ -79,7 +80,7 @@ class ApiYousignSignature(models.TransientModel):
                 'source': "Odoo Reanova"
             }
         }
-        url = "%s/files" % URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION
+        url = "%s/files" % self._get_yousign_base_url()
         ans = session.post(url, json=body)
         if ans.status_code != 201:
             raise UserError(_("HTTP Request returned a %d error %s" % (ans.status_code, ans.text)))
@@ -93,7 +94,7 @@ class ApiYousignSignature(models.TransientModel):
         """
         session = self.access_yousign()
         id = file_id.replace("/files/", "")
-        url = "%s/files/%s/layout" % (URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION, id)
+        url = "%s/files/%s/layout" % (self._get_yousign_base_url(), id)
         file_infos = session.get(url)
         page_number = len(json.loads(file_infos.text).get('pages'))
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
@@ -159,7 +160,7 @@ class ApiYousignSignature(models.TransientModel):
             'status': "active"
         }
 
-        url = "%s/procedures" % URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION
+        url = "%s/procedures" % self._get_yousign_base_url()
         ans = session.post(url, json=body)
         if ans.status_code != 201:
             raise UserError(_("HTTP Request returned a %d error : %s" % (ans.status_code, ans.text)))
@@ -169,8 +170,7 @@ class ApiYousignSignature(models.TransientModel):
     @api.model
     def get_signed_document(self, file_id):
         session = self.access_yousign()
-        url = "%s/files/%s/download" % (URL_BASE_API_STAGING if self.is_test_env() else URL_BASE_API_PRODUCTION,
-                                        file_id)
+        url = "%s/files/%s/download" % (self._get_yousign_base_url(), file_id)
         response = session.get(url)
         return response.content
 
