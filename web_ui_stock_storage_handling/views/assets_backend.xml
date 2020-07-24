@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_ui_stock_storage_handling/static/src/js/storage_handling_main_list.js"/>
+            </xpath>
+        </template>
+
+        <template id="assets_backend_index" name="stock assets index" inherit_id="web_ui_stock.index">
+            <xpath expr="//head" position="inside">
+                <link rel="stylesheet" href="/web_ui_stock_storage_handling/static/src/css/theme.css"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>

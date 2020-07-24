@@ -18,27 +18,28 @@
 #
 
 {
-    'name': 'Web UI Stock API',
+    'name': 'Web UI Stock Product',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'stock',
-    'depends': ['stock'],
+    'depends': ['web_ui_stock'],
     'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
+Web UI Stock Product
+====================
+This modules allows to use the barcode scanner for the receipt operation.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/web_ui_stock.xml',
+        'views/assets_backend.xml',
         'security/ir.model.access.csv',
+        'data.xml',
     ],
-    'qweb': ['static/src/xml/qweb.xml'],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'qweb': ['static/src/xml/qweb.xml'],
 }
