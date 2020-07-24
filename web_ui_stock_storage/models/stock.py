@@ -45,7 +45,8 @@ class StockPickingType(models.Model):
     @api.multi
     def web_ui_get_storage_product_info_by_name(self, name, picking_id):
         name = name.strip()
-        product = self.env['product.product'].search(['|', ('name', '=ilike', name), ('default_code', '=ilike', name)])
+        product = self.env['product.product'].search(
+            ['|', '|', ('name', '=ilike', name), ('default_code', '=ilike', name), ('barcode', '=ilike', name)])
         production_lot = False
         if not product:
             production_lot = self.web_ui_get_production_lot_by_name(name)
@@ -105,7 +106,8 @@ class StockPickingType(models.Model):
 
     @api.multi
     def web_ui_get_storage_validate_move(self, picking_id):
-        self.env['stock.picking.type'].browse(picking_id).action_done()
+        if picking_id != '0':
+            self.env['stock.picking'].browse(picking_id).action_done()
 
 
 class StockMoveLine(models.Model):
