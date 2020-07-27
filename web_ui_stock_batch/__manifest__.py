@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'stock',
-    'depends': ['web_ui_stock', 'web_ui_stock_product'],
+    'depends': ['web_ui_stock'],
     'description': """
 Web UI Stock Batch
 ==================
