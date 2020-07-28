@@ -31,11 +31,11 @@ GaugeWidget.include({
         }
 
         var degree = Math.PI/180,
-            width = 200,
-            height = 150,
-            outerRadius = Math.min(width, height)*0.5,
+            width = 150,
+            height = 100,
+            outerRadius = Math.min(width, height)*0.75,
             innerRadius = outerRadius*0.7,
-            fontSize = height/7;
+            fontSize = height/4;
 
         this.$el.empty().attr('style', this.nodeOptions.style + ';position:relative; display:inline-block;');
 
@@ -48,10 +48,10 @@ GaugeWidget.include({
             .append("svg")
             .attr("width", '100%')
             .attr("height", '100%')
-            .attr('viewBox','0 0 '+width +' '+height )
+            .attr('viewBox','0 0 ' + width + ' ' + height )
             .attr('preserveAspectRatio','xMinYMin')
             .append("g")
-            .attr("transform", "translate(" + (width/2) + "," + (height-(width-height)/2-12) + ")");
+            .attr("transform", "translate(" + (width/2) + "," + (height-20) + ")");
 
         function addText(text, fontSize, dx, dy) {
             return svg.append("text")
@@ -62,15 +62,15 @@ GaugeWidget.include({
                 .text(text);
         }
         // top title
-        addText(title, 16, 0, -outerRadius-16).style("font-weight",'bold');
+        // addText(title, 16, 0, -outerRadius-16).style("font-weight",'bold');
 
         // center value
         addText(utils.human_number(value, 1), fontSize, 0, -2).style("font-weight",'bold');
 
         // bottom label
-        addText(0, 8, -(outerRadius+innerRadius)/2, 12);
-        addText(label, 8, 0, 12);
-        addText(utils.human_number(max_value, 1), 8, (outerRadius+innerRadius)/2, 12);
+        addText(0, 14, -(outerRadius+innerRadius)/2, 16);
+        addText(label, 14, 0, 16);
+        addText(utils.human_number(max_value, 1), 14, (outerRadius+innerRadius)/2, 16);
 
         // chart
         svg.append("path")
