@@ -32,11 +32,9 @@ class StockPickingType(models.Model):
         On peut rechercher un picking, soit par le nom de son groupe d'appro, soit par son nom.
         """
         name = name.strip()
-        picking = self.env['stock.picking'].search([('name', '=ilike', name)]).read(['group_id'], load='no_name')
+        picking = self.env['stock.picking'].search([('name', '=ilike', name)])
         if not picking:
             raise WebUiError(name, "Aucun transfert trouvé")
-        group_id = picking[0]['group_id']
-        picking = self.env['stock.picking'].search([('group_id', '=', group_id), ('picking_type_id', '=', self.id)])
         if len(picking) > 1:
             raise WebUiError(name, "Plusieurs transferts ont été trouvé: %s" % ", ".join(picking.mapped('name')))
         if picking.state not in ['assigned', 'done']:
