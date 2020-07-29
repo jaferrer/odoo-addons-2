@@ -70,7 +70,7 @@ GaugeWidget.include({
         // bottom label
         addText(0, 14, -(outerRadius+innerRadius)/2, 16);
         addText(label, 14, 0, 16);
-        addText(utils.human_number(max_value, 1), 14, (outerRadius+innerRadius)/2, 16);
+        addText(isNaN(max_value) ? '0' : utils.human_number(max_value, 1), 14, (outerRadius+innerRadius)/2, 16);
 
         // chart
         svg.append("path")
@@ -83,7 +83,7 @@ GaugeWidget.include({
             .style("fill", "#3ac47d")
             .attr("d", arc);
 
-        var ratio = max_value ? value/max_value : 0;
+        var ratio = max_value && max_value != 0 ? value/max_value : 1;
         var hue = Math.round(ratio*120);
 
         foreground.transition()
