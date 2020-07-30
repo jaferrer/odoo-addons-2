@@ -24,5 +24,5 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     @api.model
-    def _get_products_for_sale_forecast(self, categ_ids):
+    def _get_products_for_sale_forecast(self):
         return [('sale_ok', '=', True)]

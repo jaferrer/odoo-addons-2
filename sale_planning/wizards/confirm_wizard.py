@@ -20,20 +20,12 @@
 from odoo import fields, models, api
 
 
-class AddProductPlanningWizard(models.TransientModel):
-    _name = 'add.product.planning.wizard'
-    _description = "Add Product Planning Wizard"
-
-    def _get_domain_product(self):
-        product_domain = self.env['product.product']._get_products_for_sale_forecast()
-        ctx_period_id = self.env.context.get('default_period_id')
-        product_ids = self.env['sale.planning'].search([('period_id', '=', ctx_period_id)]).mapped('product_id')
-        product_domain.append(('id', 'not in', product_ids.ids))
-        return product_domain
+class ConfirmWizard(models.TransientModel):
+    _name = 'confirm.wizard'
+    _description = "Confirm Wizard"
 
     period_id = fields.Many2one('period.planning', string="Sale planning")
-    product_ids = fields.Many2many('product.product', string="Product", domain=_get_domain_product)
 
     @api.multi
     def add(self):
-        self.period_id.merge_products(self.product_ids)
+        self.period_id.create_or_update_purchase_planning()
