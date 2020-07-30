@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,32 @@
 #
 
 {
-    'name': 'Web UI Stock Batch',
+    'name': 'Account Move Export',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'stock',
-    'depends': ['web_ui_stock'],
+    'category': 'Hidden',
+    'depends': [
+        'account',
+    ],
+    'external_dependencies': {
+        'python': [
+            'ftplib',
+            'io',
+            'base64',
+        ],
+    },
     'description': """
-Web UI Stock Batch
-==================
-This modules allows to scan location, products and quantity related to a batch of pickings.
+Account Move Export
+===================
+Add an interface to export account.move
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/assets_backend.xml',
-        'security/ir.model.access.csv',
-        'data.xml',
+        'data/cron.xml',
+        'views/account_config_settings.xml',
+        'views/account_move_line.xml',
+        'wizard/account_move_export_wizard.xml',
     ],
     'demo': [],
     'test': [],
@@ -41,5 +51,4 @@ This modules allows to scan location, products and quantity related to a batch o
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'qweb': ['static/src/xml/qweb.xml'],
 }
