@@ -183,6 +183,11 @@ class ApiYousignSignature(models.TransientModel):
         model_record = self.env[self.model_name].browse(self.model_id)
         b64_pdf_file = model_record.get_document_to_sign()
 
+        # Procédure de signature certifiée à cocher dès le bouton "Valider" cliqué
+        model_record.write({
+            'is_yousign_procedure_on': True
+        })
+
         model_record.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
             b64_pdf_file,
             model_record.display_name
