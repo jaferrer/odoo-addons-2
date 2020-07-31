@@ -16,6 +16,7 @@
                                 <a type="object" name="see_planning_action">
                                     <div class="o_kanban_card_header_title">
                                         <field name="display_name"/>
+                                        <field name="purchase_state" invisible="1"/>
                                         <span class="float-right text-right">
                                             <field name="sale_state" widget="label_selection"
                                                    options="{'classes': {'confirm': 'warning','done': 'success'}}"/>
@@ -48,15 +49,14 @@
             <form edit="false">
                 <header>
                     <button class="btn btn-primary" name="confirm_sale_planning" type="object" string="Confirm"
-                            attrs="{'invisible':['|', ('count_completed_sale_planning', '=', 0), ('sale_state', '!=', 'draft')]}"/>
+                            attrs="{'invisible':[('sale_state', '!=', 'draft')]}"/>
                     <field name="sale_state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible':[('period_warning', '=', False)]}">
-                        The period already exist
-                    </div>
                     <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "active"}'/>
+                        </button>
                         <button name="see_sale_planning"
                                 type="object"
                                 class="oe_stat_button"
@@ -70,27 +70,22 @@
                             <field name="count_purchase_planning" string="Purchase planning" widget="statinfo"/>
                         </button>
                     </div>
+                    <div class="alert alert-warning" role="alert"
+                         attrs="{'invisible':[('period_warning', '=', False)]}">
+                        An unarchived planning exist for this period
+                    </div>
                     <group>
                         <field name="count_completed_sale_planning" invisible="1"/>
-                        <field name="season_id"/>
-                        <field name="year_id"/>
+                        <field name="season_id" options="{'no_create_edit': True}"/>
+                        <field name="year_id" options="{'no_create_edit': True}"/>
                     </group>
                     <group>
                         <field name="period_warning" invisible="1"/>
-                        <field name="merge_sale_planning" attrs="{'invisible':[('period_warning', '=', False)]}"/>
-                        <field name="merge_sale_period_id"
-                               attrs="{'invisible':[('period_warning', '=', False)], 'required': [('merge_sale_planning', '=', True)]}"
-                               options="{'no_create_edit': True}"/>
-                        <field name="name"
-                               attrs="{'invisible':[('period_warning', '=', False)], 'required': [('merge_sale_planning', '=', False), ('period_warning', '=', True)]}"/>
-                        <field name="category_ids" widget="many2many_tags"/>
-                        <button name="add_product" string="Add product" type="object" class="btn-primary" attrs="{'invisible':[('sale_state', 'not in', ('draft'))]}"/>
-                    </group>
-                    <group>
-                        <div>
-                            <field name="count_product" nolabel="1"/>
-                            <button class="oe_link" type="object" string=" products" name="see_product"/>
-                        </div>
+                        <field name="purchase_state" invisible="1"/>
+                        <button name="add_categ" string="Add product by category" type="object" class="btn-primary"
+                                attrs="{'invisible':[('sale_state', 'not in', ('draft', 'confirm'))]}"/>
+                        <button name="add_product" string="Add product by selection" type="object" class="btn-primary"
+                                attrs="{'invisible':[('sale_state', 'not in', ('draft', 'confirm'))]}"/>
                     </group>
                 </sheet>
             </form>
@@ -98,7 +93,7 @@
     </record>
 
     <record id="period_sale_planning_view_action" model="ir.actions.act_window">
-        <field name="name">Period planning</field>
+        <field name="name">Sale planning</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">period.planning</field>
         <field name="view_id" ref="sale_planning.period_sale_planning_kanban"/>

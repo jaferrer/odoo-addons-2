@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="confirm_wizard" model="ir.ui.view">
+        <field name="name">confirm_wizard</field>
+        <field name="model">confirm.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm?">
+                <group>
+                    <p>
+                        Warning, associated purchase planning is confirmed.
+                    </p>
+                </group>
+                <footer>
+                    <button name="add" string="Yes" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

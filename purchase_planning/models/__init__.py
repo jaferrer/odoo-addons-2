@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import product_product
 from . import product_supplierinfo
 from . import purchase_planning
 from . import period_planning
+from . import purchase_order
+from . import stock_rule

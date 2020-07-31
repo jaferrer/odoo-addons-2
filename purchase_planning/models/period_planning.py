@@ -34,6 +34,8 @@ class PeriodPlanning(models.Model):
     purchase_planning_ids = fields.One2many('purchase.planning', 'period_id', "Purchase planning")
     purchase_state = fields.Selection([
         ('draft', u"Draft"),
+        ('confirm', u"Confirmed"),
+        ('lock', u"Locked"),
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
     count_purchase_planning = fields.Integer(compute='_compute_purchase_planning')
@@ -41,6 +43,7 @@ class PeriodPlanning(models.Model):
     period_warning = fields.Boolean("Period warning")
     count_completed_purchase_planning = fields.Integer(compute='_compute_completed_purchase_planning',
                                                        string="Purchase planning done")
+    purchase_group_id = fields.Many2one('procurement.group', string="Purchase procurement group")
 
     @api.multi
     def name_get(self):
@@ -89,7 +92,7 @@ class PeriodPlanning(models.Model):
         # Récupération des lignes purchase_planning correspondant à season + year
         # Création d'une liste si retained_qty > 0
         purchase_plannings = self.purchase_planning_ids.filtered(lambda r: (r.retained_qty > 0))
-        season_date = self.season_id.name_get()
+        season_date = self.season_id.display_name
         # Création des procurement_group
         group = self.env['procurement.group'].create({'name': season_date})
         year = self.year_id.name
@@ -101,11 +104,35 @@ class PeriodPlanning(models.Model):
             values = {
                 'group_id': group,
                 'date_planned': date_start,
+                'user_id': self.env.user.id,
             }
             self.env['procurement.group'].run(product, planning.retained_qty, product.uom_id, stock_location,
-                                              season_date[0][1], season_date[0][1], values)
+                                              season_date, season_date, values)
         # Changement de statut des purchase_planning
-        self.purchase_planning_ids.write({'state': 'done'})
+        self.purchase_planning_ids.write({'state': 'confirm'})
         self.write({
-            'purchase_state': 'done',
+            'purchase_state': 'confirm',
+            'purchase_group_id': group.id,
         })
+
+    @api.multi
+    def compute_state(self):
+        purchase_states = self.env['purchase.order'].search([('group_id', '=', self.purchase_group_id.id)]).mapped(
+            'state')
+        if 'purchase' in purchase_states:
+            self.purchase_state = 'lock'
+            self.purchase_planning_ids.write({'state': 'lock'})
+        else:
+            self.purchase_state = 'confirm'
+            self.purchase_planning_ids.write({'state': 'confirm'})
+        if all(state in ('purchase', 'done', 'cancel') for state in purchase_states):
+            self.purchase_state = 'done'
+            self.purchase_planning_ids.write({'state': 'done'})
+
+    @api.multi
+    def cancel_po(self):
+        self.ensure_one()
+        purchase_orders = self.env['purchase.order'].search(
+            [('group_id', '=', self.purchase_group_id.id), ('state', 'not in', ('cancel', 'done', 'purchase'))])
+        purchase_orders.button_cancel()
+        self.write({'purchase_state': 'draft'})

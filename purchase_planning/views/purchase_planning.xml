@@ -25,15 +25,24 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="see_purchase_order"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-calendar">
+                        <field name="count_purchase_order" string="Purchase order" widget="statinfo"/>
+                        </button>
+                    </div>
                     <group>
                         <div>
                             <group>
                                 <field name="product_tmpl_id" invisible="1"/>
                                 <field name="product_id"/>
-                                <field name="supplier_id"
+                                <field name="supplier_id" attrs="{'readonly':[('state', 'in', ('lock','done'))]}"
                                        domain="['|', ('product_id', '=', product_id), ('product_tmpl_id', '=', product_tmpl_id)]"/>
                                 <field name="period_id"/>
-                                <field name="retained_qty"/>
+                                <field name="retained_qty" attrs="{'readonly':[('state', 'in', ('lock','done'))]}"/>
+                                <field name="retained_qty_with_constraint" readonly="1"/>
                             </group>
                         </div>
                          <div>
@@ -44,7 +53,6 @@
                                 <field name="min_qty"/>
                                 <field name="packaging_qty"/>
                                 <field name="suggest_qty"/>
-                                <field name="purchase_order_line_id"/>
                              </group>
                         </div>
                     </group>

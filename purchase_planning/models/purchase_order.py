@@ -17,12 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, api
+from odoo import models
 
 
-class ProductProduct(models.Model):
-    _inherit = 'product.product'
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
 
-    @api.model
-    def _get_products_for_purchase_forecast(self):
-        return [('purchase_ok', '=', True)]
+    def write(self, vals):
+        res = super(PurchaseOrder, self).write(vals)
+        for rec in self:
+            if rec.group_id:
+                purchase_planning = self.env['period.planning'].search([('purchase_group_id', '=', rec.group_id.id)])
+                purchase_planning.compute_state()
+        return res
+
+    def create(self, vals):
+        res = super(PurchaseOrder, self).create(vals)
+        for rec in self:
+            if rec.group_id:
+                purchase_planning = self.env['period.planning'].search([('purchase_group_id', '=', rec.group_id.id)])
+                purchase_planning.compute_state()
+        return res
