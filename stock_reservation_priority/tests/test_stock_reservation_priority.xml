@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="product">
+            <field name="name">Test Product (Stock Reservation Priority)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="stock.move" id="move1">
+            <field name="name">Move 1 (Stock Reservation Priority)</field>
+            <field name="priority">1</field>
+            <field name="date">2016-02-19 12:00:00</field>
+            <field name="product_id" ref="product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="product_uom_qty" eval="10"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+        </record>
+
+        <record model="stock.move" id="move2">
+            <field name="name">Move 2 (Stock Reservation Priority)</field>
+            <field name="priority">0</field>
+            <field name="date">2016-02-21 12:00:00</field>
+            <field name="product_id" ref="product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="product_uom_qty" eval="5"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+        </record>
+
+        <record model="stock.move" id="move3">
+            <field name="name">Move 3 (Stock Reservation Priority)</field>
+            <field name="priority">1</field>
+            <field name="date">2016-02-23 12:00:00</field>
+            <field name="product_id" ref="product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="product_uom_qty" eval="15"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+        </record>
+
+        <record model="stock.location" id="stock_child">
+            <field name="name">Child location for Stock (Stock Reservation Priority)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant" id="quant1">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="20"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant" id="quant2">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="10"/>
+            <field name="location_id" ref="stock_child"/>
+        </record>
+
+    </data>
+</openerp>
