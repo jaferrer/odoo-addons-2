@@ -10,7 +10,7 @@
         <record model="stock.move" id="move1">
             <field name="name">Move 1 (Stock Reservation Priority)</field>
             <field name="priority">1</field>
-            <field name="date">2016-02-19 12:00:00</field>
+            <field name="date_expected">2016-02-19 12:00:00</field>
             <field name="product_id" ref="product"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="product_uom_qty" eval="10"/>
@@ -21,7 +21,7 @@
         <record model="stock.move" id="move2">
             <field name="name">Move 2 (Stock Reservation Priority)</field>
             <field name="priority">0</field>
-            <field name="date">2016-02-21 12:00:00</field>
+            <field name="date_expected">2016-02-21 12:00:00</field>
             <field name="product_id" ref="product"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="product_uom_qty" eval="5"/>
@@ -32,7 +32,7 @@
         <record model="stock.move" id="move3">
             <field name="name">Move 3 (Stock Reservation Priority)</field>
             <field name="priority">1</field>
-            <field name="date">2016-02-23 12:00:00</field>
+            <field name="date_expected">2016-02-23 12:00:00</field>
             <field name="product_id" ref="product"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="product_uom_qty" eval="15"/>

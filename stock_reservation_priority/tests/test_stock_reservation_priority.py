@@ -52,7 +52,7 @@ class TestStockPushPropagation(common.TransactionCase):
             'priority': move_priority,
             'product_uom': self.unit.id,
             'product_uom_qty': move_qty,
-            'date': move_date,
+            'date_expected': move_date,
             'product_id': self.product.id,
             'location_id': location and location.id or self.stock.id,
             'location_dest_id': self.customers.id,
@@ -371,7 +371,7 @@ class TestStockPushPropagation(common.TransactionCase):
             'priority': '0',
             'product_uom': self.unit.id,
             'product_uom_qty': 13,
-            'date': '2017-02-15 12:00:00',
+            'date_expected': '2017-02-15 12:00:00',
             'product_id': self.product.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customers.id,
@@ -383,14 +383,14 @@ class TestStockPushPropagation(common.TransactionCase):
         self.assertEqual(sum([quant.qty for quant in self.move2.reserved_quant_ids]), 2)
         self.assertEqual(sum([quant.qty for quant in self.move3.reserved_quant_ids]), 15)
         self.assertFalse(self.env['stock.quant'].search([('reservation_id', '=', False),
-                                                           ('product_id', '=', self.product.id),
-                                                           ('location_id', 'child_of', self.stock.id)]))
+                                                         ('product_id', '=', self.product.id),
+                                                         ('location_id', 'child_of', self.stock.id)]))
 
         self.create_move_and_test('2', 4, '2016-02-18 12:00:00',
-                                      {'state': 'assigned', 'reserved_qty': 10},
-                                      {'state': 'confirmed', 'reserved_qty': 0},
-                                      {'state': 'confirmed', 'reserved_qty': 3},
-                                      {'state': 'assigned', 'reserved_qty': 4}, skip_moves_assignation=True)
+                                  {'state': 'assigned', 'reserved_qty': 10},
+                                  {'state': 'confirmed', 'reserved_qty': 0},
+                                  {'state': 'confirmed', 'reserved_qty': 3},
+                                  {'state': 'assigned', 'reserved_qty': 4}, skip_moves_assignation=True)
 
     def test_51_reservation_priority(self):
         """Check with all quants unreserved, but not enough"""
@@ -412,7 +412,7 @@ class TestStockPushPropagation(common.TransactionCase):
             'priority': '1',
             'product_uom': self.unit.id,
             'product_uom_qty': 3,
-            'date': '2016-02-18 12:00:00',
+            'date_expected': '2016-02-18 12:00:00',
             'product_id': self.product.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customers.id,
@@ -425,7 +425,7 @@ class TestStockPushPropagation(common.TransactionCase):
             'priority': '1',
             'product_uom': self.unit.id,
             'product_uom_qty': 3,
-            'date': '2016-02-18 12:00:00',
+            'date_expected': '2016-02-18 12:00:00',
             'product_id': self.product.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customers.id,
@@ -440,7 +440,8 @@ class TestStockPushPropagation(common.TransactionCase):
         self.assertNotEqual(new_move.picking_id, self.move2.picking_id)
         self.assertNotEqual(new_move.picking_id, self.move3.picking_id)
         pick = new_move.picking_id
-        pick.rereserve_pick()
+        pick.do_unreserve()
+        pick.action_assign()
         self.env['stock.move'].search([('product_id', '=', self.product.id),
                                        ('location_id', 'child_of', self.stock.id),
                                        ('state', 'not in', ['done', 'cancel'])]).action_assign()

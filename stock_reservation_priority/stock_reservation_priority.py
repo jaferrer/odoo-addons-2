@@ -37,6 +37,7 @@ class StockReservationPriorityStockMove(models.Model):
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
                 LEFT JOIN stock_move sm ON sq.reservation_id = sm.id
             WHERE sq.product_id = %s
+                AND COALESCE(sq.qty, 0) > 0
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s
                 AND sq.reservation_id IS NOT NULL
@@ -50,42 +51,40 @@ class StockReservationPriorityStockMove(models.Model):
     @api.multi
     def action_assign(self):
         to_assign_ids = self and self.ids or []
-        moves_to_assign = self.search([('id', 'in', to_assign_ids)], order='priority desc, date asc, id asc')
-        read_moves_to_assign = moves_to_assign.read(
-            ['id', 'location_id', 'product_id', 'priority', 'date', 'product_qty', 'picking_id'], load=False)
+        moves_to_assign = self.search([('id', 'in', to_assign_ids)], order='priority desc, date_expected asc, id asc')
         reserved_quant_qties = {}
-        for move_to_assign in read_moves_to_assign:
-            prec = self.env['product.product'].browse(move_to_assign['product_id']).uom_id.rounding
-            quants_on_move = self.env['stock.quant'].read_group([('reservation_id', '=', move_to_assign['id'])],
+        for move_to_assign in moves_to_assign:
+            prec = move_to_assign.product_id.uom_id.rounding
+            quants_on_move = self.env['stock.quant'].read_group([('reservation_id', '=', move_to_assign.id)],
                                                                 ['qty', 'reservation_id'], ['reservation_id'])
             reserved_qty = quants_on_move and quants_on_move[0]['qty'] or 0
-            needed_qty = move_to_assign['product_qty'] - reserved_qty
+            needed_qty = move_to_assign.product_qty - reserved_qty
             if float_compare(needed_qty, 0, precision_rounding=prec) > 0:
                 available_quants = self.env['stock.quant']. \
-                    read_group([('location_id', 'child_of', move_to_assign['location_id']),
-                                ('product_id', '=', move_to_assign['product_id']),
+                    read_group([('location_id', 'child_of', move_to_assign.location_id.id),
+                                ('product_id', '=', move_to_assign.product_id.id),
                                 ('reservation_id', '=', False)], ['qty', 'reservation_id'], ['reservation_id'])
                 available_qty = available_quants and available_quants[0]['qty'] or 0
                 available_qty -= reserved_quant_qties.get(move_to_assign['product_id'], 0)
-                reserved_quant_qties.setdefault(move_to_assign['product_id'], 0)
-                reserved_quant_qties[move_to_assign['product_id']] += needed_qty
+                reserved_quant_qties.setdefault(move_to_assign.product_id, 0)
+                reserved_quant_qties[move_to_assign.product_id] += needed_qty
                 if float_compare(needed_qty, available_qty, precision_rounding=prec) > 0:
-                    quants_query, quants_params = self.get_reserved_quants_query(move_to_assign['product_id'],
-                                                                                 move_to_assign['location_id'],
-                                                                                 move_to_assign['picking_id'])
+                    quants_query, quants_params = self.get_reserved_quants_query(move_to_assign.product_id.id,
+                                                                                 move_to_assign.location_id.id,
+                                                                                 move_to_assign.picking_id.id)
                     self.env.cr.execute(quants_query, quants_params)
                     reservation_ids = [r[0] for r in self.env.cr.fetchall()]
                     running_moves_ordered_reverse = self.env['stock.move']. \
                         search_read([('id', 'in', reservation_ids),
-                                     '|', ('priority', '<', move_to_assign['priority']),
-                                     '&', ('priority', '=', move_to_assign['priority']),
-                                     ('date', '>', move_to_assign['date'])], ['id', 'product_qty'],
-                                    order='priority asc, date desc, id desc')
+                                     '|', ('priority', '<', move_to_assign.priority),
+                                     '&', ('priority', '=', move_to_assign.priority),
+                                     ('date_expected', '>', move_to_assign.date_expected)], ['id', 'product_qty'],
+                                    order='priority asc, date_expected desc, id desc')
                     moves_to_unreserve_ids = []
                     for move_to_unreserve in running_moves_ordered_reverse:
                         if float_compare(available_qty, needed_qty, precision_rounding=prec) >= 0:
                             break
-                        if move_to_unreserve['id'] == move_to_assign['id']:
+                        if move_to_unreserve['id'] == move_to_assign.id:
                             continue
                         move_quants = self.env['stock.quant'].read_group(
                             [('reservation_id', '=', move_to_unreserve['id'])],
