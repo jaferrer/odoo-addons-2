@@ -17,8 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import api, fields, models, exceptions, _
 from odoo.tools import float_round
+
+from odoo import fields, models, exceptions, _
 
 
 class MrpBomLinePhantom(models.Model):
@@ -31,41 +32,39 @@ class MrpBomLinePhantom(models.Model):
                                  u"without triggering an extra manufacturing order.")
 
 
-
 class MrpBom(models.Model):
     _inherit = 'mrp.bom'
 
     def explode(self, product, quantity, picking_type=False):
         """
             Explodes the BoM and creates two lists with all the information you need: bom_done and line_done
-            Quantity describes the number of times you need the BoM: so the quantity divided by the number created by the BoM
-            and converted into its UoM
+            Quantity describes the number of times you need the BoM: so the quantity divided by the number created by
+            the BoM and converted into its UoM
         """
-        print 'explode', self
         from collections import defaultdict
 
         graph = defaultdict(list)
-        V = set()
+        product_template_ids = set()
 
-        def check_cycle(v, visited, recStack, graph):
-            visited[v] = True
-            recStack[v] = True
-            for neighbour in graph[v]:
-                if visited[neighbour] == False:
-                    if check_cycle(neighbour, visited, recStack, graph) == True:
+        def check_cycle(product_template_id, visited, rec_stack, graph):
+            visited[product_template_id] = True
+            rec_stack[product_template_id] = True
+            for neighbour in graph[product_template_id]:
+                if not visited[neighbour]:
+                    if check_cycle(neighbour, visited, rec_stack, graph):
                         return True
-                elif recStack[neighbour] == True:
+                else:
                     return True
-            recStack[v] = False
+            rec_stack[product_template_id] = False
             return False
 
         boms_done = [(self, {'qty': quantity, 'product': product, 'original_qty': quantity, 'parent_line': False})]
         lines_done = []
-        V |= set([product.product_tmpl_id.id])
+        product_template_ids |= set([product.product_tmpl_id.id])
 
         bom_lines = [(bom_line, product, quantity, False) for bom_line in self.bom_line_ids]
         for bom_line in self.bom_line_ids:
-            V |= set([bom_line.product_id.product_tmpl_id.id])
+            product_template_ids |= set([bom_line.product_id.product_tmpl_id.id])
             graph[product.product_tmpl_id.id].append(bom_line.product_id.product_tmpl_id.id)
         while bom_lines:
             current_line, current_product, current_qty, parent_line = bom_lines[0]
@@ -78,7 +77,11 @@ class MrpBom(models.Model):
             bom = self._bom_find(product=current_line.product_id,
                                  picking_type=picking_type or self.picking_type_id,
                                  company_id=self.company_id.id)
-            if bom.type == 'phantom':
+            if current_line.type == 'phantom' or bom.type == 'phantom':
+                if not bom:
+                    raise exceptions.UserError(_(u'BoM "%s" contains a phantom BoM line but the product "%s" does not '
+                                                 u'have any BoM defined.') %
+                                               (current_line.bom_id.display_name, current_line.product_id.display_name))
                 converted_line_quantity = current_line.product_uom_id._compute_quantity(line_quantity / bom.product_qty,
                                                                                         bom.product_uom_id)
                 bom_lines = [(line,
@@ -87,13 +90,13 @@ class MrpBom(models.Model):
                               current_line) for line in bom.bom_line_ids] + bom_lines
                 for bom_line in bom.bom_line_ids:
                     graph[current_line.product_id.product_tmpl_id.id].append(bom_line.product_id.product_tmpl_id.id)
-                    if bom_line.product_id.product_tmpl_id.id in V and \
+                    if bom_line.product_id.product_tmpl_id.id in product_template_ids and \
                             check_cycle(bom_line.product_id.product_tmpl_id.id,
-                                        {key: False for  key in V},
-                                        {key: False for  key in V}, graph):
+                                        {key: False for key in product_template_ids},
+                                        {key: False for key in product_template_ids}, graph):
                         raise exceptions.UserError(_('Recursion error!  A product with a Bill of Material should not '
                                                      'have itself in its BoM or child BoMs!'))
-                    V |= set([bom_line.product_id.product_tmpl_id.id])
+                    product_template_ids |= set([bom_line.product_id.product_tmpl_id.id])
                 boms_done.append((bom, {'qty': converted_line_quantity,
                                         'product': current_product,
                                         'original_qty': quantity,

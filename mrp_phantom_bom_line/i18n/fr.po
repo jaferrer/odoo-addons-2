@@ -28,12 +28,19 @@ msgid ""
 "without triggering an extra manufacturing order."
 msgstr "Composant fantome : Ce composant n'apparaît pas dans les composants de l'ordre de fabrication. Il est directement remplacé par les composants de sa propre nomenclature sans déclencher un ordre de fabrication supplémentaire"
 
-#. module: mrp_repair
+#. module: mrp_phantom_bom_line
 #: selection:mrp.bom.line,type:0
 msgid "Normal"
 msgstr "Normal"
 
-#. module: mrp_repair
+#. module: mrp_phantom_bom_line
 #: selection:mrp.bom.line,type:0
 msgid "Phantom"
 msgstr "Fantôme"
+
+#. module: mrp_phantom_bom_line
+#: code:addons/mrp_phantom_bom_line/mrp_phantom_bom_line.py:83
+#, python-format
+msgid "BoM \"%s\" contains a phantom BoM line but the product \"%s\" does not "
+"have any BoM defined."
+msgstr "La nomenclature \"%s\" contient une ligne de nomenclature fantôme mais le produit \"%s\" n'a pas de nomenclature définie."
