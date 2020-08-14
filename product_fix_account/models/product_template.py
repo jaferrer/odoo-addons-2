@@ -26,6 +26,8 @@ class ProductTemplate(models.Model):
     @api.multi
     def _get_product_accounts(self):
         self.ensure_one()
+        res = super(ProductTemplate, self)._get_product_accounts()
+
         exp_account = self.property_account_expense_id
         if not exp_account:
             categ = self.categ_id
@@ -40,7 +42,8 @@ class ProductTemplate(models.Model):
                 categ = categ.parent_id
             inc_account = categ.property_account_income_categ_id
 
-        return {
+        res.update({
             'income': inc_account,
             'expense': exp_account,
-        }
+        })
+        return res
