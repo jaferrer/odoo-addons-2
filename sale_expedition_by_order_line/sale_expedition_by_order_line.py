@@ -177,6 +177,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                                                     sm.sale_line_id == move.sale_line_id and
                                                     sm.product_id == move.product_id and
                                                     sm.state not in ['done', 'cancel']])
+                if not sum_quantities_moves_on_line:
+                    continue
                 sum_quantities_moves_on_line = self.env['product.uom']. \
                     _compute_qty(move.product_id.uom_id.id, sum_quantities_moves_on_line, uom.id)
                 global_qty_to_remove = sum_quantities_moves_on_line
