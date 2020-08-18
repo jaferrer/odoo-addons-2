@@ -26,7 +26,7 @@
                         </group>
                         <group attrs="{'invisible': [('product_id', '=', False)]}">
                             <group>
-                                <field name="lot_id"/>
+                                <field name="lot_id" attrs="{'invisible': [('tracking', '=', 'none')]}"/>
                                 <label for="product_qty"/>
                                 <div class="o_row">
                                     <field name="product_qty"/> /
