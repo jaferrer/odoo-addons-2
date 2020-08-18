@@ -33,6 +33,7 @@ class StockQuickMoveWizard(models.TransientModel):
     available_qty = fields.Float(u"Available Quantity", compute='_compute_available_qty')
     lot_id = fields.Many2one('stock.production.lot', string=u"Lot / Serial")
     validate_picking = fields.Boolean(u"Validate picking", default=True)
+    tracking = fields.Selection(related='product_id.tracking')
 
     @api.multi
     @api.depends('product_id', 'lot_id', 'location_src_id')
