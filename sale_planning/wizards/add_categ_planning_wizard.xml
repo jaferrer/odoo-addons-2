@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="add_product_planning_wizard" model="ir.ui.view">
-        <field name="name">add_product_planning_wizard</field>
-        <field name="model">add.product.planning.wizard</field>
+    <record id="add_categ_planning_wizard" model="ir.ui.view">
+        <field name="name">add_categ_planning_wizard</field>
+        <field name="model">add.categ.planning.wizard</field>
         <field name="arch" type="xml">
-            <form string="Add product">
+            <form string="Add category">
                 <group>
-                    <field name="product_ids" nolabel="1" widget="many2many_checkboxes"/>
+                    <field name="categ_ids" nolabel="1" widget="many2many_checkboxes"/>
                 </group>
                 <footer>
                     <button name="add" string="Add" type="object" class="btn-primary"/>

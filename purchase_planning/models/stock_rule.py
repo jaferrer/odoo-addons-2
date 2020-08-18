@@ -17,33 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Purchase Planning',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': [
-        'res_calendar_season',
-        'purchase_stock',
-    ],
-    'description': """
-Planning
-========
-Settle the purchase planning
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-        'views/product_supplierinfo.xml',
-        'views/purchase_planning.xml',
-        'views/period_planning.xml',
-        'views/purchase_planning_menu.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from odoo import models
+
+
+class StockRule(models.Model):
+    _inherit = 'stock.rule'
+
+    def _prepare_purchase_order(self, product_id, product_qty, product_uom, origin, values, partner):
+        res = super(StockRule, self)._prepare_purchase_order(product_id, product_qty, product_uom, origin, values,
+                                                             partner)
+        res['user_id'] = values.get('user_id', False)
+        return res
