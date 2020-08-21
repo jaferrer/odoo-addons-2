@@ -75,10 +75,9 @@ class AccountMoveExportWizard(models.TransientModel):
     data_fname = fields.Char("File name")
 
     @api.multi
-    def action_validate(self):
-        """ Called when someone validates the export wizard, or indirectly by the cron
-
-        Trigger the export
+    def do_validate(self):
+        """
+        Trigger the export.
         """
         self.ensure_one()
 
@@ -98,10 +97,27 @@ class AccountMoveExportWizard(models.TransientModel):
 
         self._mark_move_lines_as_exported(moves)
 
+    @api.multi
+    @job(default_channel='root.account')
+    def action_validate(self):
+        """
+        Called when someone validates the export wizard, or indirectly by the cron.
+        """
+        self.do_validate()
         if self.destination == 'ftp':
             self._send_to_ftp()
-        else:
-            return self._onscreen_export()
+        return self._onscreen_export()
+
+    @api.multi
+    def button_action_validate(self):
+        """
+        Called when someone validates the export wizard, or indirectly by the cron.
+        """
+        self.ensure_one()
+        if self.destination == 'screen':
+            return self.action_validate()
+        note = u"Export des lignes comptables du %s" % fields.Date.today()
+        self.with_delay(description=note).action_validate()
 
     @api.multi
     def get_ftp_instance(self, host, port, username, password):

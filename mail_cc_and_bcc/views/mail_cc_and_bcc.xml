@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--MAIL.COMPOSE.MESSAGE-->
+
+    <record id="email_compose_message_wizard_form_cc_and_bcc" model="ir.ui.view">
+        <field name="name">email_compose_message_wizard_form_cc_and_bcc</field>
+        <field name="model">mail.compose.message</field>
+        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+        <field name="arch" type="xml">
+            <field name="subject" position="before">
+                <label for="partner_cc_ids"/>
+                <field name="partner_cc_ids" widget="many2many_tags" nolabel="1"/>
+                <label for="partner_bcc_ids"/>
+                <field name="partner_bcc_ids" widget="many2many_tags" nolabel="1"/>
+            </field>
+        </field>
+    </record>
+
+    <!--MAIL.MAIL-->
+
+    <record id="view_mail_form_cc_and_bcc" model="ir.ui.view">
+        <field name="name">view_mail_form_cc_and_bcc</field>
+        <field name="model">mail.mail</field>
+        <field name="inherit_id" ref="mail.view_mail_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email_cc']" position="after">
+                <field name="email_bcc"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
