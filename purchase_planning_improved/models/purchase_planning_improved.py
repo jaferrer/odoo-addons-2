@@ -153,6 +153,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     @api.multi
     def compute_coverage_state(self, force_product_ids=None):
         product_ids = force_product_ids or []
+        orders_to_compute_limit_order_date = self.env['purchase.order']
         if not force_product_ids:
             products = self.mapped('product_id')
             if not products:
@@ -163,6 +164,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
             for result_line in self.env.cr.dictfetchall():
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
+                orders_to_compute_limit_order_date |= line.order_id
                 if line.product_id.type == 'product':
                     real_need_date = result_line['real_need_date'] or False
                     date_required = real_need_date and self.env['procurement.order']. \
@@ -210,6 +212,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                         'opmsg_reduce_qty': line.product_qty,
                     }
                 line.write(dict_pol)
+        if orders_to_compute_limit_order_date:
+            restrict_to_order_ids = orders_to_compute_limit_order_date.ids
+            self.env['purchase.order'].cron_compute_limit_order_date(restrict_to_order_ids=restrict_to_order_ids)
 
     @api.model
     def cron_compute_coverage_state(self):
@@ -275,16 +280,24 @@ class PurchaseOrderPlanningImproved(models.Model):
     limit_order_date = fields.Date(string=u"Limit order date to be late", readonly=True)
 
     @api.model
-    def cron_compute_limit_order_date(self):
-        self.env.cr.execute("""SELECT
+    def cron_compute_limit_order_date(self, restrict_to_order_ids=None):
+        restrict_to_order_ids = restrict_to_order_ids or []
+        query = """SELECT
   po.id                     AS order_id,
   min(pol.limit_order_date) AS new_limit_order_date
 FROM purchase_order po
   INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
-WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')
+WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')"""
+        if restrict_to_order_ids:
+            query += """ AND po.id IN %s"""
+        query += """
 GROUP BY po.id
 ORDER BY po.id
-""")
+"""
+        if restrict_to_order_ids:
+            self.env.cr.execute(query, (tuple(restrict_to_order_ids),))
+        else:
+            self.env.cr.execute(query)
         result = self.env.cr.dictfetchall()
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
