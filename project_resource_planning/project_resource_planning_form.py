@@ -88,6 +88,31 @@ class HrHolidays(models.Model):
         return res
 
     @api.multi
+    def action_confirm(self):
+        res = super(HrHolidays, self).action_confirm()
+        self._auto_create_planning_cells()
+        return res
+
+    @api.multi
+    def action_validate(self):
+        super(HrHolidays, self).action_validate()
+        self._auto_create_planning_cells()
+        return True
+
+    @api.multi
+    def action_draft(self):
+        super(HrHolidays, self).action_draft()
+        self._auto_create_planning_cells()
+        return True
+
+    @api.model
+    def create(self, values):
+        res = super(HrHolidays, self).create(values)
+        if res.state not in ['cancel', 'refuse']:
+            res._auto_create_planning_cells()
+        return res
+
+    @api.multi
     def _auto_create_planning_cells(self):
         for rec in self:
             if rec.type == 'remove' and rec.holiday_status_id.project_id:
