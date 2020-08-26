@@ -38,6 +38,12 @@ class SalePlanning(models.Model):
         ('confirm', "Confirm"),
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
+    purchase_state = fields.Selection([
+        ('draft', u"Draft"),
+        ('confirm', u"Confirmed"),
+        ('lock', u"Locked"),
+        ('done', u"Done"),
+    ], related='period_id.purchase_state')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -65,6 +71,13 @@ class SalePlanning(models.Model):
         for vals in vals_list:
             vals['sale_last_year'] = result.get((vals['period_id'], vals['product_id']), 0)
         return super(SalePlanning, self).create(vals_list)
+
+    @api.multi
+    def write(self, vals):
+        vals['state'] = "draft"
+        for rec in self:
+            rec.period_id.write({'sale_state': "draft"})
+        super(SalePlanning, self).write(vals)
 
     @api.multi
     def confirm_forecast(self):

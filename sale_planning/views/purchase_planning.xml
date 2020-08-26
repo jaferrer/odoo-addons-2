@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_planning_purchase_planning_form" model="ir.ui.view">
+        <field name="name">sale_planning_purchase_planning_form</field>
+        <field name="model">purchase.planning</field>
+        <field name="inherit_id" ref="purchase_planning.purchase_planning_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="before">
+                <div class="alert alert-warning" role="alert"
+                     attrs="{'invisible':[('sale_state', '!=', 'draft')]}">
+                    Warning, the associated sale planning have been change and was in draft state. This sale planning will be changed when the sale planning will be be confirmed.
+                </div>
+                <field name="sale_state" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
