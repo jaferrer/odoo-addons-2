@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="project_task_coefficient_form_ext">
+            <field name="name">project_task_coefficient_form_ext</field>
+            <field name="model">project.task</field>
+            <field name="arch" type="xml">
+                <form>
+                    <field name="time_spent" position="after">
+                        <field name="coefficient_ids" domain="['|', ('project_id', '=', project_id), ('project_id', '=', False)]"
+                               widget="many2many_checkboxes" />
+                        <field name="time_with_coefficient" />
+                        <field name="time_with_coefficient_rounded" />
+                        <field name="time_open" />
+                        <field name="time_free" />
+                        <field name="time_free_comment" />
+                    </field><v10></v10>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_coefficient_tree">
+            <field name="name">project_task_coefficient_tree</field>
+            <field name="model">project.task.coefficient</field>
+            <field name="priority" eval="16" />
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="project_id" />
+                    <field name="name" />
+                    <field name="coefficient" />
+                    <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-check">
+                        <field name="active" widget="boolean_button" options='{"terminology": "active"}'/>
+                    </button>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_coefficient_search">
+            <field name="name">project_task_coefficient_search</field>
+            <field name="model">project.task.coefficient</field>
+            <field name="priority" eval="16" />
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name" />
+                    <field name="project_id" />
+                    <group expand="0" string="Group By...">
+                        <filter string="Project" context="{'group_by':'project_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="project_task_coefficient_action">
+            <field name="name">Task coefficient</field>
+            <field name="res_model">project.task.coefficient</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a new Coefficient.
+                </p>
+            </field>
+        </record>
+
+        <menuitem action="project_task_coefficient_action" id="menu_project_task_coefficient_action"
+                  parent="project.menu_project_config"
+                  groups="project.group_project_user"/>
+    </data>
+</openerp>
