@@ -117,6 +117,8 @@ class PeriodPlanning(models.Model):
 
     @api.multi
     def compute_state(self):
+        if not self:
+            return
         purchase_states = self.env['purchase.order'].search([('group_id', '=', self.purchase_group_id.id)]).mapped(
             'state')
         if 'purchase' in purchase_states:
