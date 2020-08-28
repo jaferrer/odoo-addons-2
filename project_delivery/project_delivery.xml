@@ -135,7 +135,7 @@
                 </p>
             </field>
         </record>
-        <menuitem action="project_delivery_action" id="menu_project_delivery" parent="project.menu_project_config"
+        <menuitem action="project_delivery_action" id="menu_project_delivery" parent="project.menu_project_management"
                   groups="project.group_project_user"/>
     </data>
 </openerp>
