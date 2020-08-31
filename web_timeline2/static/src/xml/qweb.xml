@@ -19,7 +19,9 @@
                     <button class="fa fa-chevron-right btn btn-icon timeline2_pager_next"/>
                 </div>
             </div>
-            <div id="timeline2_drag_item" class="btn-group btn-sm o_hidden"/>
+            <div id="timeline2_drag_item" class="btn-group btn-sm o_hidden">
+
+            </div>
             <div class="oe_timeline2_widget"/>
         </div>
     </t>

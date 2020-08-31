@@ -136,8 +136,8 @@ class ProjectResourcePlanningSheet(models.Model):
     display_type = fields.Selection([('background', u"Fond de couleur"), ('range', u"Bloc")],
                                     u"Format")
     project_color = fields.Char(u"Color Code", related='project_id.color_code', store=True)
-    datetime_start = fields.Datetime(u"Start Datetime", required=True)
-    datetime_end = fields.Datetime(u"End Datetime", required=True)
+    datetime_start = fields.Datetime(u"Start Datetime", required=True, default=fields.Date.today)
+    datetime_end = fields.Datetime(u"End Datetime", required=True, default=fields.Date.today)
     project_id = fields.Many2one('project.project', u"Project", domain=[('used_in_resource_planning', '=', True)],
                                  required=True)
     overlap = fields.Boolean(u"Overlap", compute='_compute_overlap')
@@ -183,11 +183,12 @@ class ProjectResourcePlanningSheet(models.Model):
         for rec in self:
             dt_start = FR_STR(rec.datetime_start)
             dt_end = FR_STR(rec.datetime_end)
-            rec.period_end = dt_end.hour == 0 and "pm" or "am"
-            rec.date_end = rec.period_end == 'pm' and dt_end.date() + relativedelta(seconds=-1) or dt_end.date()
-
-            rec.period_start = dt_start.hour == 12 and "pm" or "am"
-            rec.date_start = dt_start.date()
+            if dt_end :
+                rec.period_end = dt_end.hour == 0 and "pm" or "am"
+                rec.date_end = rec.period_end == 'pm' and dt_end.date() + relativedelta(seconds=-1) or dt_end.date()
+            if dt_start:
+                rec.period_start = dt_start.hour == 12 and "pm" or "am"
+                rec.date_start = dt_start.date()
 
     @api.multi
     @api.onchange('date_start', 'period_start', 'date_end', 'period_end')

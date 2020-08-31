@@ -601,7 +601,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 return this.searchDeferred.then(() => {
                     this.current_search.domain = domains;
                     this.current_search.context = contexts;
-                    this.current_search.context = contexts;
                     // select the group by
                     this.current_search.groupBys = this.current_search.view.groupBys;
                     if (group_bys.length) {
@@ -843,13 +842,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     return callback(null);
                 }
                 var context = this.dataset.get_context();
-                let group = null;
-                if (item.group) {
-                    group = this.visGroups.get(item.group)
-                    if (group.field !== this.current_search.lastGroupBy) {
-                        return callback(null);
-                    }
-                }
+                let group = this.visGroups.get(item.group);
                 // Initialize default values for creation
                 var default_context = this._get_default_values(group, item);
                 context.add(default_context);
