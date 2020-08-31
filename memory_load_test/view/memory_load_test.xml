@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+
+        <record id="memory_load_test_form" model="ir.ui.view">
+            <field name="name">Memory load test</field>
+            <field name="model">memory.load.test</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="uom"/>
+                            <field name="increase_step_memory"/>
+                            <field name="total_memory_to_reach"/>
+                            <field name="use_job"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="run" type="object" string="Run" class="oe_highlight"/>
+                        or
+
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="memory_load_test_action_view" model="ir.actions.act_window">
+            <field name="name">Memory load test</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">memory.load.test</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="memory_load_test.memory_load_test_form"/>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="memory_load_test_menu" name="Memory test" action="memory_load_test_action_view"
+                  parent="base_database_monitoring.menu_monitoring_indicators" sequence="13"/>
+    </data>
+</openerp>
