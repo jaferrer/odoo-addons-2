@@ -183,7 +183,7 @@ class ProjectResourcePlanningSheet(models.Model):
         for rec in self:
             dt_start = FR_STR(rec.datetime_start)
             dt_end = FR_STR(rec.datetime_end)
-            if dt_end :
+            if dt_end:
                 rec.period_end = dt_end.hour == 0 and "pm" or "am"
                 rec.date_end = rec.period_end == 'pm' and dt_end.date() + relativedelta(seconds=-1) or dt_end.date()
             if dt_start:
