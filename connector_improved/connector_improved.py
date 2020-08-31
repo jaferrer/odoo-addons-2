@@ -28,6 +28,7 @@ class QueueJob(models.Model):
 
     date_requeued = fields.Datetime(string=u"Requeued at", track_visibility='onchange')
     job_function_id = fields.Many2one('queue.job.function', index=True)
+    active = fields.Boolean(index=True)
 
     @api.multi
     def set_to_done(self):

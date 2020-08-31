@@ -612,6 +612,7 @@ WHERE po.state NOT IN %s AND
                     procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
+            self.env['purchase.order'].browse(order_id).compute_coverage_state()
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model

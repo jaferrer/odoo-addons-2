@@ -38,8 +38,8 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 
     def __init__(self, proc_id):
         self.proc_id = proc_id
-        super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
-                                                                  _(u"You can't cancel a protected procurement"))
+        super(ForbiddenCancelProtectedProcurement,
+              self).__init__(_(u"Error!"), _(u"You can't cancel a protected procurement (ID=%s)") % proc_id)
 
 
 @job(default_channel='root.procurement_just_in_time_chunk')
@@ -68,7 +68,7 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete.unlink()
 
 @job(default_channel='root.auto_delete_cancelled_moves_procs')
-def pop_delete_cancelled_moves_and_procs_jobs(session, model_name):
+def job_pop_delete_cancelled_moves_and_procs_jobs(session, model_name):
     session.env[model_name].delete_cancelled_moves_and_procs()
 
 @job(default_channel='root.update_rsm_treat_by_scheduler')
@@ -400,7 +400,7 @@ FROM list_sequences""", (self.env.uid, company_id, tuple(orderpoints.ids + [0]))
                                             ('func_name', 'ilike', "%delete_cancelled_moves_and_procs%"),], limit=1)
         if job:
             return u"Job %s already in execution" % job.name
-        pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
+        job_pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
 
     @api.model
     def delete_cancelled_moves_and_procs(self, jobify=True):
@@ -409,7 +409,11 @@ FROM procurement_order
 WHERE coalesce(to_delete, FALSE) IS TRUE""")
         procurement_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for procurement_to_delete_id in procurement_to_delete_ids:
+            while procurement_to_delete_ids:
+                procurement_to_delete_id = procurement_to_delete_ids[0]
+                procurement_to_delete_ids = procurement_to_delete_ids[1:]
+                _logger.info(u"Poping job for procurement ID=%s (%s remaining)",
+                             procurement_to_delete_id, len(procurement_to_delete_ids))
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
                                                            'procurement.order', [procurement_to_delete_id])
                 self.env.cr.commit()
@@ -421,7 +425,11 @@ FROM stock_move
 WHERE coalesce(to_delete, FALSE) IS TRUE""")
         move_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for move_to_delete_id in move_to_delete_ids:
+            while move_to_delete_ids:
+                move_to_delete_id = move_to_delete_ids[0]
+                move_to_delete_ids = move_to_delete_ids[1:]
+                _logger.info(u"Poping job for move ID=%s (%s remaining)",
+                             move_to_delete_id, len(move_to_delete_ids))
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
                                                            'stock.move', [move_to_delete_id])
                 self.env.cr.commit()
@@ -1053,16 +1061,15 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s (%s remaining) items: %s",
-                                         len(chunk_line), len(controller_lines_no_run) // POP_PROCESS_CHUNK,
-                                         chunk_line.ids)
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s controler lines, %s remaining",
+                                         len(chunk_line), len(controller_lines_no_run))
                             job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
-                            _logger.info(u"Pop job generated, UUID: %s", job_uuid)
                             chunk_line.write({'job_uuid': job_uuid,
                                               'job_creation_date': fields.Datetime.now()})
-                            _logger.info(u"Controller lines updated")
+                            # We want the stock scheduler to start immediately
+                            self.env.cr.commit()
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
