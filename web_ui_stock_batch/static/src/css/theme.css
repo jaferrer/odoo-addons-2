@@ -1,0 +1,14 @@
+button.btn-margin-left {
+    margin-left: 10px;
+}
+
+.warning-background {
+    background-color: #dc3545;
+}
+
+@media (orientation:portrait) {
+    .portrait-column-alignment {
+         max-width: 100%;
+         flex: 0 0 100%;
+    }
+}

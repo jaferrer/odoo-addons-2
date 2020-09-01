@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="stock storage assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list_row.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list_row_error.js"/>
+            </xpath>
+        </template>
+
+        <template id="assets_backend_index" name="stock assets index" inherit_id="web_ui_stock.index">
+            <xpath expr="//head" position="inside">
+                <link rel="stylesheet" href="/web_ui_stock_storage/static/src/css/theme.css"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
