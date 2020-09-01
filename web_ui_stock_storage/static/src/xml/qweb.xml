@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
+
     <t t-name="NeedUserAttentionModal">
         <div id="content_need_need_user_action" class="container">
             <div class="row">
@@ -37,139 +38,149 @@
 
     <t t-name="StorageMainWidget">
 
-        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+         <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
             <div class="container">
-                <div class="navbar-header navbar-form navbar-left">
-                    <button id="back_to_handling_screen"
-                            type="button"
-                            class="btn btn-primary button-back-to-choice d-none fa fa-arrow-left"/>
-                    <span id="view_title" style="color:white;"/>
-                </div>
-                <div class="navbar-header navbar-form navbar-left">
-                    <span id="display_picking" style="color:white;"/>
-                </div>
-                <div class="navbar-header navbar-form navbar-left button-group" role="group"
-                     id="storage_printer_choice">
-                </div>
-                <div class="navbar-header navbar-form navbar-right">
-                    <button id="validate_scan" type="button"
-                            class="btn btn-success btn-margin-left pull-right js_validate_scan">Valider
-                    </button>
-                    <button id="_exit" type="button" class="btn btn-danger btn-margin-left pull-right">Quitter</button>
+                <div class="row">
+                    <div class="navbar-col col-6">
+                        <button id="back_to_handling_screen"
+                                type="button"
+                                class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
+                        <span id="view_title"/>
+                        <span id="display_picking" style="color:white;"/>
+                    </div>
+                    <div class="navbar-col col-6">
+                        <button id="validate_scan"
+                                type="button"
+                                class="btn btn-success btn-margin-left pull-right js_validate_scan">
+                            Valider
+                        </button>
+                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    </div>
+                     <div class="navbar-col col-12" id="storage_printer_choice"></div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'écran de rangement de chariot</h1>
-                <p>Veuiller scanner un bon de rangement pour commencer</p>
-                <p>Ou</p>
-                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
-            </div>
-            <div id="manual_scan" class="jumbotron">
-                <h4>Vous pouvez scanner un bon de rangement ou le saisir à la main!</h4>
-                <div class="input-group">
-                    <input id="search_picking" type="text" class="form-control"
-                           placeholder="Saisie picking manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_picking" class="btn btn-danger" type="button">x</button>
-                    </span>
+        <div class="template-container">
+
+            <div class="jumbotron">
+
+                <div id="big_helper" class="container">
+                    <h1>Rangement de chariot</h1>
+                    <p>Veuiller scanner un bon de rangement pour commencer</p>
                 </div>
-            </div>
-            <div id="manual_product_scan" class="jumbotron">
-                <h4>Vous pouvez scanner un produit ou le saisir à la main!</h4>
-                <div class="input-group">
-                    <input id="search_product" type="text" class="form-control"
-                           placeholder="Saisie produit manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
-                    </span>
-                </div>
-            </div>
-            <div id="manual_location_scan" class="jumbotron">
-                <h4 id="scan_location_classic">Veuillez scanner l'emplacement demandé ou le saisir à la main</h4>
-                <h4 id="scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité ou le saisir à la main</h4>
-                <div class="input-group">
-                    <input id="search_location" type="text" class="form-control"
-                           placeholder="Saisie emplacement manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_location" class="btn btn-danger" type="button">x</button>
-                    </span>
-                </div>
-            </div>
-            <div id="helper_location" class="jumbotron d-none waiting-background">
-                <h4>Veuillez valider l'emplacement pour continuer</h4>
-                <h4>Ou</h4>
-                <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
-            </div>
-            <div id="manual_tracking_scan" class="jumbotron">
-                <h4>Vous pouvez scanner un numéro de lot/série ou le saisir à la main!</h4>
-                <div class="input-group">
-                    <input id="search_tracking" type="text" class="form-control"
-                           placeholder="Saisie numéro manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_tracking" class="btn btn-danger" type="button">x</button>
-                    </span>
-                </div>
-            </div>
-            <div id="breadcrumb" class="row breadcrumb">
-                <nav aria-label="breadcrumb">
-                    <ul class="breadcrumb">
-                        <li id="wait_product" class="breadcrumb-item">Attente article</li>
-                        <li id="wait_tracking" class="breadcrumb-item d-none">Attente numéro de série/lot</li>
-                        <li id="wait_location" class="breadcrumb-item">Attente emplacement</li>
-                        <li id="confirm_product" class="breadcrumb-item">Confirmation article</li>
-                        <li id="confirm_quantity" class="breadcrumb-item">Confirmation saisie</li>
-                    </ul>
-                </nav>
-            </div>
-            <div class="row" id="error">
-                <span id="error_text" class="text-danger"/>
-            </div>
-            <div class="row" id="screen">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-none" id="span_product_code">
-                        <span class="bold">Code produit:</span>
-                        <span id="product_code"/>
-                    </li>
-                    <li class="list-group-item d-none" id="span_product_name">
-                        <span class="bold">Produit:</span>
-                        <span id="product_name"/>
-                    </li>
-                    <li class="list-group-item d-none" id="span_product_num_lot">
-                        <span class="bold">Numéro de lot/série:</span>
-                        <span id="product_num_lot"/>
-                    </li>
-                    <li class="list-group-item d-none" id="span_product_location">
-                        <span class="bold">Emplacement:</span>
-                        <span id="location">
-                            <button type="button" class="btn btn-primary js_change_location fa fa-cubes d-none"/>
-                            <button type="button" class="btn btn-success js_confirm_location fa fa-check d-none"/>
+                <div id="manual_scan" class="container">
+                    <h4>Vous pouvez scanner un bon de rangement ou le saisir à la main!</h4>
+                    <div class="input-group">
+                        <input id="search_picking" type="text" class="form-control"
+                               placeholder="Saisie picking manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_picking" class="btn btn-danger" type="button">x</button>
                         </span>
-                        <ul id="storage_table_body"/>
-                    </li>
-                    <li class="list-group-item d-none" id="span_product_qty">
-                        <span class="bold">Quantité demandée:</span>
-                        <span id="qty"/>
-                    </li>
-                    <li class="list-group-item d-none" id="span_product_qty_saisie">
-                        <span class="bold">Quantité saisie:</span>
-                        <span id="qty_saisie"/>
-                        <button type="button" id="open_numpad"
-                            class='btn btn-primary js_open_numpad fa fa-calculator d-none'/>
-                    </li>
-                </ul>
+                    </div>
+                </div>
+                <div id="manual_product_scan" class="container">
+                    <h4>Vous pouvez scanner un produit ou le saisir à la main!</h4>
+                    <div class="input-group">
+                        <input id="search_product" type="text" class="form-control"
+                               placeholder="Saisie produit manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
+                </div>
+                <div id="manual_location_scan" class="container">
+                     <div>
+                        <h4 id="scan_location_classic">Veuillez scanner l'emplacement demandé ou le saisir à la main</h4>
+                        <h4 id="scan_location_change" class="hidden">Veuillez scanner l'emplacement souhaité ou le saisir à la main</h4>
+                        <div class="input-group">
+                            <input id="search_location" type="text" class="form-control"
+                                   placeholder="Saisie emplacement manuel"/>
+                            <span class="input-group-btn">
+                                <button id="clear_search_location" class="btn btn-danger" type="button">x</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div id="helper_location" class="container hidden">
+                    <div class="waiting-background">
+                        <h4>Veuillez valider l'emplacement pour continuer</h4>
+                        <h4>Ou</h4>
+                        <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
+                    </div>
+                </div>
+                <div id="manual_tracking_scan" class="container">
+                    <h4>Vous pouvez scanner un numéro de lot/série ou le saisir à la main!</h4>
+                    <div class="input-group">
+                        <input id="search_tracking" type="text" class="form-control"
+                               placeholder="Saisie numéro manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_tracking" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="row d-none" id="display_numpad"/>
-            <div class="row d-none" id="need_user_action_modal_hook"/>
+
+            <div class="container">
+
+                <ul id="breadcrumb" class="breadcrumb">
+                    <li id="wait_product" class="breadcrumb-item">Attente article</li>
+                    <li id="wait_tracking" class="breadcrumb-item hidden">Attente numéro de série/lot</li>
+                    <li id="wait_location" class="breadcrumb-item">Attente emplacement</li>
+                    <li id="confirm_product" class="breadcrumb-item">Confirmation article</li>
+                    <li id="confirm_quantity" class="breadcrumb-item">Confirmation saisie</li>
+                </ul>
+
+                <div id="error">
+                    <span id="error_text" class="text-danger"/>
+                </div>
+
+                <div id="screen">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item hidden" id="span_product_code">
+                            <span class="bold">Code produit:</span>
+                            <span id="product_code"/>
+                        </li>
+                        <li class="list-group-item hidden" id="span_product_name">
+                            <span class="bold">Produit:</span>
+                            <span id="product_name"/>
+                        </li>
+                        <li class="list-group-item hidden" id="span_product_num_lot">
+                            <span class="bold">Numéro de lot/série:</span>
+                            <span id="product_num_lot"/>
+                        </li>
+                        <li class="list-group-item hidden" id="span_product_location">
+                            <span class="bold">Emplacement:</span>
+                            <span id="location">
+                                <button type="button" class="btn btn-primary js_change_location fa fa-cubes hidden"/>
+                                <button type="button" class="btn btn-success js_confirm_location fa fa-check hidden"/>
+                            </span>
+                            <ul id="storage_table_body"/>
+                        </li>
+                        <li class="list-group-item hidden" id="span_product_qty">
+                            <span class="bold">Quantité demandée:</span>
+                            <span id="qty"/>
+                        </li>
+                        <li class="list-group-item hidden" id="span_product_qty_saisie">
+                            <span class="bold">Quantité saisie:</span>
+                            <span id="qty_saisie"/>
+                            <button type="button" id="open_numpad"
+                                class='btn btn-primary js_open_numpad fa fa-calculator hidden'/>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="hidden" id="need_user_action_modal_hook"/>
+            </div>
         </div>
     </t>
+
     <t t-name="StorageTableRow">
         <li>
             <t t-esc="widget.picking.location_id"/>
         </li>
     </t>
+
     <t t-name="StorageRow.Error">
         <tr class="danger" data-error-row="1">
             <td>
@@ -183,131 +194,5 @@
             </td>
         </tr>
     </t>
-
-
-    <t t-name="Numpad">
-
-        <div class="col-sm-6">
-            <div class="align-self-end">
-                <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
-                    Annuler
-                </button>
-                <button type="button"
-                        id="btn_validate_new_qty"
-                        class="btn btn-success js_validate_new_qty pull-right">
-                    Confirmer
-                </button>
-            </div>
-
-            <table id="product_numpad_table" class="table">
-                <thead id="product_numpad_table_header">
-                    <tr>
-                        <th>Nom</th>
-                        <th>Quantité actuelle</th>
-                    </tr>
-                </thead>
-                <tbody id="product_numpad_table_body">
-                    <tr>
-                        <td>
-                            <t t-esc="widget.name"/>
-                        </td>
-                        <td id="numpad_quantity">
-                            <t t-esc="widget.quantity"/>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="col-sm-6">
-            <div class="d-flex justify-content-center">
-                <table id="numpad" class="table table-numpad">
-                    <thead>
-                        <tr>
-                            <th id="numpad_new_quantity"
-                                class="table-bordered rounded border-secondary"
-                                colspan="4"
-                                style="color: #6c757d;">
-                                <t t-esc="widget.value"/>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="numpad-body">
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3
-                                </button>
-                            </td>
-                            <td class="border-0 td-button-resize" rowspan="3">
-                                <button class="btn btn-outline-secondary js_numpad_validate numpad-resize">OK</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-resize">
-                                    C
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-resize">
-                                    ,
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_backspace">
-                                    <img alt="Retour arrière"
-                                         src="/web_ui_stock_product/static/src/img/backspace.png"
-                                         width="24"
-                                         height="21"/>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-
-    </t>
-
 
 </templates>

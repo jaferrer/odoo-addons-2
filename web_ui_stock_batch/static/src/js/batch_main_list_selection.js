@@ -20,14 +20,14 @@ odoo.define('web_ui_stock_batch.BatchSelectionTable', function (require) {
             this.$('button.js_select_batch').click(ev => { this.select_this_batch(this.id) });
         },
         select_this_batch: function (batch_id) {
-            if (!this.batchMainList.$('#big_helper').hasClass('d-none')) {
-                this.batchMainList.$('#big_helper').addClass('d-none');
+            if (!this.batchMainList.$('#big_helper').hasClass('hidden')) {
+                this.batchMainList.$('#big_helper').addClass('hidden');
             }
             this.batchMainList.selected_batch = this.picking_batch;
             this.batchMainList._load_batch_move_lines(batch_id);
-            this.batchMainList.$('#batch_selection_table').toggleClass('d-none');
-            this.batchMainList.$('#move_line_table').toggleClass('d-none');
-            this.batchMainList.$('#manual_scan_location').toggleClass('d-none');
+            this.batchMainList.$('#batch_selection_table').toggleClass('hidden');
+            this.batchMainList.$('#move_line_table').toggleClass('hidden');
+            this.batchMainList.$('#manual_scan_location').toggleClass('hidden');
         },
     });
 });
