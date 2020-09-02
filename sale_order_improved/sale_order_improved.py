@@ -37,6 +37,8 @@ class SaleOrderImproved(models.Model):
 class SaleOrderLineImproved(models.Model):
     _inherit = 'sale.order.line'
 
+    route_id = fields.Many2one(related='order_id.route_id')
+
     @api.onchange('product_uom_qty', 'product_uom', 'route_id')
     def _onchange_product_id_check_availability(self):
 
