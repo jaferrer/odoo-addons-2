@@ -28,6 +28,9 @@
             <field name="model">project.task</field>
             <field name="inherit_id" ref="project.view_task_kanban"/>
             <field name="arch" type="xml">
+                <xpath expr="//kanban[1]" position="attributes">
+                    <attribute name="on_create"/>
+                </xpath>
                 <field name="user_id" position="before">
                     <field name="number"/>
                 </field>
