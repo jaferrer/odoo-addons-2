@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_project_task_coefficient_user,access_project_task_coefficient_user,model_project_task_coefficient,project.group_project_user,1,0,0,0
+access_project_task_coefficient_manager,access_project_task_coefficient_manager,model_project_task_coefficient,project.group_project_manager,1,1,1,1
+access_project_task_coefficient_portal,access_project_task_coefficient_portal,model_project_task_coefficient,base.group_portal,1,0,0,0

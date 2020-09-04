@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_line_milestone_form_view" model="ir.ui.view">
+        <field name="name">sale_order_line_milestone_form_view</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="project_task_invoice.sale_order_line_form_view"/>
+        <field name="arch" type="xml">
+            <field name="display_name" position="after">
+<!--                <field name="must_be_invoiced"/>-->
+                <field name="milestone_id"/>
+            </field>
+        </field>
+    </record>
+    <record id="sale_order_line_milestone_form_view" model="ir.ui.view">
+        <field name="name">task_invoice_milestone_tree</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="project_task_invoice.sale_order_line_form_view"/>
+        <field name="arch" type="xml">
+            <field name="display_name" postion="before">
+                <field name="milestone_id"/>
+            </field>
+        </field>
+    </record>
+    <record id="invoice_project_task_wizard_milestone_form_view" model="ir.ui.view">
+        <field name="name">invoice_project_task_wizard_milestone_form_view</field>
+        <field name="model">invoice.project.task.wizard</field>
+        <field name="inherit_id" ref="project_task_invoice.invoice_project_task_wizard_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='task_ids']/tree/field[@name='project_id']" postion="after">
+                <field name="milestone_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="project_milestone_invoice_form" model="ir.ui.view">
+        <field name="name">project_milestone_invoice_form</field>
+        <field name="model">project.milestone</field>
+        <field name="inherit_id" ref="project_milestone.project_milestone_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="action_mark_as_delivered" type="object" string="Set All Tasks delivered"/>
+            </header>
+        </field>
+    </record>
+
+    <record id="project_milestone_invoice_kanban" model="ir.ui.view">
+        <field name="name">project_milestone_invoice_kanban</field>
+        <field name="model">project.milestone</field>
+        <field name="inherit_id" ref="project_milestone.project_milestone_kanban"/>
+        <field name="arch" type="xml">
+            <field name="project_id" position="after">
+                <field name="nb_task_to_invoice"/>
+                <field name="invoice_tasks_total_count"/>
+            </field>
+            <xpath expr="//div[@name='gauge_row']" position="inside">
+                <div class="col-sm-6" name="gauge_task_to_invoice">
+                    <a name="see_tasks_to_invoice" type="object">
+                        <field name="nb_task_to_invoice" widget="gauge"
+                               style="width:120px;height:90;cursor:pointer;"
+                               options="{'max_field': 'invoice_tasks_total_count'}">Task to Invoice
+                        </field>
+                    </a>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

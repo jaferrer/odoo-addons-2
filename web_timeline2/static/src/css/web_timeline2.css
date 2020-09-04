@@ -1,14 +1,3 @@
-.vis-timeline::after{
-    content: "Date";
-    position: relative;
-    left: 0;
-    top: 0;
-    display: block;
-    padding: 16px;
-    width: 240px;
-    font-weight: bold;
-    color: #1d1d1d;
-}
 .labelBtn{
     transition: all 0.15s ease;
     background: #3bb4ff;
@@ -30,7 +19,13 @@
     transition: all 0.15s ease;
     background: #2797dd;
 }
-
+.badge.timeline2_draggable:before {
+    content: "≣";
+    font-family: Arial, sans-serif;
+    display: inline-block;
+    font-size: inherit;
+    cursor: move;
+}
 .vis-timeline{
     border: 2px solid #dddddd;
     border-top: 0;
@@ -45,43 +40,6 @@
 }
 .vis-panel.vis-top{
     border-left: 3px solid #999999;
-}
-
-.vis-item.openwheel  { background-color: rgba(75,240,255, 1); }
-.vis-item.rally      { background-color: rgba(255,208,82, 1); }
-.vis-item.motorcycle { background-color: rgba(250,128,114, 1); }
-.vis-item.touringcar { background-color: #4fd634; }
-.vis-item.endurance  { background-color: rgb(20, 105, 255); }
-
-.vis-item.time-exceeded  { background-color: #ff5454; color: #fff; }
-
-.progress-wrapper {
-    background: white;
-    width: 100%;
-    height: 18px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.progress {
-    height: 100%;
-    width: 60%;
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    background: #63ed63;
-}
-
-.progress-label {
-    position: absolute;
-    z-index: 1;
-}
-
-.vis-item.expected {
-    background-color: transparent;
-    border-style: dashed!important;
-    z-index: 0;
 }
 
 
@@ -324,10 +282,11 @@
     top: -8px;
     left: calc(50% - 11px);
 }
-.vis-item .vis-delete{
+.oe_timeline2_view {
+    display: block;
+    width: 100%;
     height: 100%;
-    display: flex;
-}
-.vis-item .vis-delete:after, .vis-item .vis-delete-rtl:after{
-    margin: auto;
+    position: absolute;
+    left: 0px;
+    top: 0px;
 }

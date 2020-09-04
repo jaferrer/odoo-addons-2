@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="action_check_bom_recursion" model="ir.actions.server">
+            <field name="name">Check BOM Recursion</field>
+            <field name="model_id" ref="mrp.model_mrp_bom"/>
+            <field name="state">code</field>
+            <field name="code">model.browse(context['active_ids']).check_bom_recursion()</field>
+        </record>
+
+        <record id="value_check_bom_recursion" model="ir.values">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">mrp.bom</field>
+            <field name="name">Check BOM Recursion</field>
+            <field name="value" eval="'ir.actions.server,' + str(action_check_bom_recursion)"/>
+        </record>
+
+    </data>
+</openerp>

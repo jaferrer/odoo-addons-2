@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Mail',
-    'depends': ['mail'],
+    'depends': ['mail', 'base_suspend_security'],
     'description': """
 Mail Thread - Private Tracked Fields
 ====================================
