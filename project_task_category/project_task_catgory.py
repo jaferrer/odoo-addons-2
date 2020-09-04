@@ -95,7 +95,7 @@ class ProjectTaskCategory(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    category_id = fields.Many2one('project.task.category', string=u"Category")
+    category_id = fields.Many2one('project.task.category', string=u"Categorie")
 
 
 class ProjectProject(models.Model):
