@@ -27,7 +27,7 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
             this._super();
             console.log("ProductTableRow renderElement");
             this.$('button.js_delete_product').click(ev => { this.productMainList.delete_row(this) });
-            this.$('button.js_open_numpad').click(ev => { this.open_numpad(this) });
+            this.$().click(ev => { this.open_numpad(this); });
 
             if (this.product.tracking === 'serial') {
                 this.$('button.js_open_numpad').addClass('hidden');
