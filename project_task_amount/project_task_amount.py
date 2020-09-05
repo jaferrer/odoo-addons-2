@@ -25,7 +25,8 @@ from odoo import fields, models, api
 class GitlabSync(models.Model):
     _inherit = 'project.task'
 
-    effective_hours = fields.Float(u"Time spent")
+    effective_hours = fields.Float(u"Time spent (Hours)")
+    effective_days = fields.Float(u"Time spent (Days)", compute='_compute_effective_days')
     remaining_hours = fields.Float(u"Remaining Time")
     planned_hours = fields.Float(u"Planned Time")
 
@@ -40,6 +41,11 @@ class GitlabSync(models.Model):
             'target': 'new',
             'context': dict(self._context, active_id=self.id),
         }
+
+    @api.multi
+    def _compute_effective_days(self):
+        for rec in self:
+            rec.effective_days = rec.effective_hours / 7
 
 
 class TaskTimeSheetAmount(models.TransientModel):

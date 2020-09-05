@@ -34,7 +34,7 @@ class ProjectMilestone(models.Model):
     nb_tasks_done = fields.Integer(u"Nb Tasks done", compute='_compute_nb_related')
     start_date = fields.Date(u"Start date", required=True)
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
-    should_be_closed_at = fields.Date(u"Should be in Prod at", required=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at")
     should_be_test_before = fields.Date(u"Should be tested before")
     livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
     livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
@@ -52,6 +52,23 @@ class ProjectMilestone(models.Model):
     description = fields.Html(u"Description", translate=True)
     qualif_should_be_livred_at_internal = fields.Date(u"Should be in technical test at (internal)")
     referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
+
+    @api.multi
+    def unlink(self):
+        """
+        Delete a milestone if it has no more active task
+
+        """
+        # Dans une première approche : on veut supprimer une milestone si elle n'as pas de tâche active
+        # tasks = self.env['project.task'].search([
+        #     ('milestone_id', '=', self.id),
+        #     ('active', '=', True)
+        # ])
+        # if tasks:
+        # Mais en fait : on veut supprimer une milestone si elle n'as pas de tache (quelque soit sont état):
+        if self.task_ids:
+            raise ValidationError(u"Impossible de supprimer cette milestone tant que des tâches lui sont associées")
+        return super(ProjectMilestone, self).unlink()
 
     @api.multi
     def name_get(self):

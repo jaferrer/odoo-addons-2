@@ -13,27 +13,6 @@
             </field>
         </record>
 
-
-        <record model="ir.ui.view" id="project_delivery_tree">
-            <field name="name">project.delivery.tree</field>
-            <field name="model">project.milestone</field>
-            <field name="inherit_id" ref="project_milestone.project_milestone_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <page name="task_page" position="after">
-                    <page string="Deliveries" name="task_delivery">
-                        <field name="delivery_ids" nolabel="1">
-                            <tree nolabel="1">
-                                <field name="name"/>
-                                <field name="assignee_id"/>
-                                <field name="state"/>
-                            </tree>
-                        </field>
-                    </page>
-                </page>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="project_milestone_delivery_form">
             <field name="name">project.milestone.delivery.from</field>
             <field name="model">project.delivery</field>
