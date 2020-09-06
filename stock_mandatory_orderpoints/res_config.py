@@ -28,9 +28,10 @@ class StockMandatoryOrderpointsResConfigSettings(models.TransientModel):
     @api.model
     def get_values(self):
         res = super(StockMandatoryOrderpointsResConfigSettings, self).get_values()
+        mandatory_orderpoint_location_ids = self.env['ir.config_parameter'].sudo(). \
+            get_param('stock_mandatory_orderpoints.mandatory_orderpoint_location_ids') or '[]'
         res.update(
-            mandatory_orderpoint_location_ids=self.env['ir.config_parameter'].sudo().get_param(
-                'stock_mandatory_orderpoints.mandatory_orderpoint_location_ids'),
+            mandatory_orderpoint_location_ids=eval(mandatory_orderpoint_location_ids),
         )
         return res
 
@@ -39,4 +40,5 @@ class StockMandatoryOrderpointsResConfigSettings(models.TransientModel):
         super(StockMandatoryOrderpointsResConfigSettings, self).set_values()
         param = self.env['ir.config_parameter'].sudo()
         mandatory_orderpoint_location_ids = self.mandatory_orderpoint_location_ids.ids or []
-        param.set_param('mandatory_orderpoint_location_ids', mandatory_orderpoint_location_ids)
+        param.set_param('stock_mandatory_orderpoints.mandatory_orderpoint_location_ids',
+                        mandatory_orderpoint_location_ids)
