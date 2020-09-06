@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="project_task_coefficient_edit_project">
+        <field name="name">project_task_coefficient_edit_project</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Saling / Invocing">
+                    <group>
+                        <field name="saling_type" class="oe_inline" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <field name="coefficient_ids" context="{'default_project_id':active_id, 'active_test': False}">
+                        <tree editable="top">
+                            <button name="toggle_active" field_name="active" type="object" widget="toggle_button" options="{}"/>
+                            <field name="project_id" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="name" />
+                            <field name="coefficient"/>
+                        </tree>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>
