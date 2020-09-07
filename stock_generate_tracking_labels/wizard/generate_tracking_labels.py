@@ -32,10 +32,12 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-PATH_BOT = tempfile.gettempdir() + os.sep + 'merger_bot'
-PATH_TMP = PATH_BOT + os.sep + 'tmp'
-if not os.path.exists(PATH_TMP):
-    os.makedirs(PATH_TMP)
+def make_tmp_path():
+    path_bot = tempfile.gettempdir() + os.sep + 'merger_bot'
+    path_tmp = path_bot + os.sep + 'tmp'
+    if not os.path.exists(path_tmp):
+        os.makedirs(path_tmp)
+    return path_tmp
 
 
 class TrackingGenerateLabelsWizard(models.TransientModel):
@@ -65,8 +67,9 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
             final_encoded_data = False
             if len(list_files) > 1:
                 filenames = []
+                path_tmp = make_tmp_path()
                 for index, file_content in enumerate(list_files):
-                    filename = PATH_TMP + os.sep + "tmp_pdf_label_%s.pdf" % str(index)
+                    filename = path_tmp + os.sep + "tmp_pdf_label_%s.pdf" % str(index)
                     filenames.append(filename)
                     with file(filename, 'wb') as tmp_file:
                         tmp_file.write(file_content)
