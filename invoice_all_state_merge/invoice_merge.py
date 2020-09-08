@@ -76,36 +76,41 @@ class InvoiceMergeExtends(models.TransientModel):
 
     @api.multi
     def merge_invoices(self):
-        invoices = self.env['account.invoice'].browse(self.env.context.get('active_ids', []))
-        new_invoices = self.env['account.invoice']
+        invoice_obj = self.env['account.invoice']
+        invoices_to_merge = invoice_obj.browse(self.env.context.get('active_ids', []))
+        draft_invoices = invoice_obj
         payments_to_reconcile = self.env['account.move.line']
-        if all([invoice.partner_id == invoices[0].partner_id for invoice in invoices]):
-            for rec in invoices:
-                payments_to_reconcile |= rec.payment_move_line_ids
-                # Remove payment
-                rec.payment_move_line_ids.remove_move_reconcile()
-                # Open dialogue to create refund
-                if rec.state != 'draft':
-                    res = self.env['account.invoice.refund'] \
-                        .with_context(active_ids=[rec.id], active_id=rec.id) \
-                        .create(self._value_create_refund()) \
-                        .invoice_refund()
-                    if res and 'domain' in res:
-                        new_invoices |= rec.search(res['domain'] + [('state', '=', 'draft')])
-                else:
-                    new_invoices |= rec
-            res = super(InvoiceMergeExtends, self.with_context(active_ids=new_invoices.ids)).merge_invoices()
-            merged_invoice_result = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
-            for id_invoice, dict_value in merged_invoice_result._prepare_data_post_merge(new_invoices).iteritems():
-                self.env['account.invoice'].browse(id_invoice).write(dict_value)
-            # Let's unlink draft invoices created to generate the merged one
-            new_invoices.unlink()
-            if self.auto_set_payment and self.only_invoice:
-                merged_invoice_result.signal_workflow('invoice_open')
-                merged_invoice_result.register_payment(payments_to_reconcile)
-            return res
-        else:
+        if not all([invoice.partner_id == invoices_to_merge[0].partner_id for invoice in invoices_to_merge]):
             raise exceptions.UserError(_(u"You can't merge multiple invoice without the same Partner"))
+
+        for invoice_to_merge in invoices_to_merge:
+            payments_to_reconcile |= invoice_to_merge.payment_ids
+            # Remove payment
+            invoice_to_merge.payment_ids._remove_move_reconcile()
+            # Creates refund + draft invoice for each invoice opened or paid
+            if invoice_to_merge.state != 'draft':
+                res = self.env['account.invoice.refund'] \
+                    .with_context(active_ids=[invoice_to_merge.id], active_id=invoice_to_merge.id) \
+                    .create(self._value_create_refund()) \
+                    .invoice_refund()
+                if res and 'domain' in res:
+                    # get the newly created draft invoice
+                    domain = res['domain']
+                    domain.pop(0)  # remove ('type', '=', 'in_refund') from domain since we want the 'draft' one
+                    domain = domain + [('state', '=', 'draft')]
+                    draft_invoices |= invoice_obj.search(domain)
+            else:
+                draft_invoices |= invoice_to_merge
+        res = super(InvoiceMergeExtends, self.with_context(active_ids=draft_invoices.ids)).merge_invoices()
+        merged_invoice_result = invoice_obj.browse(set(res['domain'][0][2]) - set(draft_invoices.ids))
+        for id_invoice, dict_value in merged_invoice_result._prepare_data_post_merge(draft_invoices).iteritems():
+            invoice_obj.browse(id_invoice).write(dict_value)
+        # Let's unlink draft invoices created to generate the merged one
+        draft_invoices.unlink()
+        if self.auto_set_payment and self.only_invoice:
+            merged_invoice_result.signal_workflow('invoice_open')
+            merged_invoice_result.register_payment(payments_to_reconcile)
+        return res
 
     @api.multi
     def _value_create_refund(self):
@@ -113,7 +118,7 @@ class InvoiceMergeExtends(models.TransientModel):
         return dict(self.env['account.invoice.refund'].default_get(['keep_references', 'date_invoice']),
                     filter_refund='modify',
                     description=self.description,
-                    date_invoice=self.date_invoice or fields.Date.today())
+                    date=self.date_invoice or fields.Date.today())
 
 
 class InvoiceMerge(models.Model):
