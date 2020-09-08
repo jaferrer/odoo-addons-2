@@ -11,8 +11,8 @@
             <field name="subject" position="before">
                 <label for="partner_cc_ids"/>
                 <field name="partner_cc_ids" widget="many2many_tags" nolabel="1"/>
-                <label for="partner_bcc_ids" invisible="1"/>
-                <field name="partner_bcc_ids" widget="many2many_tags" nolabel="1" invisible="1"/>
+                <label for="partner_bcc_ids"/>
+                <field name="partner_bcc_ids" widget="many2many_tags" nolabel="1"/>
             </field>
         </field>
     </record>
