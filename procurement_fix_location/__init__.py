@@ -17,26 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models
-
-
-class Ean13Checksum(models.AbstractModel):
-    _name = 'abstract.ean13.checksum'
-    _description = 'abstract.ean13.checksum'
-
-    def calculate_checksum(self, barcode):
-        evensum = 0
-        oddsum = 0
-        if len(barcode) != 12 or not barcode.isdigit():
-            return False
-        for i, v in enumerate(barcode):
-            if (i % 2) == 0:
-                evensum += int(v)
-            else:
-                oddsum += int(v)
-        return str((10 - ((evensum + oddsum * 3) % 10)) % 10)
-
-    def check_checksum(self, barcode):
-        if len(barcode) != 13 or not barcode.isdigit():
-            return False
-        return self.calculate_checksum(barcode[:12]) == barcode[12:]
+from . import procurement_group
