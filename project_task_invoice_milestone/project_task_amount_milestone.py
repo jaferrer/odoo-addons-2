@@ -41,14 +41,6 @@ class ProjectMilestone(models.Model):
             ])
 
     @api.multi
-    def action_cancel_delivery(self):
-        self.mapped('task_ids').action_cancel_delivery()
-
-    @api.multi
-    def action_mark_as_delivered(self):
-        self.mapped('task_ids').action_mark_as_delivered()
-
-    @api.multi
     def see_tasks_to_invoice(self):
         self.ensure_one()
         ctx = dict(self.env.context)

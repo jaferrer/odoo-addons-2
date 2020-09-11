@@ -44,10 +44,12 @@ class ProjectTaskCategory(models.Model):
         parents = [category_name.strip() for category_name in category_names]
         child = parents.pop()
         if parents:
-            names_id = self.search(
-                [('project_id', '=', self.env.context.get('default_project_id')), ('name', 'like', parents[0])])
+            names_id = self.search([
+                ('project_id', '=', self.env.context.get('default_project_id')),
+                ('name', 'ilike', parents[0])
+            ])
             if names_id:
-                return super(ProjectTaskCategory, self.with_context(default_parent_id=names_id)).name_create(child)
+                return super(ProjectTaskCategory, self.with_context(default_parent_id=names_id.id)).name_create(child)
         return super(ProjectTaskCategory, self).name_create(name)
 
     @api.multi

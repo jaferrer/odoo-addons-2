@@ -29,43 +29,17 @@ class ProjectMilestone(models.Model):
     active = fields.Boolean(u"Active", default=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
     task_ids = fields.One2many('project.task', 'milestone_id', u"Task")
+    start_date = fields.Date(u"Start date", required=True, default=fields.Date.context_today)
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at")
+    referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
+
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
     nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
     nb_tasks_done = fields.Integer(u"Nb Tasks done", compute='_compute_nb_related')
-    start_date = fields.Date(u"Start date", required=True)
-    qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
-    should_be_closed_at = fields.Date(u"Should be in Prod at")
-    should_be_test_before = fields.Date(u"Should be tested before")
-    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
-    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
-    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
-    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
-    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
-    closed_at = fields.Date(u"Closed at", readonly=True)
-    state = fields.Selection([
-        ('open', u"Open"),
-        ('in_qualif', u"In Test"),
-        ('in_prod', u"In Production"),
-        ('closed', u"Closed")
-    ], default='open', readonly=True, required=True)
-
-    description = fields.Html(u"Description", translate=True)
-    qualif_should_be_livred_at_internal = fields.Date(u"Should be in technical test at (internal)")
-    referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
 
     @api.multi
     def unlink(self):
-        """
-        Delete a milestone if it has no more active task
-
-        """
-        # Dans une première approche : on veut supprimer une milestone si elle n'as pas de tâche active
-        # tasks = self.env['project.task'].search([
-        #     ('milestone_id', '=', self.id),
-        #     ('active', '=', True)
-        # ])
-        # if tasks:
-        # Mais en fait : on veut supprimer une milestone si elle n'as pas de tache (quelque soit sont état):
         if self.task_ids:
             raise ValidationError(u"Impossible de supprimer cette milestone tant que des tâches lui sont associées")
         return super(ProjectMilestone, self).unlink()
@@ -88,34 +62,6 @@ class ProjectMilestone(models.Model):
             rec.nb_tasks = len(rec.task_ids)
             rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
             rec.nb_tasks_done = len([task for task in rec.task_ids if task.stage_id.type == 'done'])
-
-    @api.multi
-    def set_to_livred_in_prod(self):
-        self.write({
-            'livred_in_prod_at': fields.Datetime.now(),
-            'livred_in_prod_by': self.env.user.id,
-            'state': 'in_prod',
-        })
-
-    @api.multi
-    def set_to_livred_in_qualif(self):
-        self.write({
-            'livred_in_qualif_at': fields.Datetime.now(),
-            'livred_in_qualif_by': self.env.user.id,
-            'state': 'in_qualif',
-        })
-
-    @api.multi
-    def close_milestone(self):
-        self.write({
-            'closed_at': fields.Datetime.now(),
-            'closed_by': self.env.user.id,
-            'state': 'closed',
-        })
-
-    @api.multi
-    def reopen(self):
-        self.write({'state': 'open'})
 
     @api.multi
     def see_tasks(self):
@@ -143,7 +89,7 @@ class ProjectProjectMilestone(models.Model):
     @api.multi
     def _compute_nb_milestones(self):
         for rec in self:
-            rec.nb_milestones = len([milestone for milestone in rec.milestone_ids if milestone.state != 'closed'])
+            rec.nb_milestones = len(rec.milestone_ids.ids)
 
     @api.multi
     def milestone_tree_view(self):
@@ -169,10 +115,6 @@ class ProjectTaskMilestone(models.Model):
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at",
                                              related="milestone_id.qualif_should_be_livred_at",
                                              readonly=True, store=True)
-    should_be_closed_at = fields.Date(u"Should be in Prod at", related="milestone_id.should_be_closed_at",
-                                      readonly=True, store=True)
-    should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
-                                        readonly=True, store=True)
     functional_description = fields.Html(u"Description fonctionnelle", translate=True)
     technical_description = fields.Text(u"Description technique")
     has_functional_description = fields.Boolean(related='project_id.has_functional_description', readonly=True)

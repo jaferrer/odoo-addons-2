@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="project_task_form_invoicing">
+        <field name="name">project_task_form_invoicing</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Saling / Invoicing">
+                    <group>
+                        <group string="Saling">
+                            <group>
+                                <field name="saling_type" widget="radio" options="{'horizontal': true}"/>
+                                <field name="coefficient_ids"
+                                       domain="['|', ('project_id', '=', project_id), ('project_id', '=', False)]"
+                                       widget="many2many_checkboxes" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}" />
+                                <field name="time_spent" attrs="{'invisible':[('saling_type', '!=', 'manual')]}"/>
+                                <field name="time_with_coefficient" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                            </group>
+                            <group>
+                                <field name="time_with_coefficient_rounded" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                                <field name="time_open" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                                <field name="estimated_time_customer" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                            </group>
+                            <group attrs="{'invisible':[('saling_type', '=', 'free')]}">
+                                <field name="time_free" />
+                            </group>
+                            <group attrs="{'invisible':[('saling_type', '=', 'free')]}">
+                                <field name="time_free_comment"/>
+                            </group>
+                            <group name="other_estimated_price">
+                                <field name="invoice_time"/>
+                            </group>
+                        </group>
+                        <group string="Invoicing">
+                            <field name="stage_is_delivered" invisible="1"/>
+                            <label for="date_delivered"/>
+                            <div>
+                                <field name="date_delivered"/>
+                                <button name="action_cancel_delivery" type="object"
+                                        attrs="{'invisible': [('date_delivered', '=', False)]}" class="oe_inline oe_link">
+                                    <i class="fa fa-arrow-left"/>
+                                    <span>Cancel Delivery Date</span>
+                                </button>
+                                <button name="action_mark_as_delivered" type="object"
+                                        attrs="{'invisible': ['|', ('date_delivered', '!=', False), ('stage_is_delivered', '=', False)]}"
+                                        class="oe_inline oe_link">
+                                    <i class="fa fa-arrow-right"/>
+                                    <span>Mark as delivered</span>
+                                </button>
+                            </div>
+                            <field name="date_invoiced"/>
+                        </group>
+                        <group name="sale_link" string="Sale">
+                            <field name="project_partner_id" invisible="1"/>
+                            <field name="initial_sale_id" string="Sale Order"
+                                   context="{'default_partner_id': project_partner_id}"
+                                   domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
+                            <field name="initial_sale_line_id" string="Sale Order Line"
+                                   context="{
+                                       'default_order_id': initial_sale_id,
+                                       'default_product_uom_qty': time_spent or planned_days
+                                       }"
+                                   attrs="{'invisible':[('initial_sale_id', '=', False)]}"
+                                   domain="[('order_id', '=', initial_sale_id)]"/>
+                            <field name="product_to_invoice_id" attrs="{'invisible': [('initial_sale_line_id', '!=', False)]}"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <record id="action_invoice_project_task" model="ir.actions.server">
+        <field name="name">To invoice those lines</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).invoice_project_task()
+        </field>
+    </record>
+
+    <record id="value_invoice_project_task" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">To invoice those lines</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_invoice_project_task)"/>
+    </record>
+
+    <record id="task_invoice_tree" model="ir.ui.view">
+        <field name="name">Invoicing Tasks</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <tree create="false">
+                <field name="project_id"/>
+                <field name="category_id"/>
+                <field name="tag_ids"/>
+                <field name="display_name"/>
+                <field name="stage_id"/>
+                <field name="planned_days"/>
+                <field name="estimated_time_customer" sum="Total"/>
+                <field name="invoice_time" sum="Total"/>
+                <field name="date_delivered"/>
+                <field name="date_invoiced"/>
+                <field name="initial_sale_id"/>
+                <field name="initial_sale_line_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="task_invoice_search">
+        <field name="name">project_task_search</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="priority" eval="999"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <filter name="to_mark_as_delivered" string="To Mark as delivered" domain="[('stage_is_delivered', '=', True), ('date_delivered', '=', False)]"/>
+                <filter name="to_invoice" string="To Invoice" domain="[('date_delivered', '!=', False), ('date_invoiced', '=', False)]"/>
+            </search>
+            <group expand="0" position="inside">
+                <filter string="Invoice Date" name="group_date_invoiced"
+                        context="{'group_by':'date_invoiced:month'}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="project_task_dashboard_invoice_action" model="ir.actions.act_window">
+        <field name="name">Invoicing Tasks</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="project_task_invoice.task_invoice_tree"/>
+        <field name="search_view_id" ref="project_task_invoice.task_invoice_search"/>
+        <field name="context">{'search_default_project': 1}</field>
+        <field name="domain">[('stage_is_delivered', '=', True), ('date_invoiced', '=', False), '|', ('must_be_invoiced', '=', True), ('estimated_time_customer', '&gt;', 0)]</field>
+    </record>
+
+    <menuitem id="menu_project_task_dashboard_invoice" name="Invoicing Tasks"
+              parent="project.menu_main_pm"
+              action="project_task_dashboard_invoice_action" sequence="2"/>
+
+    <record id="action_mark_task_as_delivered" model="ir.actions.server">
+        <field name="name">Mark as delivered</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).action_mark_as_delivered()
+        </field>
+    </record>
+
+    <record id="value_mark_task_as_delivered" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">Mark as delivered</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_mark_task_as_delivered)"/>
+    </record>
+
+    <record id="action_cancel_task_delivery" model="ir.actions.server">
+        <field name="name">Cancel delivery</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).action_cancel_delivery()
+        </field>
+    </record>
+
+    <record id="value_cancel_task_delivery" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">Cancel delivery</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_cancel_task_delivery)"/>
+    </record>
+
+    <record model="ir.ui.view" id="project_task_tree">
+        <field name="name">project_task_tree</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <tree position="inside">
+                <field name="estimated_time_customer" sum="Total temps vendu"/>
+                <field name="date_invoiced"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
