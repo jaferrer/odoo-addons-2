@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import json
-
+import datetime
 import requests
 
 from odoo.exceptions import UserError
@@ -184,8 +184,10 @@ class ApiYousignSignature(models.TransientModel):
         b64_pdf_file = model_record.get_document_to_sign()
 
         # Procédure de signature certifiée à cocher dès le bouton "Valider" cliqué
+        # save the date when document is sent
         model_record.write({
-            'is_yousign_procedure_on': True
+            'is_yousign_procedure_on': True,
+            'date_send_to_sign': datetime.datetime.now()
         })
 
         model_record.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
