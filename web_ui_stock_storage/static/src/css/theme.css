@@ -1,40 +1,14 @@
-table.table-numpad {
-    width: 100%;
-    border-collapse: unset;
-}
-
-table.table-numpad > tbody > tr > td {
-    padding: 1px;
-}
-
-td.td-button-resize {
-    position: relative;
-}
-
-td.td-button-resize > button {
-    position: absolute;
-    top: 1px;
-    bottom: 1px;
-    right: 0px;
-    left: 0px;
-}
-
-button.numpad-button {
-    font-size: 24px;
-    width: 100%;
-    height: 74px;
-}
-
-button.numpad-resize {
-    width: 100%;
-}
-
-tbody.numpad-body {
-    border-collapse: revert;
-}
 
 button.btn-margin-left {
     margin-left: 10px;
+}
+
+.breadcrumb {
+    padding: 15px 15px;
+}
+
+.breadcrumb > li + li:before {
+  content: ">";
 }
 
 .breadcrumb .breadcrumb-item.ok {
@@ -51,8 +25,4 @@ button.btn-margin-left {
 
 .orange {
     color: Orange;
-}
-
-.button-back-to-choice {
-    height: 38px;
 }

@@ -17,28 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Web UI Stock API',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'stock',
-    'depends': ['stock'],
-    'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
-    ],
-    'qweb': ['static/src/xml/qweb.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from odoo.addons.global_products_responsible.res_config import PARAM_KEY
+
+from odoo import fields, models, api
+
+
+class ProductTamplate(models.Model):
+    _inherit = 'product.template'
+
+    responsible_id = fields.Many2one('res.users', compute='_compute_responsible_id', required=False)
+
+    @api.multi
+    def _compute_responsible_id(self):
+        global_responsible = self.env['res.users']
+        global_responsible_id = int(self.env['ir.config_parameter'].sudo().get_param(PARAM_KEY) or '0')
+        if global_responsible_id:
+            global_responsible = self.env['res.users'].browse(global_responsible_id)
+        responsible = global_responsible or self.env.user
+        for rec in self:
+            rec.responsible_id = responsible

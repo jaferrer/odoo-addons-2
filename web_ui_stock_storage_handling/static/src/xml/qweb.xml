@@ -3,48 +3,60 @@
 
     <t t-name="StorageHandlingMainWidget">
 
-        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+        <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
             <div class="container">
-                <div class="navbar-header navbar-form navbar-left">
-                    <span id="view_title" style="color:white;"/>
-                </div>
-                <div class="navbar-header navbar-form navbar-left button-group" role="group"
-                     id="scan_product_printer_choice">
-                </div>
-                <div class="navbar-header navbar-form navbar-right">
-                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                <div class="row">
+                    <div class="navbar-col col-6">
+                        <span id="scan_product_printer_choice"/>
+                    </div>
+                    <div class="navbar-col col-6">
+                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    </div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <div id="big_helper" class="jumbotron">
-                <h1 class="text-center">Bienvenue dans l'écran de gestion des chariots</h1>
-                <div class="container text-center">
-                    <button id="create_chariot"
-                            type="button"
-                            class="btn btn-primary fa fa-cart-plus choose-button space-between">
-                        Créer un chariot
-                    </button>
-                    <button id="clean_chariot" type="button" class="btn btn-primary fa fa-cubes choose-button">
-                        Ranger un chariot
-                    </button>
-                </div>
-            </div>
-            <div id="ask_for_direct_clean" class="jumbotron d-none">
-                <h1 t-esc="widget.pickingName" class="text-center"/>
-                <h1 id="ask_text" class="text-center">Souhaitez-vous ranger ce chariot ?</h1>
-                <div class="container text-center">
-                    <button id="back_to_choice"
-                            type="button"
-                            class="btn btn-primary ask-direct-clean-button space-between">
-                        Non
-                    </button>
-                    <button id="direct_clean" type="button" class="btn btn-primary ask-direct-clean-button">Oui</button>
-                </div>
-            </div>
-        </div>
+         <div class="template-container">
+             <div id="big_helper" class="jumbotron">
+                 <div class="container">
+                     <h1 class="text-center">Gestion des chariots</h1>
+                     <div class="row text-center justify-content-center">
+                         <div class="col-10 col-sm-5">
+                             <button id="create_chariot"
+                                     type="button"
+                                     class="btn btn-primary fa fa-cart-plus choose-button">
+                                 Créer un chariot
+                             </button>
+                         </div>
+                         <div class="col-10 col-sm-5">
+                             <button id="clean_chariot"
+                                     type="button"
+                                     class="btn btn-primary fa fa-cubes choose-button">
+                                 Ranger un chariot
+                             </button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
 
+             <div id="ask_for_direct_clean" class="jumbotron hidden">
+                 <div class="container">
+                     <h1 class="text-center">Souhaitez-vous ranger le chariot <span t-esc="widget.pickingName" class="text-center"/>?</h1>
+                     <div class="row text-center justify-content-center">
+                         <div class="col-10 col-sm-5">
+                             <button id="back_to_choice"
+                                     type="button"
+                                     class="btn btn-primary ask-direct-clean-button">Non</button>
+                         </div>
+                         <div class="col-10 col-sm-5">
+                             <button id="direct_clean"
+                                     type="button"
+                                     class="btn btn-primary ask-direct-clean-button">Oui</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
     </t>
 
 </templates>

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,23 +18,20 @@
 #
 
 {
-    'name': 'Web UI Stock API',
+    'name': 'Global responsible for all the products',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'stock',
-    'depends': ['stock'],
+    'category': 'Warehouse',
+    'depends': ['product'],
     'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
+Global responsible for all the products
+=======================================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
+        'res_config.xml',
     ],
-    'qweb': ['static/src/xml/qweb.xml'],
     'demo': [],
     'test': [],
     'installable': True,
