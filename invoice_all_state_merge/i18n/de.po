@@ -1,0 +1,98 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* invoice_all_state_merge
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-11-21 08:39+0000\n"
+"PO-Revision-Date: 2017-11-21 08:39+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: invoice_all_state_merge
+#: field:invoice.merge,description:0
+#: model:ir.model.fields,field_description:invoice_all_state_merge.field_invoice_merge_description
+msgid "Description"
+msgstr "Beschreibung"
+
+#. module: invoice_all_state_merge
+#: model:ir.model,name:invoice_all_state_merge.model_account_invoice
+msgid "Invoice"
+msgstr "Rechnung"
+
+#. module: invoice_all_state_merge
+#: model:ir.model,name:invoice_all_state_merge.model_invoice_merge
+msgid "Merge Partner Invoice"
+msgstr "Rechnungen zusammen führen"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:34
+#, python-format
+msgid "Merge of "
+msgstr "Zusammenführung von "
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:52
+#, python-format
+msgid "Not all invoices are at the same company!"
+msgstr "Alle Rechnungen stammen nicht von derselben Firma!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:61
+#, python-format
+msgid "Not all invoices are at the same currency!"
+msgstr "Nicht alle Rechnungen haben die gleiche Währung!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:64
+#, python-format
+msgid "Not all invoices are at the same journal!"
+msgstr "Alle Rechnungen befinden sich nicht im selben Journal!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:59
+#, python-format
+msgid "Not all invoices are for the same customer!"
+msgstr "Nicht alle Rechnungen sind für denselben Kunden!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:56
+#, python-format
+msgid "Not all invoices are for the same supplier!"
+msgstr "Alle Rechnungen sind nicht für denselben Lieferanten!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:58
+#, python-format
+msgid "Not all invoices are of the same type!"
+msgstr "Alle Rechnungen sind nicht vom gleichen Typ!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:28
+#, python-format
+msgid "Open Invoice"
+msgstr "Rechnung bestätigen"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:29
+#, python-format
+msgid "Only type invoice selected"
+msgstr "Es werden nur Rechnungen ausgewählt"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:49
+#, python-format
+msgid "Not all invoices use the same account!"
+msgstr "Nicht alle Rechnungen haben das gleiche Buchhaltungskonto!"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:42
+#, python-format
+msgid "Please select multiple invoice to merge in the list view."
+msgstr "Bitte wählen Sie mehrere Rechnungen zum Zusammenführen aus."
