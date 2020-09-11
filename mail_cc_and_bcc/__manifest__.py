@@ -38,6 +38,6 @@ Ce module permet d'ajouter des destinataire en cc ou en bcc dans les mails
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
 }
