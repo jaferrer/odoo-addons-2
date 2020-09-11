@@ -24,10 +24,10 @@ from odoo.exceptions import UserError
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
-    saling_type = fields.Selection([
+    costing_type = fields.Selection([
         ('manual', u"Manual"),
         ('with_coeff', u"With Factor")
-    ], u"Default saling type", default='manual', required=True)
+    ], u"Default costing type", default='manual', required=True)
     coefficient_ids = fields.One2many('project.task.coefficient', 'project_id', string=u"Factor")
 
     @api.multi
