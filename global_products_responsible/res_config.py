@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,28 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Web UI Stock API',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'stock',
-    'depends': ['stock'],
-    'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
-    ],
-    'qweb': ['static/src/xml/qweb.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from odoo import models, fields
+
+PARAM_KEY = 'stock_global_products_responsible.global_products_responsible_id'
+
+
+class ResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    global_products_responsible_id = fields.Many2one('res.users', string='Responsible for products configuration',
+                                                     help="This user will be responsible of the next activities related"
+                                                          " to logistic operations for all the products.",
+                                                     config_parameter=PARAM_KEY)

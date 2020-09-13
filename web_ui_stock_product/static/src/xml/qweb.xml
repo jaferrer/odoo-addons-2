@@ -3,103 +3,103 @@
 
     <t t-name="ScanProductMainWidget">
 
-        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+        <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
             <div class="container">
-                <div class="navbar-header navbar-form navbar-left">
-                    <button id="back_to_handling_screen"
-                            type="button"
-                            class="btn btn-primary button-back-to-choice d-none fa fa-arrow-left"/>
-                    <span id="view_title" style="color:white;"/>
-                </div>
-                <div class="navbar-header navbar-form navbar-left button-group" role="group"
-                     id="scan_product_printer_choice">
-                </div>
-                <div class="navbar-header navbar-form navbar-right">
-                    <button id="validate_scan"
-                            type="button"
-                            class="btn btn-success btn-margin-left pull-right js_validate_scan">
-                        Valider
-                    </button>
-                    <button id="_exit" type="button" class="btn btn-danger btn-margin-left pull-right">Quitter</button>
+                <div class="row">
+                    <div class="navbar-col col-6">
+                        <button id="back_to_handling_screen"
+                                type="button"
+                                class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
+                        <span id="view_title"/>
+                    </div>
+                    <div class="navbar-col col-6">
+                        <button id="validate_scan"
+                                type="button"
+                                class="btn btn-success btn-margin-left pull-right js_validate_scan">
+                            Valider
+                        </button>
+                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    </div>
+                    <div class="navbar-col col-12" id="scan_product_printer_choice"></div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'écran de création de chariot</h1>
-                <p>Veuiller scanner un code barre pour commencer</p>
-                <p>Ou</p>
-                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
-            </div>
-            <div id="manual_scan" class="jumbotron">
-                <h4>Vous pouvez scanner un article ou le saisir a la main!</h4>
-                <div class="input-group">
-                    <input id="search_product" type="text" class="form-control"
-                           placeholder="Saisie article manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
-                    </span>
+        <div class="template-container">
+
+            <div class="jumbotron">
+                <div id="big_helper" class="container">
+                    <h1>Création de chariot</h1>
+                    <p>Veuiller scanner un code barre pour commencer</p>
+                </div>
+                <div id="manual_scan" class="container">
+                    <h4>Vous pouvez scanner un article ou le saisir a la main!</h4>
+                    <div class="input-group">
+                        <input id="search_product" type="text" class="form-control" placeholder="Saisie article manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
+                </div>
+
+                <div id="need_num_lot_scan" class="warning-background hidden">
+                    <h4>
+                        Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro ou de supprimer
+                        l'article pour continuer
+                    </h4>
+                    <div class="input-group">
+                        <input id="search_product_lot" type="text" class="form-control"
+                               placeholder="Saisie numéro de lot/série manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
                 </div>
             </div>
-            <div id="need_num_lot_scan" class="jumbotron warning-background d-none">
-                <h4>
-                    Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro ou de supprimer
-                    l'article pour continuer
-                </h4>
-                <div class="input-group">
-                    <input id="search_product_lot" type="text" class="form-control"
-                           placeholder="Saisie numéro de lot/série manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
-                    </span>
+
+            <div class="container">
+                <div class="row">
+                    <p class="button-group col-lg-12 text-right" role="group" id="mass_btn">
+                        <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
+                            Vider la liste
+                        </button>
+                    </p>
+
+                    <div class="col-md-12 table-responsive">
+                        <table id="product_table" class="table table-hover ui_stock_table">
+                            <thead id="product_table_header">
+                                <tr>
+                                    <th class="main-col">Article</th>
+                                    <th colspan="2">Qté</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product_table_body"/>
+                        </table>
+                    </div>
+
+                    <div class="col-md-12 hidden" id="need_for_lot"/>
                 </div>
             </div>
-            <div class="row">
-                <div class="button-group col-lg-12" role="group" id="mass_btn">
-                    <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
-                        Vider la liste
-                    </button>
-                </div>
-            </div>
-            <div class="row">
-                <table id="product_table" class="table">
-                    <thead id="product_table_header">
-                        <t t-call="ProductTableHeader"/>
-                    </thead>
-                    <tbody id="product_table_body"/>
-                </table>
-            </div>
-            <div class="row d-none" id="quantity_numpad"/>
-            <div class="row d-none" id="need_for_lot"/>
         </div>
     </t>
 
-    <t t-name="ProductTableHeader">
-        <tr>
-            <th>Nom</th>
-            <th>Code</th>
-            <th>N° de lot/série</th>
-            <th>Quantité</th>
-            <th>Ajuster la quantité</th>
-        </tr>
-    </t>
     <t t-name="ProductTableRow">
-        <tr t-att-product_id="widget.id" id="product_row">
-            <td>
-                <t t-esc="widget.product.name"/>
+        <tr t-att-product_id="widget.id" id="product_row" class="js_open_numpad ui_stock_item">
+            <td class="main-col">
+                 <p id="product_name">
+                     <t t-esc="widget.product.name"/>
+                 </p>
+                <p style="margin:0;" id="product_code" class="text-muted">
+                    <small>Code: </small><t t-esc="widget.product.default_code"/>
+                </p>
+                 <p style="margin:0;" id="lot_name" class="text-muted">
+                    <small>Lot: </small><t t-esc="widget.product.lot_name"/>
+                </p>
             </td>
-            <td>
-                <t t-esc="widget.product.default_code"/>
-            </td>
-            <td id="lot_name">
-                <t t-esc="widget.product.lot_name"/>
-            </td>
-            <td id="product_quantity">
-                <t t-esc="widget.product.quantity"/>
-            </td>
-            <td>
-                <button type="button" class='btn btn-primary js_open_numpad fa fa-calculator'/>
+             <td class="qty-col">
+                <p id="product_quantity" style="text-align: right;font-size: 18px;margin:0;">
+                    <t t-esc="widget.product.quantity"/>
+                </p>
             </td>
             <td>
                 <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
@@ -107,127 +107,7 @@
         </tr>
     </t>
 
-    <t t-name="ProductTableRow.Numpad">
-        <div class="col-sm-6 portrait-column-alignment">
-            <div class="align-self-end">
-                <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
-                    Annuler
-                </button>
-                <button type="button"
-                        id="btn_validate_new_qty"
-                        class="btn btn-success js_validate_new_qty pull-right">
-                    Confirmer
-                </button>
-            </div>
-            <table id="product_numpad_table" class="table">
-                <thead id="product_numpad_table_header">
-                    <tr>
-                        <th>Nom</th>
-                        <th>Quantité actuelle</th>
-                    </tr>
-                </thead>
-                <tbody id="product_numpad_table_body">
-                    <tr>
-                        <td>
-                            <t t-esc="widget.productRow.product.name"/>
-                        </td>
-                        <td id="numpad_quantity">
-                            <t t-esc="widget.quantity"/>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="col-sm-6 portrait-column-alignment">
-            <div class="d-flex justify-content-center">
-                <table id="numpad" class="table table-numpad">
-                    <thead>
-                        <tr>
-                            <th id="numpad_new_quantity"
-                                class="table-bordered rounded border-secondary"
-                                colspan="4"
-                                style="color: #6c757d;">
-                                <t t-esc="widget.value"/>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="numpad-body">
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3
-                                </button>
-                            </td>
-                            <td class="border-0 td-button-resize" rowspan="3">
-                                <button class="btn btn-outline-secondary js_numpad_validate numpad-resize">OK</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-resize">
-                                    C
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-resize">
-                                    ,
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_backspace">
-                                    <img alt="Retour arrière"
-                                         src="/web_ui_stock_product/static/src/img/backspace.png"
-                                         width="24"
-                                         height="21"/>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </t>
-
-    <t t-name="ProductTableRow.Lot" class="d-none" id="need_for_lot_view">
+    <t t-name="ProductTableRow.Lot" class="hidden" id="need_for_lot_view">
         <div>
             <table id="product_lot_table" class="table">
                 <thead id="product_lot_table_header">
@@ -235,7 +115,7 @@
                         <th>Nom</th>
                         <th>Code</th>
                         <th>Méthode de suivi</th>
-                        <th id="invalid_lot_number_header" class="d-none text-danger">Numéro de lot/série invalide</th>
+                        <th id="invalid_lot_number_header" class="hidden text-danger">Numéro de lot/série invalide</th>
                     </tr>
                 </thead>
                 <tbody id="product_lot_table_body">
@@ -249,7 +129,7 @@
                         <td>
                             <t t-esc="widget.productRow.product.tracking"/>
                         </td>
-                        <td id="invalid_lot_number_col" class="d-none text-danger">
+                        <td id="invalid_lot_number_col" class="hidden text-danger">
                             <t t-esc="widget.invalid_number"/>
                         </td>
                         <td>
@@ -264,12 +144,14 @@
     <t t-name="ScanProductRow.Error">
         <tr id="error_text" class="danger" data-error-row="1">
             <td>
-                <t t-esc="widget.error.title"/>
+                <p>
+                     <t t-esc="widget.error.title"/>
+                </p>
+                <p class="text-muted">
+                     <t t-esc="widget.error.message"/>
+                </p>
             </td>
-            <td colspan="4">
-                <t t-esc="widget.error.message"/>
-            </td>
-            <td>
+            <td colspan="2">
                 <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
             </td>
         </tr>

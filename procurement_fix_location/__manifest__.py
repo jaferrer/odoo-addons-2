@@ -18,23 +18,18 @@
 #
 
 {
-    'name': 'Web UI Stock API',
+    'name': 'Procurement Fix Location',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'stock',
+    'category': 'Stock',
     'depends': ['stock'],
     'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
+Procurement Fix Location
+========================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
-    ],
-    'qweb': ['static/src/xml/qweb.xml'],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

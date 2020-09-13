@@ -15,16 +15,15 @@ odoo.define('web_ui_stock_storage_handling.StorageHandlingMainWidget', function 
         },
         renderElement: function () {
             this._super();
-            this.$('#_exit').click((ev) => window.history.back());
+            this.$('#btn_exit').click((ev) => window.history.back());
             this.$('#create_chariot').click((ev) => { this.open_scan_product_main_widget() });
             this.$('#clean_chariot').click((ev) => { this.open_storage_main_widget() });
             this.$('#back_to_choice').click((ev) => { this.back_to_choice() });
             this.$('#direct_clean').click((ev) => { this.direct_clean() });
             // Si on veut ranger un chariot qu'on vient de créer
             if (this.pickingName) {
-                this.$('#big_helper').addClass('d-none');
-                // this.$('#ask_text').textContent="Souhaitez-vous ranger ce chariot ".concat("", this.pickingName, "?");
-                this.$('#ask_for_direct_clean').removeClass('d-none');
+                this.$('#big_helper').addClass('hidden');
+                this.$('#ask_for_direct_clean').removeClass('hidden');
             }
         },
         open_scan_product_main_widget: function () {
@@ -44,8 +43,8 @@ odoo.define('web_ui_stock_storage_handling.StorageHandlingMainWidget', function 
         },
         back_to_choice: function () {
             // On revient à l'écran de choix
-            this.$('#ask_for_direct_clean').addClass('d-none');
-            this.$('#big_helper').removeClass('d-none');
+            this.$('#ask_for_direct_clean').addClass('hidden');
+            this.$('#big_helper').removeClass('hidden');
             this.pickingName = "";
         },
         direct_clean: function () {

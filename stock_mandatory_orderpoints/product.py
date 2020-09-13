@@ -45,58 +45,57 @@ class ProductProduct(models.Model):
     def _create_needed_orderpoints(self):
         if not self:
             return
-        self.env.cr.execute("""SELECT
-  op.id,
-  sl.company_id
+        self.env.cr.execute("""SELECT op.id,
+       sl.company_id
 FROM stock_warehouse_orderpoint op
-  INNER JOIN stock_location sl ON sl.id = op.location_id AND sl.company_id IS NOT NULL
+       INNER JOIN stock_location sl ON sl.id = op.location_id AND sl.company_id IS NOT NULL
 WHERE op.company_id != sl.company_id""")
         for orderpoint_id, company_id in self.env.cr.fetchall():
             orderpoint = self.env['stock.warehouse.orderpoint'].browse(orderpoint_id)
             orderpoint.write({'company_id': company_id})
-        location_config_ids = self.env['ir.config_parameter'].get_param('mandatory_orderpoint_location_ids')
+        location_config_ids = self.env['ir.config_parameter']. \
+            get_param('stock_mandatory_orderpoints.mandatory_orderpoint_location_ids')
         orderpoint_required_locations = location_config_ids and self.env['stock.location'].browse(
             eval(location_config_ids)
         )
         self.env.cr.execute("""WITH product_product_restricted AS (
-    SELECT *
-    FROM product_product
-    WHERE id IN %s),
+  SELECT pp.*
+  FROM product_product pp
+         LEFT JOIN product_template pt ON pt.id = pp.product_tmpl_id
+  WHERE pt.type != 'service'
+    AND pp.id IN %s),
 
-    config_needed_locations AS (
-      SELECT
-        pp.id AS product_id,
-        sl.id AS location_id
-      FROM product_product_restricted pp
-        CROSS JOIN stock_location sl
-      WHERE sl.id IN %s
-      GROUP BY pp.id, sl.id),
+     config_needed_locations AS (
+       SELECT pp.id AS product_id,
+              sl.id AS location_id
+       FROM product_product_restricted pp
+              CROSS JOIN stock_location sl
+       WHERE sl.id IN %s
+       GROUP BY pp.id, sl.id),
 
-    route_needed_locations AS (
-      SELECT
-        pp.id AS product_id,
-        rel2.location_id
-      FROM product_product_restricted pp
-        INNER JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-        INNER JOIN stock_location_route_to_location_ref rel2 ON rel2.route_id = rel.route_id),
+     route_needed_locations AS (
+       SELECT pp.id AS product_id,
+              rel2.location_id
+       FROM product_product_restricted pp
+              INNER JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+              INNER JOIN stock_location_route_to_location_ref rel2 ON rel2.route_id = rel.route_id),
 
-    needed_locations AS (
-    SELECT *
-    FROM config_needed_locations
-    UNION ALL
-    SELECT *
-    FROM route_needed_locations),
+     needed_locations AS (
+       SELECT *
+       FROM config_needed_locations
+       UNION ALL
+       SELECT *
+       FROM route_needed_locations),
 
-    existing_orderpoints AS (
-      SELECT
-        loc.*,
-        op.id AS orderpoint_id
-      FROM needed_locations loc
-        LEFT JOIN stock_warehouse_orderpoint op ON op.product_id = loc.product_id AND op.location_id = loc.location_id)
+     existing_orderpoints AS (
+       SELECT loc.*,
+              op.id AS orderpoint_id
+       FROM needed_locations loc
+              LEFT JOIN stock_warehouse_orderpoint op
+                        ON op.product_id = loc.product_id AND op.location_id = loc.location_id)
 
-SELECT
-  product_id,
-  location_id
+SELECT product_id,
+       location_id
 FROM existing_orderpoints
 WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids or [0]),))
         for product_id, location_id in self.env.cr.fetchall():

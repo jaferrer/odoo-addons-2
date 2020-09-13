@@ -16,29 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import models, api, _ as _t
+from odoo.exceptions import UserError
 
-{
-    'name': 'Web UI Stock API',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'stock',
-    'depends': ['stock'],
-    'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
-    ],
-    'qweb': ['static/src/xml/qweb.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+
+class ProcurementGroup(models.Model):
+    _inherit = 'procurement.group'
+
+    @api.model
+    def run(self, product_id, product_qty, product_uom, location_id, name, origin, values):
+        rule = self._get_rule(product_id, location_id, values)
+        if not rule:
+            raise UserError(
+                _t("Error, the partner doesn't have stock location. \n "
+                   "You can add it in his customer file (inside Sales & Purchase page)."))
+        super(ProcurementGroup, self).run(product_id, product_qty, product_uom, location_id, name, origin, values)

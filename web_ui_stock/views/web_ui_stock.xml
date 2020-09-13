@@ -5,10 +5,10 @@
 
     <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
-            <link rel="stylesheet" href="/web_ui_stock/static/src/css/stock.css"/>
             <script type="text/javascript" src="/web_ui_stock/static/src/js/packing_mobile_widgets.js"></script>
             <script type="text/javascript" src="/web_ui_stock/static/src/js/web_stock_ui_barecode_scanner.js"></script>
             <script type="text/javascript" src="/web_ui_stock/static/src/js/web_ui_stock_numpad.js"></script>
+            <link rel="stylesheet" href="/web_ui_stock/static/src/less/ui_stock.scss"/>
         </xpath>
     </template>
 
@@ -20,22 +20,25 @@
                 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
                 <meta http-equiv="content-type" content="text/html, charset=utf-8"/>
 
-                <meta name="viewport" content=" width=1024, user-scalable=no"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <meta name="apple-mobile-web-app-capable" content="yes"/>
                 <meta name="mobile-web-app-capable" content="yes"/>
 
                 <link rel="shortcut icon" sizes="80x51" href="/stock/static/src/img/scan.png"/>
                 <link rel="shortcut icon" href="/web/static/src/img/favicon.ico" type="image/x-icon"/>
-
-                <link rel="stylesheet" href="/web_ui_stock/static/src/css/barcode.css"/>
                 <link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.css"/>
                 <link rel="stylesheet" href="/web/static/lib/jquery.ui/jquery-ui.css"/>
                 <link rel="stylesheet" href="/web/static/lib/fontawesome/css/font-awesome.css"/>
 
+                <link rel="stylesheet" href="/web_ui_stock/static/src/less/web.assets_backend/ui_stock.scss.css"/>
+                <link rel="stylesheet" href="/web_ui_stock/static/src/css/theme.css"/>
+                <link rel="stylesheet" href="/web_ui_stock/static/src/css/barcode.css"/>
+
+
                 <script type="text/javascript">
                     var odoo = {
                     csrf_token: "<t t-esc="request.csrf_token(None)"/>",
-                    session_info: <t t-raw="session_info"/>,
+                    session_info:<t t-raw="session_info"/>,
                     };
                 </script>
 
@@ -71,127 +74,6 @@
                 <div class="o_main_content"/>
             </body>
         </html>
-
-<!--        <t t-name="ProductTableRow.Numpad">-->
-<!--            <div class="col-sm-6">-->
-<!--                <div class="align-self-end">-->
-<!--                    <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>-->
-<!--                        Annuler-->
-<!--                    </button>-->
-<!--                    <button type="button"-->
-<!--                            id="btn_validate_new_qty"-->
-<!--                            class="btn btn-success js_validate_new_qty pull-right">-->
-<!--                        Confirmer-->
-<!--                    </button>-->
-<!--                </div>-->
-<!--                <table id="product_numpad_table" class="table">-->
-<!--                    <thead id="product_numpad_table_header">-->
-<!--                        <tr>-->
-<!--                            <th>Nom</th>-->
-<!--                            <th>Quantité actuelle</th>-->
-<!--                        </tr>-->
-<!--                    </thead>-->
-<!--                    <tbody id="product_numpad_table_body">-->
-<!--                        <tr>-->
-<!--                            <td>-->
-<!--                                <t t-esc="widget.productRow.product.name"/>-->
-<!--                            </td>-->
-<!--                            <td id="numpad_quantity">-->
-<!--                                <t t-esc="widget.quantity"/>-->
-<!--                            </td>-->
-<!--                        </tr>-->
-<!--                    </tbody>-->
-<!--                </table>-->
-<!--            </div>-->
-<!--            <div class="col-sm-6">-->
-<!--                <div class="d-flex justify-content-center">-->
-<!--                    <table id="numpad" class="table table-numpad">-->
-<!--                        <thead>-->
-<!--                            <tr>-->
-<!--                                <th id="numpad_new_quantity"-->
-<!--                                    class="table-bordered rounded border-secondary"-->
-<!--                                    colspan="4"-->
-<!--                                    style="color: #6c757d;">-->
-<!--                                    <t t-esc="widget.value"/>-->
-<!--                                </th>-->
-<!--                            </tr>-->
-<!--                        </thead>-->
-<!--                        <tbody class="numpad-body">-->
-<!--                            <tr>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0 td-button-resize" rowspan="3">-->
-<!--                                    <button class="btn btn-outline-secondary js_numpad_validate numpad-resize">-->
-<!--                                        OK</button>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-resize">-->
-<!--                                        C-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-resize">-->
-<!--                                        ,-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                                <td class="border-0">-->
-<!--                                    <button class="btn numpad-button btn-outline-secondary js_numpad_backspace">-->
-<!--                                        <img alt="Retour arrière"-->
-<!--                                             src="/web_ui_stock_product/static/src/img/backspace.png"-->
-<!--                                             width="24"-->
-<!--                                             height="21"/>-->
-<!--                                    </button>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                        </tbody>-->
-<!--                    </table>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </t>-->
     </template>
 
     <record model="ir.ui.view" id="web_ui_stock_picking_type_kanban">
@@ -230,5 +112,4 @@
             </field>
         </field>
     </record>
-
 </odoo>

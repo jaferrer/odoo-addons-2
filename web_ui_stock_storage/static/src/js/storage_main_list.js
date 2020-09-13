@@ -3,14 +3,13 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
 
     var AbstractAction = require('web.AbstractAction');
     var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
-    var Numpad = require('web_ui_stock.Numpad');
     var Widget = require('web.Widget');
     var core = require('web.core');
     var QWeb = core.qweb;
+    var Numpad = require('web_ui_stock.Numpad');
     var StorageRow = {
         Row: require('web_ui_storage.StorageRow'),
         Error: require('web_ui_storage.StorageRow.Error')
-
     };
     var rpc = require('web.rpc');
 
@@ -36,17 +35,18 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
         renderElement: function () {
             this._super();
             this.picking_table = this.$('#picking_table');
-            this.$('#_exit').click((ev) => window.history.back());
+            this.$('#btn_exit').click((ev) => window.history.back());
             this.storage_table_body = this.$('#storage_table_body');
             this.picking_split_detail = this.$('#picking_split_detail');
-            this.$('#manual_product_scan').addClass('d-none');
-            this.$('#manual_location_scan').addClass('d-none');
-            this.$('#manual_tracking_scan').addClass('d-none');
-            this.$('#error').addClass('d-none');
-            this.$('button.js_change_location').click(ev => { this.allow_change_location() });
-            this.$('button.js_confirm_location').click(ev => { this.confirm_location() });
-            this.$('button.js_open_numpad').click(ev => {
-                this.open_numpad()
+            this.$('#manual_product_scan').addClass('hidden');
+            this.$('#manual_location_scan').addClass('hidden');
+            this.$('#manual_tracking_scan').addClass('hidden');
+            this.$('#error').addClass('hidden');
+            this.$('button.js_change_location').click(ev => {
+                this.allow_change_location()
+            });
+            this.$('button.js_confirm_location').click(ev => {
+                this.confirm_location()
             });
             this.$('button.js_validate_scan').click(ev => {
                 this.validate_scan()
@@ -130,9 +130,11 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             });
             // Si on arrive sur cet écran depuis le gestionnaire de chariot
             if (this.storageScreen) {
-                this.$('#back_to_handling_screen').removeClass('d-none');
+                this.$('#back_to_handling_screen').removeClass('hidden');
             }
-            this.$('#back_to_handling_screen').click(() => { this.back_to_handling_screen() });
+            this.$('#back_to_handling_screen').click(() => {
+                this.back_to_handling_screen()
+            });
             // Si on arrive sur cet écran après la création d'un chariot
             if (this.pickingName) {
                 this.scan(this.pickingName)
@@ -154,7 +156,7 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
         get_header: function () {
             return this.getParent().get_header();
         },
-        scan: function (ean, changing_location=false) {
+        scan: function (ean, changing_location = false) {
             console.log(ean);
             this.$('#search_picking').val('');
             let spt_picking_info_params = {
@@ -186,22 +188,22 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 console.log("Recherche d'un BRANG");
                 rpc.query(spt_picking_info_params)
                     .always(() => {
-                        if (!this.$('#big_helper').hasClass('d-none')) {
-                            this.$('#big_helper').addClass('d-none')
+                        if (!this.$('#big_helper').hasClass('hidden')) {
+                            this.$('#big_helper').addClass('hidden')
                         }
                     })
                     .then((pick) => {
-                        this.$('#manual_product_scan').removeClass('d-none');
-                        this.$('#manual_scan').addClass('d-none');
+                        this.$('#manual_product_scan').removeClass('hidden');
+                        this.$('#manual_scan').addClass('hidden');
                         this.$('#display_picking').text(pick.name);
                         this.$('#wait_product').addClass('active')
-                        this.$('#error').addClass('d-none');
+                        this.$('#error').addClass('hidden');
                         this.pickingId = pick.id;
                         this.state = 2;
                     })
                     .fail((errors, event) => {
                         console.log("Error ", errors, event);
-                        this.$('#error').removeClass('d-none');
+                        this.$('#error').removeClass('hidden');
                         this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
                         event.preventDefault();
                     });
@@ -221,39 +223,39 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                             this.$("#product_code").text(moveLine.default_code);
                             if (moveLine.tracking != "none") {
                                 this.$("#product_num_lot").text(moveLine.num_lot);
-                                this.$('#span_product_num_lot').removeClass('d-none');
+                                this.$('#span_product_num_lot').removeClass('hidden');
                                 if (!moveLine.num_lot) {
-                                    this.$('#manual_tracking_scan').removeClass('d-none');
-                                    this.$('#wait_tracking').removeClass('d-none');
+                                    this.$('#manual_tracking_scan').removeClass('hidden');
+                                    this.$('#wait_tracking').removeClass('hidden');
                                     this.$('#wait_tracking').addClass('active');
                                     this.state = 21;
                                 } else {
-                                    this.$('#manual_location_scan').removeClass('d-none');
+                                    this.$('#manual_location_scan').removeClass('hidden');
                                     this.$('#wait_location').addClass('active');
-                                    this.$('#span_product_location').removeClass('d-none');
+                                    this.$('#span_product_location').removeClass('hidden');
                                     this.$('#span_product_location').addClass('orange');
                                     this.state = 3;
                                 }
                             } else {
-                                this.$('#manual_location_scan').removeClass('d-none');
+                                this.$('#manual_location_scan').removeClass('hidden');
                                 this.$('#wait_location').addClass('active');
-                                this.$('#span_product_location').removeClass('d-none');
+                                this.$('#span_product_location').removeClass('hidden');
                                 this.$('#span_product_location').addClass('orange');
                                 this.state = 3;
                             }
                         });
                         console.log("RP " + this.state);
-                        this.$('#manual_product_scan').addClass('d-none');
+                        this.$('#manual_product_scan').addClass('hidden');
                         this.$('#wait_product').addClass('ok');
                         this.$('#wait_product').removeClass('active');
-                        this.$('#error').addClass('d-none');
+                        this.$('#error').addClass('hidden');
                         this.$('#search_product').val('');
-                        this.$('#span_product_code').removeClass('d-none');
-                        this.$('#span_product_name').removeClass('d-none');
+                        this.$('#span_product_code').removeClass('hidden');
+                        this.$('#span_product_name').removeClass('hidden');
                     })
                     .fail((errors, event) => {
                         console.log("Error print", errors, event);
-                        this.$('#error').removeClass('d-none');
+                        this.$('#error').removeClass('hidden');
                         this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
                         event.preventDefault();
                     });
@@ -263,17 +265,17 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 rpc.query(spt_tracking_info_params)
                     .then((tracking) => {
                         this.$("#product_num_lot").text(tracking.num_lot);
-                        this.$('#manual_product_scan').addClass('d-none');
+                        this.$('#manual_product_scan').addClass('hidden');
                         this.$('#wait_tracking').addClass('ok');
-                        this.$('#manual_location_scan').removeClass('d-none');
+                        this.$('#manual_location_scan').removeClass('hidden');
                         this.$('#wait_location').addClass('active');
-                        this.$('#span_product_location').removeClass('d-none');
+                        this.$('#span_product_location').removeClass('hidden');
                         this.$('#span_product_location').addClass('orange');
                         this.state = 3;
                     })
                     .fail((errors, event) => {
                         console.log("Error print", errors, event);
-                        this.$('#error').removeClass('d-none');
+                        this.$('#error').removeClass('hidden');
                         this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
                         event.preventDefault();
                     });
@@ -281,31 +283,30 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             if (this.state == 3) {
                 console.log("Recherche d'un emplacement");
                 if (!changing_location) {
-                rpc.query(spt_location_info_params)
-                    .then((moveLine) => {
-                        this.moveLines.push(moveLine.id);
-                        console.log("id " + moveLine.id);
-                        this.moveLineId = moveLine.id;
-                        this.moveLineQty = moveLine.qty;
-                        let row = new StorageRow.Row(this, moveLine);
-                        this.storage_table_body.empty();
-                        row.appendTo(this.storage_table_body);
-                        this.$('#error').addClass('d-none');
-                        this.$('#helper_location').removeClass('d-none');
-                        this.$('#manual_location_scan').addClass('d-none');
-                        this.$('button.js_change_location').removeClass('d-none');
-                        this.$('button.js_confirm_location').removeClass('d-none');
-                    })
-                    .fail((errors, event) => {
-                        console.log("Error print", errors, event);
-                        this.$('#error').removeClass('d-none');
-                        this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
-                        event.preventDefault();
-                    });
-                }
-                else {
-                    rpc.query(spt_new_location_info_params)
-                        .then((moveLine) => {
+                     rpc.query(spt_location_info_params)
+                         .then((moveLine) => {
+                            this.moveLines.push(moveLine.id);
+                            console.log("id " + moveLine.id);
+                            this.moveLineId = moveLine.id;
+                            this.moveLineQty = moveLine.qty;
+                            let row = new StorageRow.Row(this, moveLine);
+                            this.storage_table_body.empty();
+                            row.appendTo(this.storage_table_body);
+                            this.$('#error').addClass('hidden');
+                            this.$('#helper_location').removeClass('hidden');
+                            this.$('#manual_location_scan').addClass('hidden');
+                            this.$('button.js_change_location').removeClass('hidden');
+                            this.$('button.js_confirm_location').removeClass('hidden');
+                        })
+                        .fail((errors, event) => {
+                            console.log("Error print", errors, event);
+                            this.$('#error').removeClass('hidden');
+                            this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
+                            event.preventDefault();
+                        });
+                } else {
+                     rpc.query(spt_new_location_info_params)
+                         .then((moveLine) => {
                             this.update_location(moveLine, ean);
                             this.moveLines.push(moveLine.id);
                             console.log("id " + moveLine.id);
@@ -314,15 +315,15 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                             let row = new StorageRow.Row(this, moveLine);
                             this.storage_table_body.empty();
                             row.appendTo(this.storage_table_body);
-                            this.$('#error').addClass('d-none');
-                            this.$('#helper_location').removeClass('d-none');
-                            this.$('#manual_location_scan').addClass('d-none');
-                            this.$('button.js_change_location').removeClass('d-none');
-                            this.$('button.js_confirm_location').removeClass('d-none');
+                            this.$('#error').addClass('hidden');
+                            this.$('#helper_location').removeClass('hidden');
+                            this.$('#manual_location_scan').addClass('hidden');
+                            this.$('button.js_change_location').removeClass('hidden');
+                            this.$('button.js_confirm_location').removeClass('hidden');
                         })
                         .fail((errors, event) => {
                             console.log("Error print", errors, event);
-                            this.$('#error').removeClass('d-none');
+                            this.$('#error').removeClass('hidden');
                             this.$('#error_text').text(errors.data.arguments[0] + " - " + errors.data.arguments[1]);
                             event.preventDefault();
                         });
@@ -332,104 +333,92 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
                 console.log("Recherche d'un produit");
                 if (this.productBarcode == ean || this.productName == ean) {
                     console.log("Saisie de la quantité");
-                    this.$('#manual_location_scan').addClass('d-none');
+                    this.$('#manual_location_scan').addClass('hidden');
                     this.$('#confirm_product').addClass('ok');
                     this.$('#confirm_product').removeClass('active');
                     this.$('#confirm_quantity').addClass('active');
-                    this.$('#span_product_qty_saisie').removeClass('d-none');
+                    this.$('#span_product_qty_saisie').removeClass('hidden');
                     this.open_numpad();
                 } else {
                     console.log("Error");
-                    this.$('#error').removeClass('d-none');
+                    this.$('#error').removeClass('hidden');
                     this.$('#error_text').text(ean + " - Produit différent");
                 }
             }
         },
-        confirm_location: function() {
+        confirm_location: function () {
             this.changing_location = false;
             this.state = 4;
             this.$("#qty").text(this.moveLineQty);
-            this.$('#span_product_qty').removeClass('d-none');
+            this.$('#span_product_qty').removeClass('hidden');
             this.$('#span_product_location').removeClass('orange');
-            this.$('#manual_product_scan').removeClass('d-none');
-            this.$('#manual_location_scan').addClass('d-none');
-            this.$('#manual_location_scan').removeClass('waiting-background');
+            this.$('#manual_product_scan').removeClass('hidden');
+            this.$('#manual_location_scan').addClass('hidden');
+            this.$('#manual_location_scan > div').removeClass('waiting-background');
             this.$('#wait_location').addClass('ok');
             this.$('#wait_location').removeClass('active');
             this.$('#confirm_product').addClass('active');
-            this.$('#helper_location').addClass('d-none');
-            this.$('button.js_change_location').addClass('d-none');
-            this.$('button.js_confirm_location').addClass('d-none');
-            this.$('#scan_location_classic').removeClass('d-none');
-            this.$('#scan_location_change').addClass('d-none');
+            this.$('#helper_location').addClass('hidden');
+            this.$('button.js_change_location').addClass('hidden');
+            this.$('button.js_confirm_location').addClass('hidden');
+            this.$('#scan_location_classic').removeClass('hidden');
+            this.$('#scan_location_change').addClass('hidden');
         },
-        allow_change_location: function() {
+        allow_change_location: function () {
             this.changing_location = true;
-            this.$('#helper_location').addClass('d-none');
-            this.$('#manual_location_scan').removeClass('d-none');
-            this.$('#manual_location_scan').addClass('waiting-background');
-            this.$('#scan_location_classic').addClass('d-none');
-            this.$('#scan_location_change').removeClass('d-none');
+            this.$('#helper_location').addClass('hidden');
+            this.$('#manual_location_scan').removeClass('hidden');
+            this.$('#manual_location_scan > div').addClass('waiting-background');
+            this.$('#scan_location_classic').addClass('hidden');
+            this.$('#scan_location_change').removeClass('hidden');
         },
         update_location: function (moveLine, location_name) {
-            let sml_update_move_line_info_params = {
+               let sml_update_move_line_info_params = {
                 model: 'stock.move.line',
                 method: 'change_location_from_scan_storage',
                 args: [[this.id], location_name],
             };
             rpc.query(sml_update_move_line_info_params)
-                .then(() => {
-                    moveLine.location_id = location_name;
-            });
+                .then(() => moveLine.location_id = location_name);
         },
         open_numpad: function () {
             console.log("Open numpad");
-            new Numpad(this, this.productBarcode).appendTo(this.$('#display_numpad'));
-            this.$('#display_numpad').toggleClass('d-none');
-            this.$('#manual_product_scan').addClass('d-none');
-            this.$('#screen').toggleClass('d-none');
-
-        },
-        exit_numpad: function (numpad) {
-            this.$('#display_numpad').toggleClass('d-none');
-            this.$('#screen').toggleClass('d-none');
-            this.$('#open_numpad').removeClass('d-none');
-            this.$('#display_numpad').empty();
+            new Numpad(this, this.productBarcode).appendTo('body');
         },
         validate_new_qty: function (numpad) {
             // Sauvegarde du move
-            console.log("Save " + this.moveLineId + " - " + numpad.quantity);
+            console.log("Save " + this.moveLineId + " - " + numpad.qty_value);
             let do_add_scan_params = {
                 model: 'stock.picking.type',
                 method: 'web_ui_get_storage_add_move',
                 args: [[this.pickingTypeId], this.moveLineId, numpad.quantity],
             };
-            rpc.query(do_add_scan_params).then(() => {
-                this.exit_numpad();
-                this.$('#manual_product_scan').removeClass('d-none');
-                this.$('#manual_scan').addClass('d-none');
-                this.$('#wait_product').addClass('active')
-                this.$('#confirm_product').removeClass('ok')
-                this.$('#wait_product').removeClass('ok')
-                this.$('#wait_location').removeClass('ok')
-                this.$('#confirm_quantity').removeClass('active')
-                this.$('#error').addClass('d-none');
-                this.$('#search_product').val('');
-                this.$('#search_location').val('');
-                this.$('#open_numpad').addClass('d-none');
-                this.productBarcode = "";
-                this.productName = "";
-                this.$("#product_name").text("");
-                this.$("#product_code").text("");
-                this.$("#qty").text("");
-                this.$('#span_product_code').addClass('d-none');
-                this.$('#span_product_name').addClass('d-none');
-                this.$('#span_product_location').addClass('d-none');
-                this.$('#span_product_qty').addClass('d-none');
-                this.$('#span_product_qty_saisie').addClass('d-none');
-                this.storage_table_body.empty();
-                this.state = 2;
-            });
+            rpc.query(do_add_scan_params)
+                .then(() => {
+                    this.$('#manual_product_scan').removeClass('hidden');
+                    this.$('#manual_scan').addClass('hidden');
+                    this.$('#wait_product').addClass('active')
+                    this.$('#confirm_product').removeClass('ok')
+                    this.$('#wait_product').removeClass('ok')
+                    this.$('#wait_location').removeClass('ok')
+                    this.$('#confirm_quantity').removeClass('active')
+                    this.$('#error').addClass('hidden');
+                    this.$('#search_product').val('');
+                    this.$('#search_location').val('');
+                    this.$('#open_numpad').addClass('hidden');
+                    this.productBarcode = "";
+                    this.productName = "";
+                    this.$("#product_name").text("");
+                    this.$("#product_code").text("");
+                    this.$("#qty").text("");
+                    this.$('#span_product_code').addClass('hidden');
+                    this.$('#span_product_name').addClass('hidden');
+                    this.$('#span_product_location').addClass('hidden');
+                    this.$('#span_product_qty').addClass('hidden');
+                    this.$('#span_product_qty_saisie').addClass('hidden');
+                    this.storage_table_body.empty();
+                    this.state = 2;
+                });
         },
         validate_scan: function () {
             console.log("Save ");
