@@ -7,26 +7,26 @@
         <field name="priority" eval="16"/>
         <field name="arch" type="xml">
             <notebook position="inside">
-                <page string="Saling / Invoicing">
+                <page string="Costing / Invoicing">
                     <group>
-                        <group string="Saling">
+                        <group string="Costing">
                             <group>
-                                <field name="saling_type" widget="radio" options="{'horizontal': true}"/>
+                                <field name="costing_type" widget="radio" options="{'horizontal': true}"/>
                                 <field name="coefficient_ids"
                                        domain="['|', ('project_id', '=', project_id), ('project_id', '=', False)]"
-                                       widget="many2many_checkboxes" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}" />
-                                <field name="time_spent" attrs="{'invisible':[('saling_type', '!=', 'manual')]}"/>
-                                <field name="time_with_coefficient" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                                       widget="many2many_checkboxes" attrs="{'invisible':[('costing_type', '!=', 'with_coeff')]}" />
+                                <field name="time_spent" attrs="{'invisible':[('costing_type', '!=', 'manual')]}"/>
+                                <field name="time_with_coefficient" attrs="{'invisible':[('costing_type', '!=', 'with_coeff')]}"/>
                             </group>
                             <group>
-                                <field name="time_with_coefficient_rounded" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
-                                <field name="time_open" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
-                                <field name="estimated_time_customer" attrs="{'invisible':[('saling_type', '!=', 'with_coeff')]}"/>
+                                <field name="time_with_coefficient_rounded" attrs="{'invisible':[('costing_type', '!=', 'with_coeff')]}"/>
+                                <field name="time_open" attrs="{'invisible':[('costing_type', '!=', 'with_coeff')]}"/>
+                                <field name="estimated_time_customer" attrs="{'invisible':[('costing_type', '!=', 'with_coeff')]}"/>
                             </group>
-                            <group attrs="{'invisible':[('saling_type', '=', 'free')]}">
+                            <group attrs="{'invisible':[('costing_type', '=', 'free')]}">
                                 <field name="time_free" />
                             </group>
-                            <group attrs="{'invisible':[('saling_type', '=', 'free')]}">
+                            <group attrs="{'invisible':[('costing_type', '=', 'free')]}">
                                 <field name="time_free_comment"/>
                             </group>
                             <group name="other_estimated_price">

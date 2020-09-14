@@ -24,12 +24,12 @@ from odoo.exceptions import UserError
 class ProjectTaskInvoice(models.Model):
     _inherit = 'project.task'
 
-    saling_type = fields.Selection([
+    costing_type = fields.Selection([
         ('manual', u"Manual"),
         ('with_coeff', u"With Factor"),
         ('equal_planned_days', u"Is planned Days"),
         ('free', u"Free"),
-    ], u"Saling Type", default='manual', required=True)
+    ], u"Costing Type", default='manual', required=True)
     time_spent = fields.Float(u"Time sold")
     date_invoiced = fields.Date(u"Invoice Date")
     date_delivered = fields.Date(u"Date delivered", track_visibility='onchange', readonly=True)
@@ -63,8 +63,8 @@ class ProjectTaskInvoice(models.Model):
     @api.model
     def default_get(self, fields_list):
         res = super(ProjectTaskInvoice, self).default_get(fields_list)
-        if 'saling_type' in fields_list and res.get('project_id') and not self.env.context.get('default_saling_type'):
-            res['saling_type'] = self.env['project.project'].browse(res.get('project_id')).saling_type
+        if 'costing_type' in fields_list and res.get('project_id') and not self.env.context.get('default_costing_type'):
+            res['costing_type'] = self.env['project.project'].browse(res.get('project_id')).costing_type
         return res
 
     @api.multi
@@ -78,16 +78,16 @@ class ProjectTaskInvoice(models.Model):
             rec.time_with_coefficient_rounded = round((rec.planned_days * sum_coeff) * 4) / 4
 
     @api.multi
-    @api.depends('saling_type', 'coefficient_ids', 'planned_days', 'time_open', 'time_spent', 'time_free')
+    @api.depends('costing_type', 'coefficient_ids', 'planned_days', 'time_open', 'time_spent', 'time_free')
     def _compute_estimated_time_customer(self):
         for rec in self:
-            if rec.saling_type == 'with_coeff':
+            if rec.costing_type == 'with_coeff':
                 rec.estimated_time_customer = rec.time_with_coefficient_rounded + rec.time_open
-            elif rec.saling_type == 'manual':
+            elif rec.costing_type == 'manual':
                 rec.estimated_time_customer = rec.time_spent
-            elif rec.saling_type == 'free' or rec.saling_type == 'equal_planned_days':
+            elif rec.costing_type == 'free' or rec.costing_type == 'equal_planned_days':
                 rec.estimated_time_customer = rec.planned_days
-            rec.invoice_time = rec.saling_type != 'free' and rec.estimated_time_customer - rec.time_free or 0.0
+            rec.invoice_time = rec.costing_type != 'free' and rec.estimated_time_customer - rec.time_free or 0.0
 
     @api.onchange('initial_sale_line_id')
     def _onchange_initial_sale_line_id(self):

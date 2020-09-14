@@ -6,9 +6,9 @@
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
             <notebook position="inside">
-                <page string="Saling / Invocing">
+                <page string="Costing / Invoicing">
                     <group>
-                        <field name="saling_type" class="oe_inline" widget="radio" options="{'horizontal': true}"/>
+                        <field name="costing_type" class="oe_inline" widget="radio" options="{'horizontal': true}"/>
                     </group>
                     <field name="coefficient_ids" context="{'default_project_id':active_id, 'active_test': False}">
                         <tree editable="top">

@@ -88,8 +88,8 @@ msgid "Date delivered"
 msgstr "Date de livraison"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_project_saling_type
-msgid "Default saling type"
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_project_costing_type
+msgid "Default costing type"
 msgstr "Type de chiffrage par défaut"
 
 #. module: project_task_invoice
@@ -115,7 +115,7 @@ msgid "Factor"
 msgstr "Coeff"
 
 #. module: project_task_invoice
-#: selection:project.task,saling_type:0
+#: selection:project.task,costing_type:0
 msgid "Free"
 msgstr "Offert"
 
@@ -148,7 +148,7 @@ msgid "Is Delivered"
 msgstr "Considérée comme livrée au client"
 
 #. module: project_task_invoice
-#: selection:project.task,saling_type:0
+#: selection:project.task,costing_type:0
 msgid "Is planned Days"
 msgstr "Temps prévu"
 
@@ -176,8 +176,8 @@ msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
 #. module: project_task_invoice
-#: selection:project.project,saling_type:0
-#: selection:project.task,saling_type:0
+#: selection:project.project,costing_type:0
+#: selection:project.task,costing_type:0
 msgid "Manual"
 msgstr "Manuel"
 
@@ -246,18 +246,18 @@ msgstr "Ligne de bons de commande"
 
 #. module: project_task_invoice
 #: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
-msgid "Saling"
+msgid "Costing"
 msgstr "Chiffrage"
 
 #. module: project_task_invoice
 #: model:ir.ui.view,arch_db:project_task_invoice.project_task_coefficient_edit_project
 #: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
-msgid "Saling / Invoicing"
+msgid "Costing / Invoicing"
 msgstr "Chiffrage / Facturation"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_saling_type
-msgid "Saling Type"
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_costing_type
+msgid "Costing Type"
 msgstr "Type de chiffrage"
 
 #. module: project_task_invoice
@@ -332,8 +332,8 @@ msgid "Total temps vendu"
 msgstr "Total temps vendu"
 
 #. module: project_task_invoice
-#: selection:project.project,saling_type:0
-#: selection:project.task,saling_type:0
+#: selection:project.project,costing_type:0
+#: selection:project.task,costing_type:0
 msgid "With Factor"
 msgstr "Avec coeff"
 
