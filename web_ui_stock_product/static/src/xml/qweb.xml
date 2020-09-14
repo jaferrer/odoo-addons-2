@@ -27,7 +27,7 @@
 
         <div class="template-container">
 
-            <div class="jumbotron">
+            <div class="jumbotron alert-info">
                 <div id="big_helper" class="container">
                     <h1>Création de chariot</h1>
                     <p>Veuiller scanner un code barre pour commencer</p>
@@ -66,15 +66,11 @@
                     </p>
 
                     <div class="col-md-12 table-responsive">
-                        <table id="product_table" class="table">
+                        <table id="product_table" class="table table-hover ui_stock_table">
                             <thead id="product_table_header">
                                 <tr>
-                                    <th>Nom</th>
-                                    <th>Code</th>
-                                    <th>N° de lot/série</th>
-                                    <th>Quantité</th>
-                                    <th>Ajuster la quantité</th>
-                                    <th>Supprimer</th>
+                                    <th class="main-col">Article</th>
+                                    <th colspan="2">Qté</th>
                                 </tr>
                             </thead>
                             <tbody id="product_table_body"/>
@@ -88,21 +84,22 @@
     </t>
 
     <t t-name="ProductTableRow">
-        <tr t-att-product_id="widget.id" id="product_row">
-            <td>
-                <t t-esc="widget.product.name"/>
+        <tr t-att-product_id="widget.id" id="product_row" class="js_open_numpad ui_stock_item">
+            <td class="main-col">
+                 <p id="product_name">
+                     <t t-esc="widget.product.name"/>
+                 </p>
+                <p id="product_code" class="text-muted">
+                    <small>Code: </small><t t-esc="widget.product.default_code"/>
+                </p>
+                 <p id="lot_name" class="text-muted">
+                    <small>Lot: </small><t t-esc="widget.product.lot_name"/>
+                </p>
             </td>
-            <td>
-                <t t-esc="widget.product.default_code"/>
-            </td>
-            <td id="lot_name">
-                <t t-esc="widget.product.lot_name"/>
-            </td>
-            <td id="product_quantity">
-                <t t-esc="widget.product.quantity"/>
-            </td>
-            <td>
-                <button type="button" class='btn btn-primary js_open_numpad fa fa-calculator'/>
+             <td class="qty-col">
+                <p id="product_quantity">
+                    <t t-esc="widget.product.quantity"/>
+                </p>
             </td>
             <td>
                 <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
@@ -147,12 +144,14 @@
     <t t-name="ScanProductRow.Error">
         <tr id="error_text" class="danger" data-error-row="1">
             <td>
-                <t t-esc="widget.error.title"/>
+                <p>
+                     <t t-esc="widget.error.title"/>
+                </p>
+                <p class="text-muted">
+                     <t t-esc="widget.error.message"/>
+                </p>
             </td>
-            <td colspan="4">
-                <t t-esc="widget.error.message"/>
-            </td>
-            <td>
+            <td colspan="2">
                 <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
             </td>
         </tr>

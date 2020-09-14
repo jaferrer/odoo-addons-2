@@ -75,8 +75,8 @@ odoo.define('web_ui_stock.Numpad', function (require) {
             this.$('#numpad_quantity').text(this.qty_value);
         },
         validate_and_exit: function (ev) {
-            this.row.validate_new_qty(this);
-            this.exit()
+            this.row.validate_new_qty(this.qty_value);
+            this.exit();
         },
         exit: function (ev) {
             $(modalId).modal('hide');

@@ -129,3 +129,29 @@
     background: none !important;
     box-shadow: none !important;
 }
+
+.hidden {
+    display: none !important;
+}
+
+.ui_stock_table th:not(.main-col) {
+    width: 1%;
+    text-align: left;
+}
+
+.ui_stock_table tr > td {
+  vertical-align: middle;
+}
+
+.ui_stock_table tr > td.qty-col {
+   text-align: right;
+    font-size: 18px;
+}
+
+.ui_stock_table tr > td > p {
+  margin-bottom: 0;
+}
+
+.ui_stock_table tr > td:last-child {
+  text-align: right;
+}

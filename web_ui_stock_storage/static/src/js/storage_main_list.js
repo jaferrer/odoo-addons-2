@@ -350,10 +350,10 @@ odoo.define('web_ui_storage.storageMainWidget', function (require) {
             console.log("Open numpad");
             new Numpad(this, this.productBarcode).appendTo('body');
         },
-        validate_new_qty: function (numpad) {
+        validate_new_qty: function (qty) {
             // Sauvegarde du move
-            console.log("Save " + this.moveLineId + " - " + numpad.qty_value);
-            StockPickingType.call('web_ui_get_storage_add_move', [[this.pickingTypeId], this.moveLineId, numpad.qty_value])
+            console.log("Save " + this.moveLineId + " - " + qty);
+            StockPickingType.call('web_ui_get_storage_add_move', [[this.pickingTypeId], this.moveLineId, qty])
                 .then(() => {
                     this.$('#manual_product_scan').removeClass('hidden');
                     this.$('#manual_scan').addClass('hidden');
