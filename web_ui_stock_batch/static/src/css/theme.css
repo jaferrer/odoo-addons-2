@@ -12,3 +12,55 @@ button.btn-margin-left {
          flex: 0 0 100%;
     }
 }
+
+.picking-nav {
+    margin-bottom: 15px;
+}
+
+.picking-nav .picking-focus {
+    font-size: 1.7em;
+    color: orange;
+    font-weight: bold;
+}
+.picking-nav #picking-qty {
+    font-size: 42px;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.picking-nav #picking-qty > span {
+    display: block;
+    line-height: 1;
+}
+.picking-nav .picking-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.picking-nav .picking-flex > div:first-child {
+    flex-grow: 1;
+}
+
+.btn-navigation-action {
+    display:inline-flex;
+    width:100%;
+}
+.btn-navigation-action #skip-move-line-btn {
+    flex-grow: 1;
+}
+
+
+@media (orientation:portrait) {
+    .picking-nav .picking-flex > div {
+        width: 100%;
+    }
+    .picking-nav #picking-qty {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .picking-nav #picking-qty > span {
+        margin-top: 5px;
+        margin-bottom: 20px;
+    }
+}

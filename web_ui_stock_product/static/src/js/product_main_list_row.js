@@ -27,7 +27,7 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
             this._super();
             console.log("ProductTableRow renderElement");
             this.$('button.js_delete_product').click(ev => { this.productMainList.delete_row(this) });
-            this.$('button.js_open_numpad').click(ev => { this.open_numpad(this) });
+            this.$().click(ev => { this.open_numpad(this); });
 
             if (this.product.tracking === 'serial') {
                 this.$('button.js_open_numpad').addClass('hidden');
@@ -46,8 +46,8 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
             this.product.lot_name = product_infos.lot_name;
             this.$('#lot_name').text(this.product.lot_name);
         },
-        validate_new_qty: function (numpad) {
-            this.product.quantity = numpad.qty_value;
+        validate_new_qty: function (qty) {
+            this.product.quantity = qty;
             this.$('#product_quantity').text(this.product.quantity);
         },
         open_numpad: function () {

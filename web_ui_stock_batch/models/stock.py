@@ -37,7 +37,8 @@ class StockPickingBatch(models.Model):
             list_batches.append({
                 'id': batch.id,
                 'name': batch.name,
-                'user': batch.user_id.name or "",
+                'user': batch.user_id.name or "-",
+                'picking_count': len(batch.picking_ids),
             })
 
         return list_batches
@@ -46,28 +47,92 @@ class StockPickingBatch(models.Model):
     def get_batch_move_lines(self, batch_id):
         list_move_lines = []
         picking_batch = self.browse(batch_id)
-        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').filtered(
-            lambda x: x.qty_done == 0).sorted(key=lambda x: (x.location_id.name, x.product_id.name))
+        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').sorted(
+            lambda x: (x.location_id.name, x.product_id.name))
+
         for move_line in batch_move_lines:
             product_infos = move_line.product_id.web_ui_get_product_info_one()
-            # product_infos = self.env['stock.picking.type'].web_ui_get_product_info_by_name(move_line.product_id.name)
-            # On ne peut pas se fier à la quantité réservée, on recherche uniquement ce qu'il reste à faire pour chaque
-            # article.
             same_product_move_lines = picking_batch.mapped('picking_ids').mapped(
                 'pack_operation_product_ids').filtered(lambda x: x.product_id == move_line.product_id)
-            quantity = sum(same_product_move_lines.mapped('product_qty')) - \
-                sum(same_product_move_lines.mapped('qty_done'))
+            qty_done = sum(same_product_move_lines.mapped('qty_done'))
+            qty_todo = sum(same_product_move_lines.mapped('product_qty'))
             list_move_lines.append({
                 'id': move_line.id,
                 'location': move_line.location_id.name,
                 'location_barcode': move_line.location_id.barcode,
                 'product': product_infos,
-                'quantity': quantity,
+                'qty_done': qty_done,
+                'qty_todo': qty_todo,
                 'product_uom': move_line.product_uom_id.name,
                 'picking': move_line.picking_id.name,
             })
 
         return list_move_lines
+
+    @api.model
+    def get_batch_move_lines_recap(self, batch_id):
+        list_move_lines = []
+        picking_batch = self.browse(batch_id)
+        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').sorted(
+            lambda x: ((x.qty_done - x.product_qty) == 0 and 2 or x.qty_done == 0 and 0 or 1,
+                       x.location_id.name, x.product_id.name))
+
+        for move_line in batch_move_lines:
+            product_infos = move_line.product_id.web_ui_get_product_info_one()
+            list_move_lines.append({
+                'id': move_line.id,
+                'location': move_line.location_id.name,
+                'location_barcode': move_line.location_id.barcode,
+                'product': product_infos,
+                'qty_done': move_line.qty_done,
+                'qty_todo': move_line.product_qty,
+                'product_uom': move_line.product_uom_id.name,
+                'picking': move_line.picking_id.name,
+            })
+
+        return list_move_lines
+
+    @api.model
+    def get_next_batch_move_line(self, batch_id, current_move_line=None, load_next_line=True):
+        picking_batch = self.browse(batch_id)
+        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').filtered(
+            lambda x: x.qty_done != x.product_qty or (x.id == current_move_line and not load_next_line)).sorted(
+            lambda x: (x.location_id.name, x.product_id.name))
+
+        if not batch_move_lines:
+            raise WebUiError(batch_id, u"Aucune move.line n'a été trouvée")
+
+        move_line = batch_move_lines[0]
+        if current_move_line:
+            take_next = False
+            for mv in batch_move_lines:
+                if take_next:
+                    move_line = mv
+                    break
+                if mv.id == current_move_line:
+                    if not load_next_line:
+                        move_line = mv
+                        break
+                    else:
+                        take_next = True
+
+        return {
+            'id': move_line.id,
+            'location': move_line.location_id.name,
+            'location_barcode': move_line.location_id.barcode,
+            'product': move_line.product_id.web_ui_get_product_info_one(),
+            'qty_done': move_line.qty_done,
+            'qty_todo': move_line.product_qty,
+            'product_uom': move_line.product_uom_id.name,
+            'picking': move_line.picking_id.name,
+            'is_last': len(batch_move_lines) == 1
+        }
+
+    @api.multi
+    def do_validate_batch_scan(self):
+        self.ensure_one()
+        self.done()
+        return True
 
 
 class StockPickingTypeScanBatch(models.Model):
@@ -92,7 +157,7 @@ class StockPickingTypeScanBatch(models.Model):
             'barcode': location.barcode
         }
 
-    @api.multi
+    @api.model
     def web_ui_get_picking_info_by_name_batch(self, name):
         """
         On peut rechercher un picking par son nom.
@@ -105,15 +170,6 @@ class StockPickingTypeScanBatch(models.Model):
             raise WebUiError(name, u"Plusieurs transferts ont été trouvés : %s" % ", ".join(picking.mapped('name')))
 
         return picking.display_name
-
-
-class StockPickingBatchScanBatch(models.Model):
-    _inherit = 'stock.picking.wave'
-
-    @api.multi
-    def do_validate_batch_scan(self):
-        self.ensure_one()
-        self.done()
 
 
 # On utilise le nom StockMoveLine pour parler des stock.pack.operation pour
@@ -153,8 +209,9 @@ class StockMoveLineScanBatch(models.Model):
         }
 
     @api.multi
-    def web_ui_update_odoo_qty_batch(self, qty_done):
+    def web_ui_update_odoo_qty_batch(self, qty_done, picking_code):
         self.ensure_one()
+        self.env['stock.picking.type'].web_ui_get_picking_info_by_name_batch(picking_code)
         self.qty_done = qty_done
 
     @api.multi

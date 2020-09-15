@@ -73,8 +73,8 @@ odoo.define('web_ui_stock_receipt.ReceiptMoveLineRow', function (require) {
                 this.qty_right();
             }
         },
-        validate_new_qty: function (numpad) {
-            this.quantity_done = parseFloat(numpad.qty_value);
+        validate_new_qty: function (qty) {
+            this.quantity_done = parseFloat(qty);
             this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
             this.check_qty();
             this.$('#move_line_quantity').text(this.display_qty);

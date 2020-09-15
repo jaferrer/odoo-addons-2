@@ -49,7 +49,7 @@
             <div class="container">
                 <div class="panel-group" id="receipt_picking_selection_table" role="tablist" aria-multiselectable="true">
                 </div>
-                <table id="move_line_table" class="table hidden table-hover">
+                <table id="move_line_table" class="table hidden table-hover ui_stock_table">
                     <thead id="move_line_table_header">
                         <tr>
                             <th>Articles</th>
@@ -95,7 +95,7 @@
     </t>
 
     <t t-name="ReceiptMoveLineRow">
-        <tr t-att-product_id="widget.id" id="batch_selection_row" class="js_open_numpad">
+        <tr t-att-product_id="widget.id" class="js_open_numpad">
             <td>
                 <p id="move_line_product">
                     <t t-esc="widget.product.name"/>
@@ -104,13 +104,13 @@
                     <t t-esc="widget.product.lot_name"/>
                 </p>
             </td>
-            <td id="move_line_product">
-                <p id="move_line_quantity" style="text-align: right;font-size: 18px;margin-bottom:0;">
+            <td class="qty-col">
+                <p>
                     <t t-esc="widget.display_qty"/>
                 </p>
-                <p id="move_line_uom" style="text-align: right;margin-bottom:0;">
+                <small>
                     <t t-esc="widget.move_line.product_uom"/>
-                </p>
+                </small>
             </td>
         </tr>
     </t>
