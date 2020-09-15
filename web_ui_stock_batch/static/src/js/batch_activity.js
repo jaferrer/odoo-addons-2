@@ -75,7 +75,8 @@ odoo.define('web_ui_stock_batch.BatchActivity', function (require) {
         init_fragment_batch_navigate: function (batchId, moveLineId=null, loadNextLine= true) {
             let navigateOptions = {
                 skipFirstStep: false,
-                showManualInput: true
+                canTapLocation: true,
+                showManualInput: false
             }
             var batchNavigate = new BatchNavigate(this, batchId, navigateOptions, moveLineId, loadNextLine);
             while (this.fragmentsStack.slice(-1)[0].__proto__.template !== 'BatchView') {

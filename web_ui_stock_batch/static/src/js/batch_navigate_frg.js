@@ -56,8 +56,11 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 this.end_navigation();
             });
 
-            this.$('#picking-qty').click(ev => {
-                if (this.state === STATES.product) {
+            this.$('.picking-nav').click(ev => {
+                if (this.state === STATES.location) {
+                    this.scan("");
+                }
+                else if (this.state === STATES.product) {
                     new Numpad(this, this.moveLine.product.name).appendTo('body');
                 }
             });

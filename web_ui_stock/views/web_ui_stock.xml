@@ -10,11 +10,11 @@
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/packing_mobile_widgets.js"></script>
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/web_stock_ui_barecode_scanner.js"></script>
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/web_ui_stock_numpad.js"></script>
-                <link rel="stylesheet" href="/web_ui_stock/static/src/less/ui_stock.less"/>
             </xpath>
         </template>
 
-        <template id="index" name="Stock Picking Barcode">&lt;!DOCTYPE html&gt;
+        <template id="index" name="Stock Picking Barcode">
+            &lt;!DOCTYPE html&gt;
             <html>
                 <head>
                     <title>Stock Picking Barcode</title>
@@ -32,7 +32,7 @@
                     <link rel="stylesheet" href="/web/static/lib/jquery.ui/jquery-ui.css"/>
                     <link rel="stylesheet" href="/web/static/lib/fontawesome/css/font-awesome.css"/>
 
-                    <link rel="stylesheet" href="/web_ui_stock/static/src/less/web.assets_backend/ui_stock.less.css"/>
+                    <link rel="stylesheet" href="/web_ui_stock/static/src/css/ui_stock.css"/>
                     <link rel="stylesheet" href="/web_ui_stock/static/src/css/theme.css"/>
                     <link rel="stylesheet" href="/web_ui_stock/static/src/css/mini-bootstrap-4.css"/>
                     <link rel="stylesheet" href="/web_ui_stock/static/src/css/barcode.css"/>
