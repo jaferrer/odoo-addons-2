@@ -49,7 +49,6 @@ class StockPickingBatch(models.Model):
         picking_batch = self.browse(batch_id)
         batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').sorted(
             lambda x: (x.location_id.name, x.product_id.name))
-
         for move_line in batch_move_lines:
             product_infos = move_line.product_id.web_ui_get_product_info_one()
             same_product_move_lines = picking_batch.mapped('picking_ids').mapped(
@@ -131,7 +130,7 @@ class StockPickingBatch(models.Model):
     @api.multi
     def do_validate_batch_scan(self):
         self.ensure_one()
-        self.done()
+        self.async_done()
         return True
 
 

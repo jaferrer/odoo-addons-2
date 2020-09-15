@@ -31,7 +31,6 @@
         </div>
     </t>
 
-
     <t t-name="BatchSelection">
 
         <div class="jumbotron">
@@ -163,6 +162,9 @@
                             </div>
                         </t>
                     </div>
+                </div>
+
+                <div class="container bottom-container">
                     <div class="row">
                         <div class="col-md-12">
                             <div class="btn-group dropup btn-navigation-action">

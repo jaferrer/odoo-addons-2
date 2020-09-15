@@ -4,7 +4,6 @@
 
 .navbar.navbar-dark.bg-dark #view_title {
     color: white;
-    vertical-align: middle;
 }
 
 .waiting-background {
@@ -17,27 +16,25 @@
 .navbar-col {
     margin-top: 7px;
     margin-bottom: 7px;
-    &:empty {
-        display: none;
-    }
+}
+.navbar-col:empty {
+    display: none;
 }
 
 .jumbotron {
-    padding-top: 15px;
-    padding-bottom: 20px;
+    padding-top: 13px;
+    padding-bottom: 15px;
     margin-bottom: 15px;
 }
-
 @media screen and (min-width: 768px) {
     .jumbotron {
         padding-top: 30px;
         padding-bottom: 30px;
-        margin-bottom: 30px;
     }
 }
 
 .panel-title > a {
-        width: 100%;
+    width: 100%;
     display: block;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -72,39 +69,40 @@
 
 .table.table-qty {
     margin-bottom: 10px;
-
-    > thead > tr > th {
-        border-bottom: none;
-        border: none;
-    }
+}
+.table.table-qty > thead > tr > th {
+    border: none;
 }
 
-.table.table-numpad {
+.table-numpad {
     width: 100%;
-    border-collapse: unset;
+    margin-bottom: 5px;
+}
+.table-numpad > div {
+    width: 16.1%;
+    display: inline-block;
+    padding: 2px;
+    margin-bottom: 3px;
+}
 
-    > tbody > tr > td {
-        border: none;
-        width: 33%;
-        padding: 3px;
-    }
-
-    button.btn {
-        font-size: 24px;
-        width: 100%;
-        height: 74px;
+.table-numpad button.btn {
+    font-size: 24px;
+    width: 100%;
+    height: 76px;
+    border: none;
+}
+@media (orientation: portrait) {
+    .table-numpad > div {
+        width: 32.5%;
     }
 }
 
-#numpad-modal {
-    .modal-body {
-        padding-bottom: 0;
-    }
-
-    .modal-footer {
-        border-top: 0px;
-        padding-top: 0;
-    }
+#numpad-modal .modal-body {
+    padding-bottom: 0;
+}
+#numpad-modal .modal-footer {
+    border-top: 0;
+    padding-top: 0;
 }
 
 #numpad_new_quantity {
@@ -117,10 +115,9 @@
     line-height: 1.1;
     vertical-align: middle;
     width: 150px;
-
-    > .placeholder {
-        color: #888;
-    }
+}
+#numpad_new_quantity > .placeholder {
+    color: #888;
 }
 
 #numpad_old_quantity {
@@ -135,4 +132,14 @@
 
 #qty-unit {
     font-weight: 400;
+}
+
+.modal.modal-condensed .modal-header {
+    padding: 10px;
+}
+.modal.modal-condensed .modal-body {
+    padding: 10px;
+}
+.modal.modal-condensed .modal-footer {
+    padding: 10px;
 }
