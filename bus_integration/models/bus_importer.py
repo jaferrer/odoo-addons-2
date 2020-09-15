@@ -334,10 +334,10 @@ class BusSynchronizationImporter(models.AbstractModel):
                 message.add_log(error, 'error')
                 return_dict[model]['error'] = error
             else:
-                ids_to_keep = message_dict[model]
+                ids_to_deactivate = message_dict[model]
                 receive_transfer_to_delete = self.env['bus.receive.transfer'].search([
                     ('model', '=', model),
-                    ('local_id', 'not in', ids_to_keep)
+                    ('local_id', 'in', ids_to_deactivate)
                 ])
                 ids_to_inactive = receive_transfer_to_delete.mapped('local_id')
                 records = self.env[model].browse(ids_to_inactive)

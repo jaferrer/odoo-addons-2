@@ -92,6 +92,12 @@ class BusSynchronizationExporter(models.AbstractModel):
             'export': None
         }
         ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
+        if batch.treatment_type == 'RESTRICT_IDS_SYNCHRONIZATION':
+            # Permet de n'envoyer que les ids des enregistrements à désactiver.
+            restrict_domain = [('id', 'not in', ids_to_export.ids)]
+            if force_domain:
+                restrict_domain += force_domain
+            ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(restrict_domain)
         export_chunk = batch.chunk_size or False
         if export_chunk:
             while ids_to_export:
