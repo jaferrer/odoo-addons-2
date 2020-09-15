@@ -217,7 +217,7 @@ class DeliveryCarrier(models.Model):
         for picking in pickings:
             for package in picking.package_ids:
                 if package.shipping_weight <= 0:
-                    return []
+                    raise UserError("Le poid du colis est de 0")
                 value_letter = self._chronopost_get_letter(picking, package)
                 # on lance le webservice pour générer l'étiquette selon les paramètres
                 genere = True
