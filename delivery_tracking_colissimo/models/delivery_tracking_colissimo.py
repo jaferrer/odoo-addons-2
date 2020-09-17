@@ -189,7 +189,7 @@ class DeliveryCarrierColissimo(models.Model):
             for package in picking.package_ids:
 
                 if package.shipping_weight <= 0:
-                    return []
+                    raise UserError("Le poid du colis est de 0")
 
                 value_letter = self._get_letter(picking, package)
 
