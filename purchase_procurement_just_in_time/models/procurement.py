@@ -57,9 +57,9 @@ def job_purchase_schedule_procurements(session, model_name, ids, jobify,
 
 
 @job(default_channel='root.purchase_scheduler')
-def job_create_draft_lines(session, model_name, dict_lines_to_create):
+def job_create_draft_lines(session, model_name, dict_lines_to_create, next_orders_dict=None, job_info=None):
     result = session.env[model_name].with_context(do_not_update_coverage_data=True). \
-        create_draft_lines(dict_lines_to_create)
+        create_draft_lines(dict_lines_to_create, next_orders_dict, jobify=True, job_info=job_info)
     return result
 
 
@@ -596,8 +596,9 @@ WHERE po.state NOT IN %s AND
         return not_assigned_procs, dict_lines_to_create
 
     @api.model
-    def create_draft_lines(self, dict_lines_to_create):
+    def create_draft_lines(self, dict_lines_to_create, next_orders_dict=None, jobify=False, job_info=None):
         time_begin = dt.now()
+        #  dict_lines_to_create[draft_order.id][product.id]['procurement_ids']
         for order_id in dict_lines_to_create.keys():
             for product_id in dict_lines_to_create[order_id].keys():
                 line_vals = dict_lines_to_create[order_id][product_id]['vals']
@@ -613,6 +614,19 @@ WHERE po.state NOT IN %s AND
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
             self.env['purchase.order'].browse(order_id).compute_coverage_state()
+        if jobify and next_orders_dict:
+            order_id = next_orders_dict.keys()[0]
+            first_order_dict = {order_id: next_orders_dict[order_id]}
+            next_orders_dict.pop(order_id)
+            job_info.update(number_order=job_info['number_order'] + 1)
+            order = self.env['purchase.order'].search([('id', '=', order_id)])
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_create_draft_lines. \
+                delay(session, 'procurement.order', first_order_dict, next_orders_dict, job_info,
+                      description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
+                                   (order.name, job_info['seller_name'], job_info['number_order'] - 1,
+                                    job_info['total_number_orders']),
+                      )
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model
@@ -621,18 +635,24 @@ WHERE po.state NOT IN %s AND
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
 
-        if jobify and fill_orders_in_separate_jobs:
+        if jobify and fill_orders_in_separate_jobs and dict_lines_to_create:
+            #  we launch a job to create the first line, this job will pop a job to create next line
+            #  we avoid launching create job in parallell because the compute_coverage_state() may takes up to 6 mins
             total_number_orders = len(dict_lines_to_create.keys())
-            number_order = 0
-            for order_id in dict_lines_to_create.keys():
-                order = self.env['purchase.order'].search([('id', '=', order_id)])
-                number_order += 1
-                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                job_create_draft_lines. \
-                    delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
-                          description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
-                          (order.name, seller.name, number_order, total_number_orders))
-            return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
+            order_id = dict_lines_to_create.keys()[0]
+            first_order_dict = {order_id: dict_lines_to_create[order_id]}
+            dict_lines_to_create.pop(order_id)
+            order = self.env['purchase.order'].search([('id', '=', order_id)])
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_create_draft_lines. \
+                delay(session, 'procurement.order', first_order_dict,
+                      dict_lines_to_create, {'seller_name': seller.name,
+                                             'total_number_orders': total_number_orders,
+                                             'number_order': 2},
+                      description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
+                                   (order.name, seller.name, 1, total_number_orders)
+                      )
+            return_msg += u"\nCreating job to pop job to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
         else:
             self.with_context(do_not_update_coverage_data=True).create_draft_lines(dict_lines_to_create)
             return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
