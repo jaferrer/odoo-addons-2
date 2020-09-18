@@ -49,27 +49,27 @@ class InvoiceMergeExtends(models.TransientModel):
                       'view.'))
 
             invs = self.env['account.invoice'].browse(ids)
-            for d in invs:
-                if d['account_id'] != invs[0]['account_id']:
+            for inv in invs:
+                if inv['account_id'] != invs[0]['account_id']:
                     raise exceptions.Warning(
                         _('Not all invoices use the same account!'))
-                if d['company_id'] != invs[0]['company_id']:
+                if inv['company_id'] != invs[0]['company_id']:
                     raise exceptions.Warning(
                         _('Not all invoices are at the same company!'))
-                if d['partner_id'] != invs[0]['partner_id']:
-                    if d['type'] in ('in_invoice', 'in_refund'):
+                if inv['partner_id'] != invs[0]['partner_id']:
+                    if inv['type'] in ('in_invoice', 'in_refund'):
                         raise exceptions.Warning(
                             _('Not all invoices are for the same supplier!'))
                     else:
                         raise exceptions.Warning(
                             _('Not all invoices are for the same customer!'))
-                if d['type'] != invs[0]['type']:
+                if inv['type'] != invs[0]['type']:
                     raise exceptions.Warning(
                         _('Not all invoices are of the same type!'))
-                if d['currency_id'] != invs[0]['currency_id']:
+                if inv['currency_id'] != invs[0]['currency_id']:
                     raise exceptions.Warning(
                         _('Not all invoices are at the same currency!'))
-                if d['journal_id'] != invs[0]['journal_id']:
+                if inv['journal_id'] != invs[0]['journal_id']:
                     raise exceptions.Warning(
                         _('Not all invoices are at the same journal!'))
         return {}
@@ -77,16 +77,17 @@ class InvoiceMergeExtends(models.TransientModel):
     @api.multi
     def merge_invoices(self):
         invoice_obj = self.env['account.invoice']
+        account_move_line_obj = self.env['account.move.line']
         invoices_to_merge = invoice_obj.browse(self.env.context.get('active_ids', []))
         draft_invoices = invoice_obj
-        payments_to_reconcile = self.env['account.move.line']
+        payments_to_reconcile = account_move_line_obj
         if not all([invoice.partner_id == invoices_to_merge[0].partner_id for invoice in invoices_to_merge]):
             raise exceptions.UserError(_(u"You can't merge multiple invoice without the same Partner"))
 
         for invoice_to_merge in invoices_to_merge:
             payments_to_reconcile |= invoice_to_merge.payment_ids
             # Remove payment
-            invoice_to_merge.payment_ids._remove_move_reconcile()
+            account_move_line_obj._remove_move_reconcile(invoice_to_merge.payment_ids.ids)
             # Creates refund + draft invoice for each invoice opened or paid
             if invoice_to_merge.state != 'draft':
                 res = self.env['account.invoice.refund'] \
@@ -109,7 +110,13 @@ class InvoiceMergeExtends(models.TransientModel):
         draft_invoices.unlink()
         if self.auto_set_payment and self.only_invoice:
             merged_invoice_result.signal_workflow('invoice_open')
-            merged_invoice_result.register_payment(payments_to_reconcile)
+            if payments_to_reconcile:
+                payments_to_reconcile |= merged_invoice_result.move_id.line_id \
+                    .filtered(lambda line: not line.reconcile_id and line.account_id.type in ('payable', 'receivable'))
+                payments_to_reconcile.reconcile(
+                    writeoff_period_id=merged_invoice_result.period_id.id,
+                    writeoff_acc_id=merged_invoice_result.account_id.id,
+                    writeoff_journal_id=merged_invoice_result.journal_id.id)
         return res
 
     @api.multi
