@@ -31,8 +31,8 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
-                    <field name="milestone_id" domain="[('project_id', '=', project_id), ('state', '!=', 'closed')]"
-                           context="{'default_project_id': project_id, 'default_start_date': date_start}"/>
+                    <field name="milestone_id" domain="[('project_id', '=', project_id)]"
+                           context="{'default_project_id': project_id}"/>
                 </field>
             </field>
         </record>
@@ -74,7 +74,7 @@
                     <field name="name"/>
                     <field name="project_id"/>
                     <field name="should_be_closed_at"/>
-                    <filter name="open" string="Open" domain="[('state', '!=', 'closed')]"/>
+                    <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By...">
                         <filter name="grp_project_id" string="Project" icon="terp-stock_align_left_24" domain="[]"
                                 context="{'group_by':'project_id'}"/>
@@ -89,17 +89,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form string="Milestone">
-                    <header>
-                        <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'open')]}"/>
-                        <button name="set_to_livred_in_prod" type="object" string="Is in Production"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
-                        <button name="close_milestone" type="object" string="Close"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
-                        <button name="reopen" type="object" string="Re-open"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
-                        <field name="state" widget="statusbar" invisible="1" readonly="1"/>
-                    </header>
                     <sheet string="Milestone">
                         <div class="oe_button_box" name="button_box">
                             <button name="see_tasks" type="object" groups="base.group_user" class="oe_stat_button"
@@ -135,8 +124,6 @@
                                         <field name="name"/>
                                         <field name="user_id"/>
                                         <field name="planned_days" sum="Total"/>
-                                        <field name="effective_days" string="Temps passé (Jours)" sum="Total"/>
-                                        <field name="time_spent" string="Temps vendu (Jours)" sum="Total"/>
                                         <field name="category_id"/>
                                         <field name="stage_id"/>
                                         <field name="tag_ids"/>
@@ -168,10 +155,9 @@
                 <kanban>
                     <field name="name"/>
                     <field name="project_id"/>
-                    <field name="state"/>
                     <field name="start_date"/>
                     <field name="should_be_closed_at"/>
-                    <field name="livred_in_qualif_at"/>
+                    <field name="qualif_should_be_livred_at"/>
                     <field name="nb_tasks"/>
                     <field name="nb_tasks_done"/>
                     <templates>
@@ -179,9 +165,6 @@
                             <div class="oe_kanban_card oe_kanban_global_click">
                                 <div class="oe_kanban_details">
                                     <div class="row">
-                                        <div class="col-sm-6 pull-left">
-                                            <field name="state" widget="kanban_label_selection"/>
-                                        </div>
                                         <div class="col-sm-6">
                                             <div class="pull-right">
                                                 <field name="project_id" widget="kanban_label_selection"/>
@@ -202,7 +185,7 @@
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <strong>Qualif:</strong>
-                                                    <field name="livred_in_qualif_at"/>
+                                                    <field name="qualif_should_be_livred_at"/>
                                                 </div>
                                             </div>
                                             <div class="row">
@@ -236,7 +219,7 @@
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
             <field name="view_mode">kanban,tree,form,timeline2</field>
-            <field name="context">{'search_default_open': True, 'default_default_grp_project_id': True}</field>
+            <field name="context">{'default_default_grp_project_id': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click to add a new Milestone.

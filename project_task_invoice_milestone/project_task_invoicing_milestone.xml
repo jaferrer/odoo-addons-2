@@ -26,7 +26,7 @@
         <field name="model">invoice.project.task.wizard</field>
         <field name="inherit_id" ref="project_task_invoice.invoice_project_task_wizard_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='task_ids']/tree/field[@name='project_id']" postion="after">
+            <xpath expr="//field[@name='task_ids']/tree/field[@name='display_name']" postion="before">
                 <field name="milestone_id"/>
             </xpath>
         </field>
@@ -36,9 +36,11 @@
         <field name="model">project.milestone</field>
         <field name="inherit_id" ref="project_milestone.project_milestone_form"/>
         <field name="arch" type="xml">
-            <header position="inside">
-                <button name="action_mark_as_delivered" type="object" string="Set All Tasks delivered"/>
-            </header>
+            <xpath expr="//field[@name='task_ids']//field[@name='user_id']" position="after">
+                <field name="planned_days"/>
+                <field name="effective_days"/>
+                <field name="estimated_time_customer"/>
+            </xpath>
         </field>
     </record>
 
