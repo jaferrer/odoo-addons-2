@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,26 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Coefficient de temps de tâches',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'project_task_invoice'],
-    'description': """
-Coefficient de temps sur les tâches
-===================================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-        'project_task_coefficient.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import project_project
+from . import project_task
+from . import project_task_category
+from . import project_task_coefficient
+from . import project_task_type
+from . import sale_order
+from . import sale_order_line

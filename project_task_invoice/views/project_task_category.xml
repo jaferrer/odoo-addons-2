@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="task_invoice_project_task_category_form">
+        <field name="name">task_invoice_project_task_category_form</field>
+        <field name="model">project.task.category</field>
+        <field name="inherit_id" ref="project_task_category.project_task_category_form"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <field name="project_id" position="after">
+                <field name="must_be_invoiced"/>
+                <field name="product_to_invoice_id" attrs="{'required': [('must_be_invoiced', '=', True)], 'invisible': [('must_be_invoiced', '=', False)]}"/>
+            </field>
+            <field name="child_ids" position="attributes">
+                <attribute name="context">{'default_parent_id':active_id, 'default_project_id':project_id,
+                    'default_must_be_invoiced':must_be_invoiced}
+                </attribute>
+            </field>
+
+        </field>
+    </record>
+</odoo>
