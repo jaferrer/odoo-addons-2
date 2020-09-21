@@ -1,0 +1,78 @@
+button.btn-margin-left {
+    margin-left: 10px;
+}
+
+.warning-background {
+    background-color: #dc3545;
+}
+
+@media (orientation:portrait) {
+    .portrait-column-alignment {
+         max-width: 100%;
+         flex: 0 0 100%;
+    }
+}
+
+.picking-nav {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.picking-nav .picking-focus {
+    font-size: 1.7em;
+    color: orange;
+    font-weight: bold;
+}
+.picking-nav #picking-qty {
+    font-size: 42px;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.picking-nav #picking-qty > span {
+    display: block;
+    line-height: 1;
+}
+.picking-nav .picking-flex {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.picking-nav .picking-flex > div:first-child {
+    flex-grow: 1;
+}
+
+.btn-navigation-action {
+    display:inline-flex;
+    width:100%;
+    margin-bottom: 10px;
+}
+.btn-navigation-action #skip-move-line-btn {
+    flex-grow: 1;
+}
+
+
+@media (orientation:portrait) {
+    .picking-nav .picking-flex {
+        flex-wrap: wrap;
+    }
+    .picking-nav .picking-flex > div {
+        width: 100%;
+    }
+    .picking-nav #picking-qty {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .picking-nav #picking-qty > span {
+        margin-top: 5px;
+        margin-bottom: 20px;
+    }
+}
+
+.container.bottom-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}

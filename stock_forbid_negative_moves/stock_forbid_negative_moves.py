@@ -16,8 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 from openerp import models, api, exceptions, _
+from openerp.tools import config
 from openerp.tools import float_compare
 
 
@@ -25,7 +25,13 @@ class StockQuant(models.Model):
     _inherit = "stock.move"
 
     @api.model
+    def _check_env_config_negative_move(self):
+        return not config["test_enable"] or self.env.context.get('force_forbid_negative_move')
+
+    @api.model
     def create(self, vals):
+        if not self._check_env_config_negative_move():
+            return super(StockQuant, self).create(vals)
         uom_id = vals.get('product_uom')
         product_id = vals.get('product_id')
         move_qty = float(vals.get('product_uom_qty', 0))
@@ -38,6 +44,9 @@ class StockQuant(models.Model):
 
     @api.multi
     def write(self, vals):
+        if not self._check_env_config_negative_move():
+            return super(StockQuant, self).write(vals)
+
         if 'product_qty' not in vals or 'product_uom_qty' not in vals:
             return super(StockQuant, self).write(vals)
         for rec in self:

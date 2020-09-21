@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_activity.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_numpad_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_navigate_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_view_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_selection_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_recap_frg.js"/>
+            </xpath>
+        </template>
+
+        <template id="assets_backend_index_batch" name="stock assets index" inherit_id="web_ui_stock.index">
+            <xpath expr="//head" position="inside">
+                <link rel="stylesheet" href="/web_ui_stock_batch/static/src/css/theme.css"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
