@@ -1,0 +1,28 @@
+
+button.btn-margin-left {
+    margin-left: 10px;
+}
+
+.breadcrumb {
+    padding: 15px 15px;
+}
+
+.breadcrumb > li + li:before {
+  content: ">";
+}
+
+.breadcrumb .breadcrumb-item.ok {
+    color: Green;
+}
+
+.breadcrumb .breadcrumb-item.active {
+    color: Orange;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.orange {
+    color: Orange;
+}

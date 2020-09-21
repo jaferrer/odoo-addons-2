@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,5 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+# pylint: disable=invalid-name
 
-from . import test_forbid_negative_moves
+import openerp.addons.connector.backend as backend
+import openerp.addons.connector_prestashop.backend as prestashop_backend
+
+prestashop_1_7 = backend.Backend(parent=prestashop_backend.prestashop, version='1.7')
