@@ -24,6 +24,7 @@ class SaleOrderProjectImproved(models.Model):
 
     project_project_id = fields.Many2one('project.project',
                                          string="Project",
+                                         store=True,
                                          compute='_compute_project_project_id',
                                          inverse='_inverse_project_id')
 
