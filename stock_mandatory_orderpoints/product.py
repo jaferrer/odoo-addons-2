@@ -57,7 +57,9 @@ WHERE op.company_id != sl.company_id""")
             get_param('stock_mandatory_orderpoints.mandatory_orderpoint_location_ids')
         orderpoint_required_locations = location_config_ids and self.env['stock.location'].browse(
             eval(location_config_ids)
-        )
+        ) or self.env['stock.location']
+        if not orderpoint_required_locations:
+            return
         self.env.cr.execute("""WITH product_product_restricted AS (
   SELECT pp.*
   FROM product_product pp
