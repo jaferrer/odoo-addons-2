@@ -126,7 +126,8 @@ class SendinblueSynchronisationWizard(models.TransientModel):
                         'id_sendinblue_tmpl': sib_smtp.id,
                         'name': sib_smtp.subject,
                         'body_html': sib_smtp.html_content,
-                        'reply_to': sib_smtp.reply_to
+                        'reply_to': sib_smtp.reply_to,
+                        'supplier': 'sendinblue'
                     })
                 else:
                     already_treated_odoo_smtp |= odoo_smtp
