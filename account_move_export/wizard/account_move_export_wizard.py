@@ -139,8 +139,8 @@ class AccountMoveExportWizard(models.TransientModel):
         self.with_delay(description=note)._run_export_lines()
 
     @api.model
-    @job(default_channel='root.account')
-    def _run_export_lines(self):
+    def _get_cron_default_vals(self):
+        """ Return default vals to instantiate the wizard from the cron with the config values """
         get_param = self.env['ir.config_parameter'].get_param
         vals = {
             'destination': 'ftp',
@@ -157,6 +157,12 @@ class AccountMoveExportWizard(models.TransientModel):
                 date_from=get_param('account_move_export.export_date_from'),
                 date_to=get_param('account_move_export.export_date_to'),
             )
+        return vals
+
+    @api.model
+    @job(default_channel='root.account')
+    def _run_export_lines(self):
+        vals = self._get_cron_default_vals()
         self.create(vals).action_validate()
 
     @api.multi

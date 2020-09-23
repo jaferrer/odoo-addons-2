@@ -44,10 +44,12 @@ class ProjectTaskCategory(models.Model):
         parents = [category_name.strip() for category_name in category_names]
         child = parents.pop()
         if parents:
-            names_id = self.name_search(self._separator.join(parents), args=[], operator='=ilike', limit=1)
+            names_id = self.search([
+                ('project_id', '=', self.env.context.get('default_project_id')),
+                ('name', 'ilike', parents[0])
+            ])
             if names_id:
-                parent_id = names_id[0][0]
-                return super(ProjectTaskCategory, self.with_context(default_parent_id=parent_id)).name_create(child)
+                return super(ProjectTaskCategory, self.with_context(default_parent_id=names_id.id)).name_create(child)
         return super(ProjectTaskCategory, self).name_create(name)
 
     @api.multi
@@ -59,6 +61,7 @@ class ProjectTaskCategory(models.Model):
                 res.append(cat.name)
                 cat = cat.parent_id
             return res
+
         return [(cat.id, self._separator.join(reversed(get_names(cat)))) for cat in self]
 
     @api.model
@@ -94,7 +97,7 @@ class ProjectTaskCategory(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    category_id = fields.Many2one('project.task.category', string=u"Category")
+    category_id = fields.Many2one('project.task.category', string=u"Categorie")
 
 
 class ProjectProject(models.Model):

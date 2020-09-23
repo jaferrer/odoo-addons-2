@@ -1,0 +1,22 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_invoice_forbid_negative_amount
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-02-11 10:51+0000\n"
+"PO-Revision-Date: 2020-02-11 10:51+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_invoice_forbid_negative_amount
+#: code:addons/account_invoice_forbid_negative_amount/models/account.py:35
+#, python-format
+msgid "You cannot validate an invoice with a negative total amount. You should create a credit note instead."
+msgstr "Impossible de valider une facture avec un montant total négatif. Vous pouvez par contre créer un avoir."

@@ -18,26 +18,22 @@
 #
 
 {
-    'name': 'Mail cc and bcc',
+    'name': 'Account Invoice - Forbid Negative Amounts',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Mail',
-    'depends': [
-        'mail'
-    ],
+    'category': 'Account',
+    'depends': ['account'],
     'description': """
-Mail cc and bcc
-===============
-Ce module permet d'ajouter des destinataire en cc ou en bcc dans les mails
+Account Invoice - Forbid Negative Amounts
+=========================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/mail_cc_and_bcc.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
+    'application': False,
 }
