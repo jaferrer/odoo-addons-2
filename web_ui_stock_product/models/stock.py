@@ -26,6 +26,7 @@ class WebUiError(Exception):
 class StockPickingTypeWebUiStockProduct(models.Model):
     _inherit = 'stock.picking.type'
 
+
     @api.multi
     def web_ui_get_production_lot_by_name(self, name):
         production_lot = self.env['stock.production.lot'].search([('name', '=ilike', name)])
@@ -35,7 +36,7 @@ class StockPickingTypeWebUiStockProduct(models.Model):
         return production_lot
 
     @api.multi
-    def web_ui_get_product_info_by_name(self, name, product=None):
+    def web_ui_get_product_info_by_name(self, name, product=None, get_location=None):
         """
         On peut rechercher un article, soit par le nom de son code, soit par son nom, soit par son numéro de série/lot.
         """
@@ -56,7 +57,11 @@ class StockPickingTypeWebUiStockProduct(models.Model):
         if len(production_lot) > 1:
             raise WebUiError(name, u"Plusieurs lots ont été trouvés : %s" % ", ".join(production_lot.mapped('name')))
 
-        return product.web_ui_get_product_info_one(production_lot)
+        location = None
+        if get_location:
+            location = self.default_location_src_id
+
+        return product.web_ui_get_product_info_one(production_lot, location)
 
     @api.multi
     def web_ui_get_production_info_for_product(self, name, product_id):
@@ -96,7 +101,7 @@ class StockPickingTypeWebUiStockProduct(models.Model):
                 'product_id': product.id,
                 'product_uom_qty': product_info.get('quantity'),
                 'product_uom': product.uom_id.id,
-                'location_id': self.env.ref('flux_tendu_config.stock_location_rangement').id,
+                'location_id': product_info.get('location_id', False) or self.default_location_src_id.id,
                 'location_dest_id': self.env.ref('stock.stock_location_stock').id,
             })
         moves.action_confirm()
@@ -110,13 +115,33 @@ class ProductProductWebUiStockProduct(models.Model):
     _inherit = 'product.product'
 
     @api.multi
-    def web_ui_get_product_info_one(self, production_lot=False):
+    def web_ui_get_product_info_one(self, production_lot=False, parent_location=None):
         self.ensure_one()
+
+        found_location = False
+        found_qty = 1
+        if parent_location:
+            stock_locations = self.env['stock.quant'].read_group([
+                ('product_id', '=', self.id), ('location_id.usage', '=', 'internal')
+            ], ['location_id', 'qty'], ['location_id'])
+            for location in stock_locations:
+                found_matching_location = location['location_id'][1].startswith(parent_location.display_name)
+                if not found_location and found_matching_location:
+                    found_location = location['location_id'][0]
+                    found_qty = location['qty']
+                elif found_matching_location:
+                    found_location = False
+                    break
+            if found_location:
+                found_location = self.env['stock.location'].browse(found_location)
+
         return {
             'id': self.id,
             'name': self.display_name,
+            'location_id': found_location and found_location.id or '',
+            'location_barcode': found_location and found_location.barcode or '',
             'default_code': self.default_code or "-",
-            'quantity': 1,
+            'quantity': found_location and found_qty or 1,
             'lot_id': production_lot and production_lot.id or "",
             'lot_name': production_lot and production_lot.name or "-",
             'tracking': self.tracking,

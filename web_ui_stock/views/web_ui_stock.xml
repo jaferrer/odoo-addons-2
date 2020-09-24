@@ -58,7 +58,8 @@
                         var pp = new URLSearchParams(window.location.search)
                         web_client.show_application = function() {
                         web_client.action_manager.do_action(pp.get("action"), {
-                        picking_type_id:pp.get("picking_type_id")
+                        picking_type_id:pp.get("picking_type_id"),
+                        type:pp.get("type")
                         });
                         };
 
