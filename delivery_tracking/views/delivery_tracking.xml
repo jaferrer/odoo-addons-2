@@ -47,6 +47,9 @@
                     <field name="package_count" string="Packages" widget="statinfo"/>
                 </button>
             </xpath>
+            <field name="integration_level" position="after">
+                <field name="carrier_code"/>
+            </field>
         </field>
     </record>
 
