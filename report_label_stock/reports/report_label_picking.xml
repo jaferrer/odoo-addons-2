@@ -15,6 +15,20 @@
         <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
     </record>
 
+    <record id="ir_actions_report_xml_picking_product_palette" model="ir.actions.report">
+        <field name="name">Product Palette Barcode</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">stock.picking</field>
+        <field name="report_name">report_etiquettes_palette</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_palette.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
     <record id="ir_actions_report_xml_picking_picking_cb" model="ir.actions.report">
         <field name="name">Picking Barcode</field>
         <field name="type">ir.actions.report</field>
