@@ -48,7 +48,7 @@ class StockPickingBatch(models.Model):
         list_move_lines = []
         picking_batch = self.browse(batch_id)
         batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').sorted(
-            lambda x: (x.location_id.name, x.product_id.name))
+            lambda x: (x.location_id.barcode, x.product_id.name))
         for move_line in batch_move_lines:
             product_infos = move_line.product_id.web_ui_get_product_info_one()
             same_product_move_lines = picking_batch.mapped('picking_ids').mapped(
@@ -67,6 +67,46 @@ class StockPickingBatch(models.Model):
             })
 
         return list_move_lines
+
+    @api.model
+    def get_batch_move_line(self, batch_id, move_line_id=None):
+        picking_batch = self.browse(batch_id)
+        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').filtered(
+            lambda x: x.qty_done != x.product_qty).sorted(
+            lambda x: (x.location_id.barcode, x.product_id.name))
+
+        if not batch_move_lines:
+            raise WebUiError(batch_id, u"Aucune move.line n'a été trouvée")
+
+        move_line = None
+        next_move_line = None
+
+        if move_line_id:
+            found = False
+            for mv in batch_move_lines:
+                if found:
+                    next_move_line = mv
+                    break
+                if mv.id == move_line_id:
+                    move_line = mv
+                    found = True
+            if not next_move_line and len(batch_move_lines) > 1:
+                next_move_line = batch_move_lines[0]
+        else:
+            move_line = batch_move_lines[0]
+            next_move_line = len(batch_move_lines) > 1 and batch_move_lines[1] or None
+
+        return {
+            'id': move_line.id,
+            'location': move_line.location_id.name,
+            'location_barcode': move_line.location_id.barcode,
+            'product': move_line.product_id.web_ui_get_product_info_one(),
+            'qty_done': move_line.qty_done,
+            'qty_todo': move_line.product_qty,
+            'product_uom': move_line.product_uom_id.name,
+            'picking': move_line.picking_id.name,
+            'next_move_line_id': next_move_line and next_move_line.id or None
+        }
 
     @api.model
     def get_batch_move_lines_recap(self, batch_id):
@@ -90,42 +130,6 @@ class StockPickingBatch(models.Model):
             })
 
         return list_move_lines
-
-    @api.model
-    def get_next_batch_move_line(self, batch_id, current_move_line=None, load_next_line=True):
-        picking_batch = self.browse(batch_id)
-        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').filtered(
-            lambda x: x.qty_done != x.product_qty or (x.id == current_move_line and not load_next_line)).sorted(
-            lambda x: (x.location_id.name, x.product_id.name))
-
-        if not batch_move_lines:
-            raise WebUiError(batch_id, u"Aucune move.line n'a été trouvée")
-
-        move_line = batch_move_lines[0]
-        if current_move_line:
-            take_next = False
-            for mv in batch_move_lines:
-                if take_next:
-                    move_line = mv
-                    break
-                if mv.id == current_move_line:
-                    if not load_next_line:
-                        move_line = mv
-                        break
-                    else:
-                        take_next = True
-
-        return {
-            'id': move_line.id,
-            'location': move_line.location_id.name,
-            'location_barcode': move_line.location_id.barcode,
-            'product': move_line.product_id.web_ui_get_product_info_one(),
-            'qty_done': move_line.qty_done,
-            'qty_todo': move_line.product_qty,
-            'product_uom': move_line.product_uom_id.name,
-            'picking': move_line.picking_id.name,
-            'is_last': len(batch_move_lines) == 1
-        }
 
     @api.multi
     def do_validate_batch_scan(self):
