@@ -236,7 +236,7 @@ class MassMailingListSendinblue(models.Model):
         self.ensure_one()
         folder_instance = sib_api_v3_sdk.FoldersApi(sib_api_v3_sdk.ApiClient(wizard.get_sendinblue_api_configuration()))
         # On prend le premier dossier, s'il n'y en a pas, on en crée un
-        folder_id = self.folder_id and self.folder_id.id or False
+        folder_id = self.folder_id and self.folder_id.id_sendinblue_folder or False
         if not folder_id:
             try:
                 sendinblue_folders = folder_instance.get_folders(limit=10, offset=0)
