@@ -26,6 +26,26 @@ class WebUiError(Exception):
 class StockPickingType(models.Model):
     _inherit = 'stock.picking.type'
 
+    @api.multi
+    def web_ui_get_all_picking_storage(self):
+        self.ensure_one()
+
+        list_pickings = []
+        pickings = self.env['stock.picking'].search([
+            ('picking_type_id', '=', self.id),
+            ('state', '=', 'assigned')
+        ], order='name')
+
+        for picking in pickings:
+            list_pickings.append({
+                'id': picking.id,
+                'name': picking.name,
+                'user': picking.owner_id.name or "-",
+                'operation_count': len(picking.pack_operation_product_ids),
+            })
+
+        return list_pickings
+
     @api.model
     def web_ui_get_production_lot_by_name(self, name):
         production_lot = self.env['stock.production.lot'].search([('name', '=ilike', name)])

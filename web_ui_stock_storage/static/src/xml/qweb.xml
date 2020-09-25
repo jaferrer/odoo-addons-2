@@ -1,6 +1,120 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
 
+      <t t-name="StorageSelection">
+
+        <div class="jumbotron">
+            <div id="big_helper" class="container">
+                <h1>Rangement de chariot</h1>
+                <p>Veuillez sélectionner un bon de rangement pour commencer</p>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <div class="row">
+                <p class="button-group text-right col-md-12" id="mass_btn" role="group">
+                    <button class="btn btn-primary float-right" id="no-picking-btn" type="button">
+                        Rangement sans bon <span class="fa fa-play-circle"></span>
+                    </button>
+                </p>
+            </div>
+
+             <div class="row">
+                 <div class="col-md-12 ">
+            <table id="picking_selection_table" class="table ui_stock_table  table-condensed table-hover">
+                <tbody id="picking_selection_table_body">
+
+                    <t t-foreach="widget.pickingList" t-as="picking">
+                        <tr t-att-data-picking_id="picking.id" class="picking-item ui_stock_item">
+                            <td class="main-col">
+                                <p>
+                                    <t t-esc="picking.name"/>
+                                </p>
+                                <p class="text-muted">
+                                    <t t-esc="picking.user"/>
+                                </p>
+                            </td>
+                            <td>
+                                <p>
+                                    <t t-esc="picking.operation_count"/>
+                                    produits
+                                </p>
+                            </td>
+                        </tr>
+                    </t>
+
+                </tbody>
+            </table>
+             </div>
+             </div>
+        </div>
+    </t>
+
+    <t t-name="StorageNavigate">
+        <div>
+            <div class="jumbotron alert-info">
+                <div class="container text-center">
+                    <strong>
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> <span id="info-text"></span>
+                    </strong>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="row picking-nav">
+
+                    <t t-if='widget.moveLine'>
+
+                        <div class="col-xs-12 picking-flex">
+                            <div>
+                                 <p id="picking-product">
+                                     <t t-esc="widget.moveLine.name"/>
+                                </p>
+                                 <p id="picking-location">
+                                    <t t-esc="widget.moveLine.location_id"/>
+                                </p>
+                                <p id="picking-quantity">
+                                    <t t-esc="widget.moveLine.default_code"/>
+                                </p>
+                            </div>
+                            <div id="picking-qty">
+                                <span id="picking-qty-done"><t t-esc="widget.moveLine.qty_done"/></span>
+                                <span>/<t t-esc="widget.moveLine.qty"/></span>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-if='widget.showManualInput'>
+                        <div class="col-xs-12">
+                            <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <t t-if='widget.moveLine'>
+
+                <div class="container bottom-container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="btn-group dropup btn-navigation-action">
+                              <button type="button" class="btn btn-info" id="skip-move-line-btn" style="flex-grow:1;">Annuler et passer ce produit</button>
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-right">
+                                <li><a type="button" id="end-navigation-btn">Terminer</a></li>
+                              </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+
     <t t-name="NeedUserAttentionModal">
         <div id="content_need_need_user_action" class="container">
             <div class="row">

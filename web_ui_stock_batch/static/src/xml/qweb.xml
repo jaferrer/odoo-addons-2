@@ -1,36 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
 
-    <t t-name="BatchActivity">
-
-        <div>
-            <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
-                <div class="container">
-                    <div class="row">
-                        <div class="navbar-col col-xs-6">
-                            <button id="back-btn"
-                                    type="button"
-                                    class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
-                            <span id="view_title"/>
-                        </div>
-                        <div class="navbar-col col-xs-6">
-                            <button id="validate_batch"
-                                    type="button"
-                                    class="btn btn-success btn-margin-left pull-right hidden">
-                                Valider
-                            </button>
-                            <button id="exit-btn" type="button" class="btn btn-danger pull-right">Quitter</button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <div id="activity-container">
-                <!-- Les fragments seront chargés ici -->
-            </div>
-        </div>
-    </t>
-
     <t t-name="BatchSelection">
 
         <div class="jumbotron">

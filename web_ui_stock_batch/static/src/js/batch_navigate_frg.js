@@ -22,18 +22,17 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
         batchId: null,
         moveLineId: null,
         moveLine: null,
-        loadNextLine: true,
+        nextLineId: null,
         codeInput: null,
         state: STATES.location,
         showManualInput: 1,
         hasQtyChanged: false,
-        init: function (activity, batchId, options = {}, currentMoveLine = null, loadNextLine= true) {
+        init: function (activity, batchId, options = {}, currentMoveLine = null) {
             this._super();
             this.barcode_scanner = new BarcodeScanner();
             this.activity = activity;
             this.batchId = parseInt(batchId);
             this.moveLineId = currentMoveLine ? parseInt(currentMoveLine) : '';
-            this.loadNextLine = loadNextLine;
 
             this.state = options.skipFirstStep ? STATES.product : this.state;
             this.showManualInput = options.showManualInput;
@@ -43,7 +42,10 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.codeInput = this.$('#search-code');
 
             this.$('#skip-move-line-btn').click(ev => {
-                if (this.hasQtyChanged) {
+                if (this.state === STATES.picking) {
+                    this.next_move_line();
+                }
+                else if (this.hasQtyChanged) {
                     this.state = STATES.picking;
                     this.renderState();
                 }
@@ -56,7 +58,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 this.end_navigation();
             });
 
-            this.$('.picking-nav').click(ev => {
+            this.$('.picking-nav .picking-flex').click(ev => {
                 if (this.state === STATES.location) {
                     this.scan("");
                 }
@@ -99,11 +101,11 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             });
         },
         init_navigation: function () {
-            this.batchMoveLines = [];
-            StockPickingBatch.call('get_next_batch_move_line', [[this.batchId], this.moveLineId, this.loadNextLine])
+            StockPickingBatch.call('get_batch_move_line', [[this.batchId], this.moveLineId])
                 .then((moveLine) => {
                     this.moveLine = moveLine;
                     this.moveLineId = moveLine.id;
+                    this.nextLineId = moveLine.next_move_line_id;
                     this.init_title();
                     this.renderElement();
                 }).fail((errors, event) => {
@@ -125,11 +127,11 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             }
         },
         next_move_line: function () {
-            if (this.moveLine.is_last) {
+            if (!this.nextLineId) {
                 this.end_navigation();
             }
             else {
-                this.activity.init_fragment_batch_navigate(this.batchId, this.moveLineId);
+                this.activity.init_fragment_batch_navigate(this.batchId, this.nextLineId);
             }
         },
         end_navigation: function() {
@@ -166,7 +168,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             return true;
         },
         scanProduct: function (code) {
-            StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], code])
+            StockPickingType.call('web_ui_get_product_info_by_name', [[this.activity.pickingTypeId], code])
                 .then((product) => {
                         if (this.moveLine.product.name === product.name) {
                             this.validate_new_qty(this.moveLine.qty_done + 1);
@@ -201,6 +203,16 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                     event.preventDefault();
                 });
         },
+        renderButton: function () {
+            if (this.state === STATES.picking) {
+                this.$('#skip-move-line-btn').text("Annuler et passer");
+            }
+            else if (this.hasQtyChanged) {
+                this.$('#skip-move-line-btn').text("Je ne sais pas ou est le reste");
+            } else {
+                this.$('#skip-move-line-btn').text("Passer ce produit");
+            }
+        },
         renderQty: function () {
             // Gestion de l'affichage de la quantité uniquement
             if (!this.moveLine) {
@@ -218,11 +230,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 this.$('#picking-qty-done').removeClass('text-error');
             }
 
-            if (this.hasQtyChanged) {
-                this.$('#skip-move-line-btn').text("Je ne sais pas ou est le reste");
-            } else {
-                this.$('#skip-move-line-btn').text("Passer ce produit");
-            }
+            this.renderButton();
         },
         renderState: function () {
             switch (this.state) {
@@ -236,6 +244,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                     this.renderStatePicking();
                     break;
             }
+            this.renderButton();
         },
         renderStateLocation: function () {
             this.$('#picking-location').addClass('picking-focus');
@@ -244,7 +253,6 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.$('#picking-name').removeClass('picking-focus');
 
             this.$('#info-text').text("Allez à l'emplacement demandé");
-            this.$('.btn-navigation-action').removeClass('hidden');
         },
         renderStateProduct: function () {
             this.$('#picking-location').removeClass('picking-focus');
@@ -253,7 +261,6 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.$('#picking-name').removeClass('picking-focus');
 
             this.$('#info-text').text("Prennez les articles demandés");
-            this.$('.btn-navigation-action').removeClass('hidden');
         },
         renderStatePicking: function () {
             this.$('#picking-location').removeClass('picking-focus');
@@ -262,7 +269,6 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.$('#picking-name').addClass('picking-focus');
 
             this.$('#info-text').text("Scanner la commande demandée");
-            this.$('.btn-navigation-action').addClass('hidden');
         },
     });
 });
