@@ -41,7 +41,7 @@ class ApiYousignSignature(models.TransientModel):
 
     @api.model
     def _get_yousign_base_url(self):
-        is_test_env = self.env['ir.config_parameter'].get_param('yousign_staging')
+        is_test_env = self.sudo().env['ir.config_parameter'].get_param('yousign_staging')
         return URL_BASE_API_STAGING if is_test_env else URL_BASE_API_PRODUCTION
 
     @api.model
@@ -50,7 +50,7 @@ class ApiYousignSignature(models.TransientModel):
         Access to Yousign API.
         """
         session = requests.Session()
-        api_key = self.env['ir.config_parameter'].get_param('yousign_api_key')
+        api_key = self.sudo().env['ir.config_parameter'].get_param('yousign_api_key')
         if api_key:
             authorization = "Bearer " + api_key
         else:
@@ -97,11 +97,11 @@ class ApiYousignSignature(models.TransientModel):
         url = "%s/files/%s/layout" % (self._get_yousign_base_url(), id)
         file_infos = session.get(url)
         page_number = len(json.loads(file_infos.text).get('pages'))
-        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        base_url = self.sudo().env['ir.config_parameter'].get_param('web.base.url')
         url_procedure_started = base_url + "/yousign/webhook/procedure_started"
         url_procedure_finished = base_url + "/yousign/webhook/member_finished"
 
-        webhook_key = self.env['ir.config_parameter'].get_param('yousign_webhook')
+        webhook_key = self.sudo().env['ir.config_parameter'].get_param('yousign_webhook')
         body = {
             'name': "Procedure %s" % name,
             'description': "Sweet description of procedure",
@@ -181,7 +181,7 @@ class ApiYousignSignature(models.TransientModel):
         """
         self.ensure_one()
         model_record = self.env[self.model_name].browse(self.model_id)
-        b64_pdf_file = model_record.get_document_to_sign()
+        b64_pdf_file = model_record.sudo().get_document_to_sign()
 
         # Procédure de signature certifiée à cocher dès le bouton "Valider" cliqué
         # save the date when document is sent
