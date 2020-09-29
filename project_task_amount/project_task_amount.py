@@ -22,12 +22,30 @@ from datetime import timedelta
 from odoo import fields, models, api
 
 
-class GitlabSync(models.Model):
+class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    effective_hours = fields.Float(u"Time spent")
+    effective_hours = fields.Float(u"Time spent (Hours)")
+    effective_days = fields.Float(u"Time spent (Days)", compute='_compute_effective_days')
     remaining_hours = fields.Float(u"Remaining Time")
-    planned_hours = fields.Float(u"Planned Time")
+    planned_hours = fields.Float(u"Tps prévu (Heures)", readonly=True)
+    planned_days = fields.Float(u"Tps prévu (Jours)", track_visibility='onchange')
+
+    @api.multi
+    def write(self, vals):
+        if 'planned_hours' in vals:
+            vals['planned_days'] = vals['planned_hours'] / 7
+        elif 'planned_days' in vals:
+            vals['planned_hours'] = vals['planned_days'] * 7
+        return super(ProjectTask, self).write(vals)
+
+    @api.model
+    def create(self, vals):
+        if 'planned_hours' in vals:
+            vals['planned_days'] = vals['planned_hours'] / 7
+        elif 'planned_days' in vals:
+            vals['planned_hours'] = vals['planned_days'] * 7
+        return super(ProjectTask, self).create(vals)
 
     @api.multi
     def add_line_timesheet(self):
@@ -40,6 +58,11 @@ class GitlabSync(models.Model):
             'target': 'new',
             'context': dict(self._context, active_id=self.id),
         }
+
+    @api.multi
+    def _compute_effective_days(self):
+        for rec in self:
+            rec.effective_days = rec.effective_hours / 7
 
 
 class TaskTimeSheetAmount(models.TransientModel):

@@ -17,27 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Mail cc and bcc',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Mail',
-    'depends': [
-        'mail'
-    ],
-    'description': """
-Mail cc and bcc
-===============
-Ce module permet d'ajouter des destinataire en cc ou en bcc dans les mails
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/mail_cc_and_bcc.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-}
+from . import invoice_project_task

@@ -23,13 +23,28 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'sale'],
+    'depends': [
+        'project',
+        'project_task_amount',
+        'project_task_category',
+        'sale'
+    ],
     'description': """
 Task Invoicing
 ==============
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_invoicing.xml', 'data/data.xml'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/project_project.xml',
+        'views/project_task.xml',
+        'views/project_task_type.xml',
+        'views/sale_order.xml',
+        'views/project_task_category.xml',
+        'views/sale_order_line.xml',
+        'wizard/invoice_project_task.xml',
+        'data/data.xml'
+    ],
     'demo': [],
     'test': [],
     'installable': True,
