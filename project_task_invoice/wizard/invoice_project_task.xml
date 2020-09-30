@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="invoice_project_task_wizard_form_view" model="ir.ui.view">
+        <field name="name">invoice_project_task_wizard_form_view</field>
+        <field name="model">invoice.project.task.wizard</field>
+        <field name="arch" type="xml">
+            <form string="To Invoice Tasks">
+                <group>
+                    <field name="date_invoiced" widget="date"/>
+                    <field name="has_new_date"/>
+                    <field name="mark_task_as_delivered"/>
+                </group>
+                <label for="task_ids"/>
+                <field name="task_ids">
+                    <tree>
+                        <field name="display_name"/>
+                        <field name="stage_id"/>
+                        <field name="invoice_time"/>
+                        <field name="date_delivered"/>
+                        <field name="date_invoiced"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="to_invoice_tasks" type="object" string="To Invoice" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

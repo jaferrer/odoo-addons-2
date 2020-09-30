@@ -183,6 +183,7 @@ class AccountInvoice(models.Model):
     date_next_dunning = fields.Date(u"Date next dunning")
 
     @api.multi
+    @api.depends('invoice_dunning_ids', 'invoice_dunning_ids.state')
     def _compute_dunning_number(self):
         for rec in self:
             rec.dunning_number = len(rec.invoice_dunning_ids.filtered(lambda it: it.state in ['send', 'done']))

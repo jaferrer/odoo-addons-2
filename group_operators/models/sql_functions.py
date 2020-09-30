@@ -67,3 +67,19 @@ class SQLfunctions(models.AbstractModel):
             INITCOND='{}'
         );
         """)
+        self._cr.execute("""
+                -- Positive average
+                CREATE OR REPLACE FUNCTION public.pos_avg_agg(anyarray)
+                RETURNS FLOAT8 LANGUAGE SQL IMMUTABLE STRICT AS $$
+                    SELECT avg(val) filter (where val >= 0)
+                    FROM unnest($1) val
+                $$;
+
+                DROP AGGREGATE IF EXISTS public.pos_avg(anyelement) CASCADE;
+                CREATE AGGREGATE public.pos_avg(anyelement) (
+                    SFUNC=array_append,
+                    STYPE=anyarray,
+                    FINALFUNC=pos_avg_agg,
+                    INITCOND='{}'
+                );
+                """)
