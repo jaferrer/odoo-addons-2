@@ -1098,6 +1098,30 @@ class TestPurchaseScheduler(common.TransactionCase):
             'pricelist_id': self.ref('purchase.list0')
         }).id
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
-                                                            compute_supplier_ids=self.supplier_no_order,
-                                                            jobify=False)
+                                                        compute_supplier_ids=self.supplier_no_order,
+                                                        jobify=False)
         self.assertNotIn(order_id, self.env['purchase.order'].search([]).ids)
+
+    def test_50_temporary_additional_delay(self):
+        self.supplier.write({'temporary_additional_delay': 0})
+        self.assertEqual(self.supplier.temporary_additional_delay, 0)
+        self.create_move_out_corresponding_to_procs()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        self.assertTrue(purchase1)
+        self.assertEqual(purchase1.date_order, '3003-08-22 00:00:00')
+
+        purchase1.unlink()
+
+        self.supplier.write({'temporary_additional_delay': 5})
+        self.assertEqual(self.supplier.temporary_additional_delay, 5)
+        self.create_move_out_corresponding_to_procs()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        purchase1 = self.proc1.purchase_id
+        self.assertTrue(purchase1)
+        self.assertEqual(purchase1.date_order, '3003-08-15 00:00:00')
