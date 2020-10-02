@@ -18,27 +18,30 @@
 #
 
 {
-    'name': 'Web UI Stock API',
+    'name': 'Web UI Stock Storage Batch',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'stock',
-    'depends': ['stock'],
+    'depends': [
+        'web_ui_stock',
+        'stock_picking_wave'
+    ],
     'description': """
-Web UI Stock API
-================
-This modules allows to use the barcode scanner.
+Web UI Stock Batch
+==================
+This modules allows to scan location, products and quantity related to a batch of pickings.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/web_ui_stock.xml',
-        'security/ir.model.access.csv',
+        'views/assets_backend.xml',
+        'data.xml',
     ],
-    'qweb': ['static/src/xml/qweb.xml'],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'qweb': ['static/src/xml/qweb.xml'],
 }

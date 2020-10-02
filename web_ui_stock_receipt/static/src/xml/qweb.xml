@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+
+    <t t-name="ReceiptMainWidget">
+
+        <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
+            <div class="container">
+                <div class="row">
+                    <div class="navbar-col col-xs-6">
+                        <span id="view_title"/>
+                    </div>
+                    <div class="navbar-col col-xs-6">
+                        <button id="validate_receipt"
+                                type="button"
+                                class="btn btn-success btn-margin-left pull-right js_validate_receipt hidden">
+                            Valider
+                        </button>
+                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="template-container">
+
+            <div class="jumbotron" id="big_helper">
+                <div class="container">
+                    <h1>Réceptions</h1>
+                    <p>Veuillez sélectionner une réception pour commencer</p>
+                </div>
+            </div>
+
+            <div class="jumbotron hidden" id="manual_scan_product">
+                <div class="container">
+                    <h4>Veuillez scanner les articles demandés</h4>
+                    <p id="manual_scan_add_qty_1" class="hidden">
+                        Vous pouvez scanner le même article plusieurs fois pour augmenter la quantité
+                    </p>
+                    <div class="input-group">
+                        <input id="search_product" type="text" class="form-control"
+                               placeholder="Saisie article manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="panel-group" id="receipt_picking_selection_table" role="tablist" aria-multiselectable="true">
+                </div>
+                <table id="move_line_table" class="table hidden table-hover ui_stock_table">
+                    <thead id="move_line_table_header">
+                        <tr>
+                            <th>Articles</th>
+                            <th style="text-align:right;">Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody id="move_line_table_body"/>
+                </table>
+
+                <div id="receipt_result"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ReceiptOwnerSelectionTable">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" t-att-id="'panel-heading-'+widget.id">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#receipt_picking_selection_table" t-att-href="'#collapse-'+widget.id" t-att-aria-controls="'collapse-'+widget.id" aria-expanded="false">
+                        <t t-esc="widget.name"/>
+                    </a>
+                </h4>
+            </div>
+            <div t-att-id="'collapse-'+widget.id" class="panel-collapse collapse" role="tabpanel" t-att-aria-labelledby="'panel-heading-'+widget.id">
+
+                <table class="table table-lg table-hover">
+                    <tbody class="owner-stock-pickings"></tbody>
+                </table>
+
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ReceiptPickingSelectionTable">
+        <tr t-att-product_id="widget.id">
+            <td>
+                <t t-esc="widget.selected_receipt_picking.name"/>
+            </td>
+            <td>
+                <t t-esc="widget.selected_receipt_picking.date"/>
+            </td>
+        </tr>
+    </t>
+
+    <t t-name="ReceiptMoveLineRow">
+        <tr t-att-product_id="widget.id" class="js_open_numpad">
+            <td>
+                <p id="move_line_product">
+                    <t t-esc="widget.product.name"/>
+                </p>
+                <p style="margin:0;" id="move_line_lot">
+                    <t t-esc="widget.product.lot_name"/>
+                </p>
+            </td>
+            <td class="qty-col">
+                <p>
+                    <t t-esc="widget.display_qty"/>
+                </p>
+                <small>
+                    <t t-esc="widget.move_line.product_uom"/>
+                </small>
+            </td>
+        </tr>
+    </t>
+
+    <!-- Modal -->
+    <t t-name="ReceiptResult">
+        <div class="modal fade" id="receipt-result" tabindex="-1" role="dialog" aria-labelledby="receipt-result-label">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="receipt-result-label">Resultat</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table id="result_table" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Picking</th>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="widget.result" t-as="picking">
+                                    <t t-set="firstItem" t-value="1"/>
+                                    <t t-foreach="picking.pack_operations" t-as="po">
+                                        <tr>
+                                            <td>
+                                                <t t-esc="picking.picking_name"/>
+                                            </td>
+                                            <td>
+                                                <t t-esc="po.product"/>
+                                            </td>
+                                            <td>
+                                                <t t-esc="po.qty_done"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="window.history.back();">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
