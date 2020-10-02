@@ -12,7 +12,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
     const STATES = {
         product: 1,
         location: 2,
-        quantity: 3
+        quantity: 3,
+        lot: 4
     }
 
     return Widget.extend({
@@ -20,7 +21,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
         barcode_scanner: null,
         activity: null,
         pickingId: null,
-        moveLineId: null,
+        moveLineIds: [],
+        moveLines: [],
         moveLine: null,
         isLast: false,
         codeInput: null,
@@ -33,18 +35,22 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             this.activity = activity;
             this.pickingId = parseInt(pickingId);
 
-            // this.showManualInput = options.showManualInput;
+            this.showManualInput = options.showManualInput;
+            this.showManualInput = true;
         },
         renderElement: function () {
             this._super();
             this.codeInput = this.$('#search-code');
 
             this.$('#skip-move-line-btn').click(ev => {
-                if (this.hasQtyChanged) {
-                    this.state = STATES.picking;
-                    this.renderState();
-                } else {
-                    this.next_move_line();
+                if (this.state === STATES.product) {
+                    return;
+                }
+            });
+
+            this.$('#force-qty-btn').click(ev => {
+                if (this.state === STATES.quantity) {
+                    this.validate_move_line();
                 }
             });
 
@@ -53,10 +59,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             });
 
             this.$('.picking-nav .picking-flex').click(ev => {
-                if (this.state === STATES.location) {
-                    this.scan("");
-                } else if (this.state === STATES.product) {
-                    new Numpad(this, this.moveLine.product.name).appendTo('body');
+                if (this.state === STATES.quantity) {
+                    new Numpad(this, this.moveLine.name).appendTo('body');
                 }
             });
 
@@ -69,6 +73,7 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             this.init_navigation();
         },
         destroy: function () {
+            $('.modal-backdrop').remove();
             this.barcode_scanner.disconnect();
             this._super();
         },
@@ -94,31 +99,31 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             });
         },
         init_navigation: function () {
-            // TODO Verifier si le picking contient une seule operation. Dans ce cas, on skip l'etape 1 (pour les mouvements internes instantanés)
-            // StockPicking.call('get_batch_move_line', [[this.pickingId], this.moveLineId])
-            //     .then((moveLine) => {
-            //         this.moveLine = moveLine;
-            //         this.moveLineId = moveLine.id;
-            //         this.nextLineId = moveLine.next_move_line_id;
-            //         this.init_title();
-            //         this.renderElement();
-            //     }).fail((errors, event) => {
-            //         let message = errors.data ? errors.data.message : "Une erreur est survenue"
-            //         $.toast({
-            //             text: message,
-            //             icon: 'error'
-            //         });
-            //         event.preventDefault();
-            //     });
+            this.init_title();
+            StockPickingType.call('web_ui_has_one_operation_left', [[this.activity.pickingTypeId], this.pickingId])
+            .then((res) => {
+                if (res.empty) {
+                     window.history.back();
+                } else if (res.last_operation) {
+                    this.isLast = true;
+                    this.scanProduct(res.last_operation);
+                }
+            });
         },
         validate_new_qty: function (qty) {
             this.hasQtyChanged = true;
             this.moveLine.qty_done = parseFloat(qty);
             this.renderQty();
+
             if (this.moveLine.qty_done === this.moveLine.qty_todo) {
-                this.state = STATES.picking;
-                this.renderState();
+                this.validate_move_line();
             }
+        },
+        validate_move_line: function () {
+            StockPickingType.call('web_ui_get_storage_add_move', [[this.activity.pickingTypeId], this.moveLineId, this.moveLine.qty_done])
+                .then(() => {
+                    this.next_move_line();
+                });
         },
         next_move_line: function () {
             if (this.isLast) {
@@ -128,67 +133,103 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             }
         },
         end_navigation: function () {
-            StockPicking.call('get_batch_move_lines_recap', [[this.batchId]])
-                .then((batchMoveLines) => {
-                    this.batchMoveLines = batchMoveLines;
-                    for (let i = 0; i < this.batchMoveLines.length; i++) {
-                        let moveLine = batchMoveLines[i]
-                        this.isValid = moveLine.qty_todo === moveLine.qty_done;
-                        if (!this.isValid) {
-                            break;
-                        }
-                    }
-                    this.renderElement();
-                });
+            StockPickingType.call('web_ui_get_storage_validate_move', [[this.activity.pickingTypeId], this.pickingId])
+                .then(() => window.history.back());
         },
         scan: function (code) {
             console.log(code);
-
-            let goToNextStep = false;
-            this.codeInput.val('');
-
+            $(this.codeInput).val('');
             switch (this.state) {
                 case STATES.product:
                     this.scanProduct(code);
                     break;
                 case STATES.location:
                     this.scanLocation(code);
-                    goToNextStep = true;
                     break;
                 case STATES.quantity:
                     this.scanQuantity(code);
                     break;
             }
-
-            if (goToNextStep) {
-                if (this.state === STATES.picking) {
-                    this.next_move_line();
-                }
-                this.state++;
-                this.renderState();
-            }
         },
         scanProduct: function (code) {
+            this.moveLines = []
             StockPickingType.call('web_ui_get_storage_product_info_by_name', [[this.activity.pickingTypeId], code, this.pickingId])
                 .then((moveLines) => {
-                    let moveLine = moveLines[0];
-                    this.moveLine = moveLine;
-                    this.moveLineId = moveLine.id;
-                    this.isLast = false;
-                    this.state++;
-                    this.renderElement();
+                    moveLines.forEach(moveLine => {
+                        this.moveLine = moveLine;
+                        this.moveLines.push(this.moveLine);
 
+                        if (moveLine.tracking !== "none") {
+                            this.$("#product_num_lot").text(moveLine.num_lot);
+                            if (!moveLine.num_lot) {
+                                // this.$("#product_num_lot").text(tracking.num_lot);
+                                // this.state = STATES.lot;
+                            }
+                        }
+
+                        if (this.state !== STATES.lot) {
+                            this.state = STATES.location;
+                        }
+                    });
+                    this.renderElement();
                 })
                 .fail((errors, event) => {
-                    console.log("Error print", errors, event);
+                    this.activity.notifyError("Produit introuvable");
                     event.preventDefault();
                 });
         },
-        scanLocation: function (code) {
+        scanLot: function (code) {
             return true;
+            // StockPickingType.call('web_ui_get_tracking_by_name', [[this.pickingTypeId], ean, this.productId])
+            //         .then((tracking) => {
+            //             this.$("#product_num_lot").text(tracking.num_lot);
+            //             this.state = 3;
+            //         })
+            //         .fail((errors, event) => {
+            //             event.preventDefault();
+            //         });
+        },
+        scanLocation: function (code) {
+            let moveLineIds = this.moveLines.map(x => x.id)
+            StockPickingType.call('web_ui_get_storage_location_info_by_name', [[this.activity.pickingTypeId], code, moveLineIds])
+                .then((moveLine) => {
+                    this.moveLine = moveLine;
+                    this.moveLines = [this.moveLine];
+
+                    this.state = STATES.quantity;
+                    this.renderElement();
+                })
+                .fail((errors, event) => {
+                    if (confirm("L'emplacement " + code + " ne correspond pas au produit, souhaitez vous le modifier ?")) {
+                        this.scanNewLocation(code);
+                    }
+                    event.preventDefault();
+                });
+        },
+        scanNewLocation: function (code) {
+            StockPickingType.call('web_ui_get_storage_new_location_info_by_name', [[this.activity.pickingTypeId], code, this.moveLine.id])
+                .then((moveLine) => {
+                    this.updateLocation(moveLine, code);
+                })
+                .fail((errors, event) => {
+                    this.activity.notifyError("Emplacement introuvable");
+                    event.preventDefault();
+                });
         },
         scanQuantity: function (code) {
-            return true;
+            if (this.moveLine.default_code === code || this.moveLine.name === code) {
+                this.validate_new_qty(this.moveLine.qty_done + 1)
+            } else {
+                this.activity.notifyError("Mauvais produit scanné");
+            }
+        },
+        updateLocation: function (moveLine, locationCode) {
+            StockMoveLine.call('change_location_from_scan_storage', [[moveLine.id], locationCode])
+                .then((location) => {
+                    this.moveLine.location_id = location.name;
+                    this.state = STATES.quantity;
+                    this.renderElement();
+                });
         },
         renderQty: function () {
             // Gestion de l'affichage de la quantité uniquement
@@ -201,10 +242,10 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             if (this.moveLine.qty_done === this.moveLine.qty_todo) {
                 this.$('#picking-qty-done').addClass('text-success');
             } else if (this.moveLine.qty_done > this.moveLine.qty_todo) {
-                this.$('#picking-qty-done').addClass('text-error');
+                this.$('#picking-qty-done').addClass('text-danger');
             } else {
                 this.$('#picking-qty-done').removeClass('text-success');
-                this.$('#picking-qty-done').removeClass('text-error');
+                this.$('#picking-qty-done').removeClass('text-danger');
             }
         },
         renderState: function () {
@@ -225,6 +266,10 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             this.$('#picking-qty-done').removeClass('picking-focus');
             this.$('#picking-quantity').removeClass('picking-focus');
 
+            this.$('#picking-qty').addClass('hidden');
+            this.$('#force-qty-li').addClass('disabled');
+            this.$('#skip-move-line-btn').addClass('disabled');
+
             this.$('#info-text').text("Scanner un article du chariot");
         },
         renderStateLocation: function () {
@@ -232,12 +277,20 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             this.$('#picking-qty-done').removeClass('picking-focus');
             this.$('#picking-quantity').removeClass('picking-focus');
 
-            this.$('#info-text').text("Allez à l'emplacement demandé ou à nouvel emplacement");
+            this.$('#picking-qty').addClass('hidden');
+            this.$('#force-qty-li').addClass('disabled');
+            this.$('#skip-move-line-btn').removeClass('disabled');
+
+            this.$('#info-text').text("Scannez l'emplacement demandé ou un nouvel emplacement");
         },
         renderStateQuantity: function () {
             this.$('#picking-location').removeClass('picking-focus');
             this.$('#picking-qty-done').removeClass('picking-focus');
             this.$('#picking-quantity').addClass('picking-focus');
+
+            this.$('#picking-qty').removeClass('hidden');
+            this.$('#force-qty-li').removeClass('disabled');
+            this.$('#skip-move-line-btn').removeClass('disabled');
 
             this.$('#info-text').text("Validez la quantité demandée et rangez les articles");
         },

@@ -105,7 +105,7 @@
             </div>
 
             <t t-if='widget.moveLine'>
-                <div class="container">
+                <div class="container center-container">
                     <div class="row picking-nav">
 
                         <div class="col-xs-12 picking-flex">
@@ -125,20 +125,23 @@
                                 <span>/<t t-esc="widget.moveLine.qty_todo"/></span>
                             </div>
                         </div>
-
-                        <t t-if='widget.showManualInput'>
-                            <div class="col-xs-12">
-                                <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
-                            </div>
-                        </t>
                     </div>
                 </div>
 
                 <div class="container bottom-container">
                     <div class="row">
-                        <div class="col-md-12">
+
+                        <t t-if='widget.showManualInput'>
+                            <div class="col-xs-12">
+                                <p>
+                                    <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
+                                </p>
+                            </div>
+                        </t>
+
+                        <div class="col-xs-12">
                             <div class="btn-group dropup btn-navigation-action">
-                              <button type="button" class="btn btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
+                              <button type="button" class="btn btn-lg btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
                               <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="caret"></span>
                               </button>

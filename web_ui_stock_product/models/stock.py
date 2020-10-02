@@ -108,7 +108,10 @@ class StockPickingTypeWebUiStockProduct(models.Model):
         picking = moves[0].picking_id
         picking.action_assign()
 
-        return picking.name
+        return {
+            'id': picking.id,
+            'name': picking.name
+        }
 
 
 class ProductProductWebUiStockProduct(models.Model):

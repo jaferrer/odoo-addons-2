@@ -53,6 +53,12 @@ odoo.define('web_ui_stock.StockActivity', function (require) {
             this.fragmentsStack.pop().destroy();
             this.init_fragment();
             this.fragmentsStack[this.fragmentsStack.length - 1].appendTo(this.activityContainer);
+        },
+        notifyError: function(message) {
+             $.toast({
+                text: message,
+                icon: 'error'
+            });
         }
     });
 

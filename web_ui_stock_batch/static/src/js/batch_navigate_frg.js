@@ -110,10 +110,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                     this.renderElement();
                 }).fail((errors, event) => {
                     let message = errors.data ? errors.data.message : "Une erreur est survenue"
-                    $.toast({
-                        text: message,
-                        icon: 'error'
-                    });
+                    this.activity.notifyError(message);
                     event.preventDefault();
                 });
         },
@@ -173,19 +170,12 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                         if (this.moveLine.product.name === product.name) {
                             this.validate_new_qty(this.moveLine.qty_done + 1);
                         } else {
-                            // this.do_warn("test", "test", false);
-                            $.toast({
-                                text: "Mauvais produit",
-                                icon: 'error'
-                            });
+                            this.activity.notifyError("Mauvais produit");
                         }
                     }
                 )
                 .fail((errors, event) => {
-                    $.toast({
-                        text: "Pas de produit correspondant trouvé",
-                        icon: 'error'
-                    });
+                    this.activity.notifyError("Produit introuvable");
                     event.preventDefault();
                 });
         },
@@ -196,10 +186,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 })
                 .fail((errors, event) => {
                     let message = errors.data ? errors.data.message : "Une erreur est survenue"
-                    $.toast({
-                        text: message,
-                        icon: 'error'
-                    });
+                    this.activity.notifyError(message);
                     event.preventDefault();
                 });
         },
@@ -224,10 +211,10 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             if (this.moveLine.qty_done === this.moveLine.qty_todo) {
                 this.$('#picking-qty-done').addClass('text-success');
             } else if (this.moveLine.qty_done > this.moveLine.qty_todo) {
-                this.$('#picking-qty-done').addClass('text-error');
+                this.$('#picking-qty-done').addClass('text-danger');
             } else {
                 this.$('#picking-qty-done').removeClass('text-success');
-                this.$('#picking-qty-done').removeClass('text-error');
+                this.$('#picking-qty-done').removeClass('text-danger');
             }
 
             this.renderButton();

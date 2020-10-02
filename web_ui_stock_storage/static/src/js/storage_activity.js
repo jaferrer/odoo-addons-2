@@ -14,11 +14,16 @@ odoo.define('web_ui_stock_storage.StorageActivity', function (require) {
         init: function (parent, action, options) {
             this._super(parent, action, options);
             this.storageScreen = options.storage_screen || false;
-            this.pickingName = options.picking_name || "";
+            this.pickingId = options.picking_id || false;
         },
         start: function () {
             this._super();
-            this.init_fragment_storage_selection();
+            if (this.pickingId) {
+                this.init_fragment_storage_navigate(this.pickingId);
+            }
+            else {
+                this.init_fragment_storage_selection();
+            }
         },
         init_title: function () {
             StockPickingType.call('read', [[this.pickingTypeId], ['name']]).then((res) => {
@@ -37,7 +42,7 @@ odoo.define('web_ui_stock_storage.StorageActivity', function (require) {
         init_fragment_storage_navigate: function (pickingId) {
             let navigateOptions = {}
             var storageNavigate = new StorageNavigate(this, pickingId, navigateOptions);
-            while (this.fragmentsStack.slice(-1)[0].__proto__.template !== 'StorageSelection') {
+            while (this.fragmentsStack.length && this.fragmentsStack.slice(-1)[0].__proto__.template !== 'StorageSelection') {
                 this.fragmentsStack.pop().destroy();
             }
             this.fragmentsStack.push(storageNavigate);

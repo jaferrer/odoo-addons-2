@@ -26,8 +26,8 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this._super(parent, action, options);
             this.pickingTypeId = parseInt(options.picking_type_id || "0");
             this.storageScreen = options.storage_screen || false;
-            this.type = options.type || false;
-            this.auto_max_qty = this.type === 'internal_move'
+            this.is_internal_move = options.type === 'internal_move';
+            this.auto_max_qty = this.is_internal_move;
             this.rows = [];
             this.lot_row = false;
             this.barcode_scanner = new BarcodeScanner();
@@ -108,7 +108,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this.renderState();
         },
         scan: function (value) {
-            console.log("SCAN: " + value);
+            console.log(value);
             this.$('#search-code').val('');
             switch (this.state) {
                 case STATES.product:
@@ -123,7 +123,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             }
         },
         scanProduct: function (value) {
-            StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], value, false, this.type])
+            StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], value, false, this.is_internal_move])
                 .always(() => {
                     this.renderState();
                 })
@@ -181,10 +181,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                 })
                 .fail((errors, event) => {
                     console.log("Error print", errors, event);
-                    $.toast({
-                        text: "Mauvais emplacement",
-                        icon: 'error'
-                    });
+                    this.activity.notifyError("Mauvais emplacement");
                     event.preventDefault();
                 });
         },
@@ -200,25 +197,26 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                 }
             ));
             StockPickingType.call('do_validate_scan', [[this.pickingTypeId], product_infos])
-                .then((pickingName) => {
-                    if (this.type === 'internal_move') {
-                        this.continue_to_storage(pickingName)
+                .then((picking) => {
+                    if (this.is_internal_move) {
+                        this.continue_to_storage(picking)
                     } else {
-                        this.back_to_handling_screen(pickingName)
+                        this.back_to_handling_screen(picking)
                     }
                 });
         },
-        back_to_handling_screen: function (pickingName = "") {
+        back_to_handling_screen: function (picking={}) {
             this.do_action('stock.ui.storage_handling', {
                 'picking_type_id': this.pickingTypeId,
-                'picking_name': pickingName
+                'picking_id': picking.id,
+                'picking_name': picking.name
             });
         },
-        continue_to_storage: function (pickingName) {
+        continue_to_storage: function (picking) {
             this.do_action('stock.ui.storage', {
                 'picking_type_id': this.pickingTypeId,
                 'storage_screen': this.storageScreen,
-                'picking_name': pickingName,
+                'picking_id': picking.id
             });
         },
         renderState: function () {
