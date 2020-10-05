@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="training_session_tree">
+            <field name="name">training_session_tree</field>
+            <field name="model">training.session</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="training_id"/>
+                    <field name="trainer_id"/>
+                    <field name="location_id"/>
+                    <field name="price"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="training_session_search">
+            <field name="name">training_session_search</field>
+            <field name="model">training.session</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="training_id"/>
+                    <field name="trainer_id"/>
+                    <field name="location_id"/>
+                    <field name="price"/>
+                    <field name="attendee_ids"/>
+                    <group expand="0" name="group_by" string="Group By">
+                        <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
+                        <filter name="group_by_location_id" string="Location" domain="[]" context="{'group_by' : 'location_id'}"/>
+                        <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="training_session_form">
+            <field name="name">training_session_form</field>
+            <field name="model">training.session</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="training_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="trainer_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <notebook>
+                            <page string="Attendees">
+                                <field name="attendee_ids" context="{'default_is_attendee': True}"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="o_attachment_preview"/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_session">
+            <field name="name">Sessions</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">training.session</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_sessions" name="Sessions" action="act_window_session"
+                  parent="menu_training_global" sequence="20"/>
+
+    </data>
+</openerp>

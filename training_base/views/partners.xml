@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_contacts" name="Contacts" parent="top_menu_training" sequence="10"/>
+
+        <record model="ir.ui.view" id="res_partner_form">
+            <field name="name">res_partner_form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <page name="sales_purchases" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', ('is_institution', '=', True), ('is_training_location', '=', True)]}</attribute>
+                </page>
+                <notebook position="inside">
+                    <page string="Training">
+                        <group>
+                            <field name="is_attendee"/>
+                            <field name="is_trainer"/>
+                            <field name="is_institution"/>
+                            <field name="is_training_location"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="res_partner_search">
+            <field name="name">res_partner_search</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <filter name="is_attendee" string="Attendees" domain="[('is_attendee', '=', True)]"/>
+                    <filter name="is_trainer" string="Trainers" domain="[('is_trainer', '=', True)]"/>
+                    <filter name="is_institution" string="Institutions" domain="[('is_institution', '=', True)]"/>
+                    <separator/>
+                    <filter name="is_training_location" string="Training Locations" domain="[('is_training_location', '=', True)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_attendees">
+            <field name="name">Attendees</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">res.partner</field>
+            <field name="context">{'search_default_is_attendee': True, 'default_is_attendee': True}</field>
+        </record>
+
+        <menuitem id="menu_attendees" name="Attendees" action="act_window_attendees"
+                  parent="menu_contacts" sequence="20"/>
+
+        <record model="ir.actions.act_window" id="act_window_trainers">
+            <field name="name">Trainers</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">res.partner</field>
+            <field name="context">{'search_default_is_trainer': True, 'default_is_trainer': True}</field>
+        </record>
+
+        <menuitem id="menu_trainers" name="Trainers" action="act_window_trainers"
+                  parent="menu_contacts" sequence="20"/>
+
+        <record model="ir.actions.act_window" id="act_window_institutions">
+            <field name="name">Institutions</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">res.partner</field>
+            <field name="context">{'search_default_is_institution': True, 'default_is_institution': True, 'default_is_company': True}</field>
+        </record>
+
+        <menuitem id="menu_institutions" name="Institutions" action="act_window_institutions"
+                  parent="menu_contacts" sequence="20"/>
+
+        <record model="ir.actions.act_window" id="act_window_training_locations">
+            <field name="name">Training Locations</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">res.partner</field>
+            <field name="context">{'search_default_is_training_location': True, 'default_is_training_location': True, 'default_is_company': True}</field>
+        </record>
+
+        <menuitem id="menu_training_locations" name="Training Locations" action="act_window_training_locations"
+                  parent="menu_contacts" sequence="20"/>
+
+    </data>
+</openerp>
