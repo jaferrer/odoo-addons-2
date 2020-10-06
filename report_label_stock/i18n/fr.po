@@ -31,6 +31,11 @@ msgid "Product Barcode"
 msgstr "Etiquette Produit"
 
 #. module: report_label_stock
+#: model:ir.actions.report,name:report_label_stock.ir_actions_report_xml_picking_product_palette
+msgid "Product Palette Barcode"
+msgstr "Etiquette Palette"
+
+#. module: report_label_stock
 #: model:ir.actions.report,name:report_label_stock.ir_action_etiquette_code_barre_planche
 #: model:ir.actions.report,name:report_label_stock.ir_action_etiquette_produit_code_barre_planche
 msgid "Product Barcode Sheet"
