@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_main_list.js"/>
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_main_list_move_line_row.js"/>
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_main_list_move_line_numpad.js"/>
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_owner_selection.js"/>
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_picking_selection.js"/>
+                <script type="text/javascript" src="/web_ui_stock_receipt/static/src/js/receipt_result.js"/>
+            </xpath>
+        </template>
+
+        <template id="assets_backend_index_receipt" name="stock assets index" inherit_id="web_ui_stock.index">
+            <xpath expr="//head" position="inside">
+                <link rel="stylesheet" href="/web_ui_stock_receipt/static/src/css/theme.css"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>

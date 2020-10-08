@@ -19,8 +19,8 @@
 
 import socket
 import json
-import jsonrpclib
 import logging
+import jsonrpclib
 
 from openerp import fields, models, api
 from openerp.addons.connector.exception import FailedJobError
@@ -36,7 +36,6 @@ class BusConnexionAbstract(models.AbstractModel):
     database = fields.Char(u"Database")
     login = fields.Char(u"Login")
     password = fields.Char(u"Password")
-    # TODO: écrire un cron pour mettre à jour ce statut régulièrement
     connection_status = fields.Char(string=u"Connection status", readonly=True)
 
     @api.multi
@@ -68,8 +67,9 @@ class BusConnexionAbstract(models.AbstractModel):
         return server, result, connection
 
     @api.multi
-    def send_search_read(self, model, domain=[], fields=[]):
-        server, result, login = self.try_connexion(raise_error=True)
+    def send_search_read(self, server, login, model, domain, read_fields):
+        if not login:
+            server, _, login = self.try_connexion(raise_error=True)
         args = [
             self.database,
             login,
@@ -77,17 +77,16 @@ class BusConnexionAbstract(models.AbstractModel):
             model,
             'search_read',
             domain,
-            fields
+            read_fields
         ]
         try:
-            result = server.call(service='object', method='execute', args=args)
-            return result
+            return server.call(service='object', method='execute', args=args)
         except jsonrpclib.ProtocolError:
             raise FailedJobError(self._return_last_jsonrpclib_error())
 
     @api.multi
     def send_odoo_message(self, model, function, code, message):
-        server, result, login = self.try_connexion(raise_error=True)
+        server, _, login = self.try_connexion(raise_error=True)
         args = [
             self.database,
             login,
@@ -98,10 +97,10 @@ class BusConnexionAbstract(models.AbstractModel):
             message
         ]
         try:
-            result = server.call(service='object', method='execute', args=args)
-            return result
+            return server.call(service='object', method='execute', args=args)
         except jsonrpclib.ProtocolError:
             raise FailedJobError(self._return_last_jsonrpclib_error())
 
+    @api.model
     def _return_last_jsonrpclib_error(self):
         return json.loads(jsonrpclib.history.response).get('error').get('data').get('message')

@@ -1,0 +1,243 @@
+odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
+    "use strict";
+
+    var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
+    var Widget = require('web.Widget');
+    var core = require('web.core');
+    var QWeb = core.qweb;
+    var ScanProductRow = {
+        Row: require('web_ui_stock_product.ScanProductRow'),
+        Error: require('web_ui_stock_product.ScanProductRow.Error'),
+        Lot: require('web_ui_stock_product.ScanProductRow.Lot')
+    };
+    var Model = require('web.Model');
+    let StockPickingType = new Model('stock.picking.type');
+    let PosteProduct = new Model('poste.product');
+    let ProductProduct = new Model('product.product');
+
+    var ScanProductMainWidget = Widget.extend({
+        template: 'ScanProductMainWidget',
+        init: function (parent, action, options) {
+            this._super(parent, action, options);
+            this.pickingTypeId = parseInt(options.picking_type_id || "0");
+            this.storageScreen = options.storage_screen || false;
+            this.rows = [];
+            this.lot_row = false;
+            this.selected_scan_product_computer = 0;
+            this.barcode_scanner = new BarcodeScanner();
+        },
+        renderElement: function () {
+            this._super();
+            this.product_table = this.$('#product_table');
+            this.$('#btn_exit').click((ev) => window.history.back());
+            this.product_table_body = this.$('#product_table_body');
+            this.need_for_lot = this.$('#need_for_lot');
+            StockPickingType.call('name_get', [[this.pickingTypeId]]).then((res) => this._set_view_title(res[0][1]));
+
+            this._init_scan_product_computer();
+            this._connect_scanner();
+            this.$('#search_product').focus(() => {
+                this._disconnect_scanner();
+                this.$('#search_product').on('keyup', (e) => {
+                    if (e.key == 'Enter') {
+                        this.scan(this.$('#search_product').val())
+                    }
+                })
+            });
+            this.$('#search_product').blur(() => {
+                this.$('#search_product').off('keyup');
+                this._connect_scanner();
+            });
+            this.$('#clear_search_product').click(() => {
+                console.log('clear_search_product');
+                this.$('#search_product').val('');
+                this.$('#search_product').focus()
+            });
+            this.$('#btn_delete_all_rows').click(() => {
+                console.log('btn_delete_all_rows');
+                this.$('[data-error-row]').remove();
+                this.rows.forEach((row) => this.delete_row(row));
+            });
+            this.$('#btn_process_all_rows').click(() => {
+                console.log('btn_process_all_rows');
+                this.$('[data-error-row]').remove();
+            });
+            this.$('button.js_validate_scan').click(ev => { this.validate_scan() });
+
+            this.$('#search_product_lot').focus(() => {
+                this._disconnect_scanner();
+                this.$('#search_product_lot').on('keyup', (e) => {
+                    if (e.key == 'Enter') {
+                        this.scan_lot(this.$('#search_product_lot').val())
+                    }
+                })
+            });
+            this.$('#search_product_lot').blur(() => {
+                this.$('#search_product_lot').off('keyup');
+                this._connect_scanner();
+            });
+            this.$('#clear_search_product_lot').click(() => {
+                console.log('clear_search_product_lot');
+                this.$('#search_product_lot').val('');
+                this.$('#search_product_lot').focus()
+            });
+            // Si on arrive sur cet écran depuis le gestionnaire de chariot
+            if (this.storageScreen) {
+                this.$('#back_to_handling_screen').removeClass('hidden');
+            }
+            this.$('#back_to_handling_screen').click(() => { this.back_to_handling_screen() });
+
+        },
+        _init_scan_product_computer: function () {
+            PosteProduct.call('search_read', [[]])
+                .then((res) => {
+                    let scan_product_section = this.$('#scan_product_printer_choice');
+                    res.forEach(res => {
+                        scan_product_section.append($(document.createElement('button'))
+                            .addClass('btn')
+                            .addClass('btn-default')
+                            .addClass('btn-scan-product')
+                            .attr('data-scan-product-computer-id', res.id)
+                            .attr('data-scan-product-computer-code', res.code)
+                            .text(res.name)
+                        );
+                    });
+                    this.$('button.btn-scan-product').click((ev) => this.on_select_scan_product_computer(ev));
+                });
+        },
+        on_select_scan_product_computer: function (ev) {
+            let el = $(ev.currentTarget);
+            this.$('button.btn-scan-product').removeClass('btn-success');
+            this.$('button.btn-scan-product').addClass('btn-default');
+            el.toggleClass('btn-success');
+            el.toggleClass('btn-default');
+            this.selected_scan_product_computer = el.data('scan-product-computer-id');
+            this.$('#btn_process_all_rows').prop("disabled", false);
+        },
+        _set_view_title: function (title) {
+            $("#view_title").text(title);
+        },
+        start: function () {
+            this._super();
+        },
+        _connect_scanner: function () {
+            this.barcode_scanner.connect(this.scan.bind(this));
+        },
+        _disconnect_scanner: function () {
+            this.barcode_scanner.disconnect();
+        },
+        get_header: function () {
+            return this.getParent().get_header();
+        },
+        scan: function (name) {
+            console.log(name);
+            this.$('#search_product').val('');
+            StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], name])
+                .always(() => {
+                    if (!this.$('#big_helper').hasClass('hidden')) {
+                        this.$('#big_helper').addClass('hidden')
+                    }
+                })
+                .then((produ) => {
+                    let productsIds = this.rows.map(it => it.product.id);
+                    if (!productsIds.includes(produ.id)) {
+                        let row = new ScanProductRow.Row(this, produ);
+                        this.rows.push(row);
+                        row.appendTo(this.product_table_body);
+                    } else {
+                        let row = this.rows.find(it => it.product.id == produ.id);
+                        if (row.product.tracking !== 'serial') {
+                            row._update_quantity();
+                        }
+                    }
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                    new ScanProductRow.Error(this, {
+                        'title': errors.data.arguments[0],
+                        'message': errors.data.arguments[1]
+                    }).appendTo(this.product_table_body);
+                    event.preventDefault();
+                });
+        },
+        scan_lot: function (name) {
+            console.log(name);
+            this.$('#search_product_lot').val('');
+            StockPickingType.call('web_ui_get_production_info_for_product', [[this.pickingTypeId], name, this.lot_row.productRow.product.id])
+                .then((produ) => {
+                    let row = this.rows.find(it => it.product.id == produ.id);
+                    if (row) {
+                        row._update_num_lot(produ);
+                        this.exit_need_num_lot();
+                    } else if (row === undefined) {
+                        this.lot_row.$('#invalid_lot_number_col').removeClass('hidden');
+                        this.lot_row.$('#invalid_lot_number_header').removeClass('hidden');
+                        this.lot_row.invalid_number = name;
+                    }
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                    this.lot_row.invalid_number = name;
+                    event.preventDefault();
+                    this.lot_row.$('#invalid_lot_number_col').text(name);
+                    this.lot_row.$('#invalid_lot_number_col').removeClass('hidden');
+                    this.lot_row.$('#invalid_lot_number_header').removeClass('hidden');
+                });
+        },
+        delete_row: function (row) {
+            console.log('delete_row', row);
+            row.$el.remove();
+            this.rows.splice(this.rows.indexOf(row), 1);
+            console.log('delete_row', this.rows);
+        },
+        open_need_num_lot: function (row) {
+            ProductProduct.call('web_ui_get_product_info', [[row.product.id]])
+                .then((result) => {
+                   this.product_table.toggleClass('hidden');
+                    this.$('#mass_btn').toggleClass('hidden');
+                    this.$('#manual_scan').toggleClass('hidden');
+                    this.$('#need_num_lot_scan').toggleClass('hidden');
+                    this.need_for_lot.toggleClass('hidden');
+                    let lot_row = new ScanProductRow.Lot(this, row);
+                    this.lot_row = lot_row;
+                    lot_row.appendTo(this.need_for_lot);
+                });
+        },
+        exit_need_num_lot: function () {
+            this.product_table.toggleClass('hidden');
+            this.$('#mass_btn').toggleClass('hidden');
+            this.$('#manual_scan').toggleClass('hidden');
+            this.$('#need_num_lot_scan').toggleClass('hidden');
+            this.need_for_lot.toggleClass('hidden');
+            this.need_for_lot.empty();
+        },
+        validate_scan: function () {
+            let product_infos = [];
+            this.rows.forEach(row => product_infos.push({
+                'id': row.product.id,
+                'quantity': row.product.quantity}
+                ));
+            StockPickingType.call('do_validate_scan', [[this.pickingTypeId], product_infos])
+                .then((pickingName) => {
+                   this.back_to_handling_screen(pickingName)
+                });
+        },
+        back_to_handling_screen: function (pickingName="") {
+            // Supprime toutes les lignes avant de revenir à l'écran de gestion
+            console.log('btn_delete_all_rows');
+            this.$('[data-error-row]').remove();
+            this.rows.forEach((row) => this.delete_row(row));
+
+            // supprime la vue de scan
+            this.$('#big_helper').parent().parent().empty();
+
+            this.do_action('stock.ui.storage_handling', {
+                'picking_type_id': this.pickingTypeId,
+                'picking_name': pickingName
+            });
+        }
+    });
+
+    core.action_registry.add('stock.ui.product', ScanProductMainWidget);
+    return ScanProductMainWidget;
+});
