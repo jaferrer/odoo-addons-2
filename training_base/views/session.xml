@@ -55,6 +55,15 @@
                             <page string="Attendees">
                                 <field name="attendee_ids" context="{'default_is_attendee': True}"/>
                             </page>
+                            <page string="Sittings">
+                                <field name="sitting_ids" context="{'default_session_id': id}">
+                                    <field name="trainer_id"/>
+                                    <field name="location_id"/>
+                                    <field name="date"/>
+                                    <field name="start_hour"/>
+                                    <field name="end_hour"/>
+                                </field>
+                            </page>
                         </notebook>
                     </sheet>
                     <div class="o_attachment_preview"/>

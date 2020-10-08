@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+        <record model="res.partner" id="attendee_1">
+            <field name="firstname">Georges</field>
+            <field name="lastname">Bernanos</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="attendee_2">
+            <field name="firstname">Jean</field>
+            <field name="lastname">Raspail</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="attendee_3">
+            <field name="firstname">George</field>
+            <field name="lastname">Orwell</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="attendee_4">
+            <field name="firstname">Jules</field>
+            <field name="lastname">Verne</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="attendee_5">
+            <field name="firstname">René</field>
+            <field name="lastname">Descartes</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="attendee_6">
+            <field name="firstname">Alexandre</field>
+            <field name="lastname">Dumas</field>
+            <field name="is_attendee" eval="True"/>
+        </record>
+
+        <record model="training.training" id="training_demo">
+            <field name="name">Découverte Odoo</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="duration" eval="1"/>
+            <field name="price" eval="600"/>
+            <field name="aimed_public">Personnel des centres de formation</field>
+        </record>
+
+        <record model="training.session" id="training_session_1">
+            <field name="name">Formation 1</field>
+            <field name="training_id" ref="training_demo"/>
+            <field name="attendee_ids" eval="[(6, 0, [ref('training_base.attendee_1'), ref('training_base.attendee_2'), ref('training_base.attendee_3')])]"/>
+        </record>
+
+        <record model="training.session" id="training_session_2">
+            <field name="name">Formation 2</field>
+            <field name="training_id" ref="training_demo"/>
+            <field name="attendee_ids" eval="[(6, 0, [ref('training_base.attendee_4'), ref('training_base.attendee_5'), ref('training_base.attendee_6')])]"/>
+        </record>
+
+        <record model="training.sitting" id="training_sitting_1">
+            <field name="session_id" ref="training_session_1"/>
+            <field name="date">2020-11-09</field>
+            <field name="start_hour" eval="9.5"/>
+            <field name="end_hour" eval="13"/>
+        </record>
+
+        <record model="training.sitting" id="training_sitting_2">
+            <field name="session_id" ref="training_session_1"/>
+            <field name="date">2020-11-20</field>
+            <field name="start_hour" eval="14"/>
+            <field name="end_hour" eval="18"/>
+        </record>
+
+        <record model="training.sitting" id="training_sitting_3">
+            <field name="session_id" ref="training_session_2"/>
+            <field name="date">2020-11-30</field>
+            <field name="start_hour" eval="9.5"/>
+            <field name="end_hour" eval="18"/>
+        </record>
+
+    </data>
+</openerp>

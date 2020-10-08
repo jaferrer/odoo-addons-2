@@ -59,6 +59,20 @@
                             </group>
 
                         </group>
+                        <notebook>
+                            <page string="Attendees">
+                                <field name="attendee_ids" context="{'sitting_id': id}">
+                                    <tree>
+                                        <field name="firstname"/>
+                                        <field name="lastname"/>
+                                        <field name="attendance" widget="state_selection"/>
+                                        <button name="button_set_attendance" type="object" string="Set attendance" icon="fa-check"/>
+                                        <button name="button_set_no_attendance" type="object" string="Set no attendance" icon="fa-times"/>
+                                        <button name="button_set_attendance_unknown" type="object" string="Set attendance unknown" icon="fa-question"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                     <div class="o_attachment_preview"/>
                     <div class="oe_chatter">
