@@ -52,7 +52,7 @@
                         <div class="oe_button_box" name="button_box">
                             <button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button"
                                     icon="fa-tasks">
-                                <field name="active" sting="Active"/>
+                                <field name="active" sting="Active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                             </button>
                         </div>
                         <label for="name" class="oe_edit_only"/>

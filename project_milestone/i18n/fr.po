@@ -53,19 +53,10 @@ msgid "Created on"
 msgstr "Créé le"
 
 #. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_prod_at
-msgid "Delivery in Prod at"
-msgstr "Livrée en production le"
-
-#. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_prod_by
 msgid "Delivery in Prod by"
 msgstr "Livrée en production par"
 
-#. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_qualif_at
-msgid "Delivery in Test at"
-msgstr "Livrée en qualification le"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_qualif_by
@@ -181,7 +172,7 @@ msgstr "Date de mise en Production"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at_internal
 msgid "Should be in test at (internal)"
-msgstr "Date de mise en recette (interne)"
+msgstr "Date de mise en Qualif (interne)"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_start_date
@@ -191,12 +182,7 @@ msgstr "Date de début"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at
 msgid "Should be in Test at"
-msgstr "Date de mise en recette"
-
-#. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_should_be_test_before
-msgid "Should be tested before"
-msgstr "Date de fin du recettage"
+msgstr "Date de mise en Qualif"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_state
