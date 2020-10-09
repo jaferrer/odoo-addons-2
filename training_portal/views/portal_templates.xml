@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- region : breadcrumbs -->
+    <template id="training_portal_layout" name="Training Portal layout: menu entry" inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'sessions' or session" t-attf-class="breadcrumb-item #{'active ' if not session else ''}">
+                <a t-if="session" t-attf-href="/sessions?{{ keep_query() }}">Sessions</a>
+                <t t-else="">Sessions</t>
+            </li>
+            <li t-if="session" class="breadcrumb-item active">
+                <t t-esc="session.name"/>
+            </li>
+        </xpath>
+    </template>
+    <!-- endregion : breadcrumbs -->
+
+    <!-- region : home menu -->
+    <template id="portal_my_home_session" name="Portal My Home : session entry" inherit_id="portal.portal_my_home" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="session_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Sessions</t>
+                <t t-set="url" t-value="'/sessions'"/>
+                <t t-set="count" t-value="session_count"/>
+            </t>
+            <t t-if="participated_session_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Participated sessions</t>
+                <t t-set="url" t-value="'/sessions/participated/'"/>
+                <t t-set="count" t-value="participated_session_count"/>
+            </t>
+        </xpath>
+    </template>
+    <!-- endregion : home menu -->
+
+    <!-- region : override footer -->
+    <template id="portal_override_footer" name="portal_override_footer" inherit_id="portal.frontend_layout">
+        <xpath expr="//footer" position="replace">
+            <footer class="bg-light o_footer">
+                <div class="container mt16 mb16" id="footer">
+                    <div class="float-right mb16" t-ignore="true" t-if="not editable">
+                        Provided by <a target="_blank" href="https://ndp-systemes.fr/">NDP-Systèmes</a>
+                    </div>
+                </div>
+            </footer>
+        </xpath>
+    </template>
+    <!-- endregion : override footer -->
+</odoo>

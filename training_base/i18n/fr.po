@@ -1,0 +1,456 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* training_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 13.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-10-10 06:59+0000\n"
+"PO-Revision-Date: 2020-10-10 09:11+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 2.4.1\n"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_needaction
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_needaction
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_needaction
+msgid "Action Needed"
+msgstr "Action nécessaire"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__aimed_public
+msgid "Aimed Public"
+msgstr "Public visé"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_attachment_count
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_attachment_count
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__attendance
+#: model:ir.model.fields,field_description:training_base.field_res_users__attendance
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__attendance
+#: model:ir.model.fields.selection,name:training_base.selection__res_partner__attendance__done
+msgid "Attendance"
+msgstr "Présent"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__res_partner__attendance__normal
+msgid "Attendance not known"
+msgstr "Absent"
+
+#. module: training_base
+#: model:res.groups,name:training_base.group_training_attendee
+msgid "Attendee"
+msgstr "Participant"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_attendees
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__partner_id
+#: model:ir.model.fields,field_description:training_base.field_training_session__attendee_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__attendee_ids
+#: model:ir.ui.menu,name:training_base.menu_attendees
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Attendees"
+msgstr "Participants"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_res_partner
+msgid "Contact"
+msgstr "Contact"
+
+#. module: training_base
+#: model:ir.ui.menu,name:training_base.menu_contacts
+msgid "Contacts"
+msgstr "Contacts"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__create_uid
+#: model:ir.model.fields,field_description:training_base.field_training_session__create_uid
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__create_uid
+#: model:ir.model.fields,field_description:training_base.field_training_training__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__create_date
+#: model:ir.model.fields,field_description:training_base.field_training_session__create_date
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__create_date
+#: model:ir.model.fields,field_description:training_base.field_training_training__create_date
+msgid "Created on"
+msgstr "Créé le "
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__date
+msgid "Date"
+msgstr "Date"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__description
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Description"
+msgstr "Description"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__display_name
+#: model:ir.model.fields,field_description:training_base.field_training_session__display_name
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__display_name
+#: model:ir.model.fields,field_description:training_base.field_training_training__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__duration
+msgid "Duration (days)"
+msgstr "Durée (en jours)"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__end_hour
+msgid "End Hour"
+msgstr "Heure de fin"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_follower_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_follower_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_follower_ids
+msgid "Followers"
+msgstr "Suiveurs"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_channel_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_channel_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_channel_ids
+msgid "Followers (Channels)"
+msgstr "Suiveurs (Chaînes)"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_partner_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_partner_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Suiveurs (Partenaires)"
+
+#. module: training_base
+#: model:ir.model.constraint,message:training_base.constraint_training_attendee_unique_attendee
+msgid ""
+"Forbidden to define two attendances for the same sitting and the same "
+"partner."
+msgstr ""
+"Il est interdit de définir deux fois le même participant à la même "
+"session de formation. "
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_search
+msgid "Group By"
+msgstr "Grouper par"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__id
+#: model:ir.model.fields,field_description:training_base.field_training_session__id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__id
+#: model:ir.model.fields,field_description:training_base.field_training_training__id
+msgid "ID"
+msgstr "ID"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__message_needaction
+#: model:ir.model.fields,help:training_base.field_training_session__message_unread
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_needaction
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_unread
+#: model:ir.model.fields,help:training_base.field_training_training__message_needaction
+#: model:ir.model.fields,help:training_base.field_training_training__message_unread
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__message_has_error
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_has_error
+#: model:ir.model.fields,help:training_base.field_training_training__message_has_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_institutions
+#: model:ir.ui.menu,name:training_base.menu_institutions
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_search
+msgid "Institutions"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_is_follower
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_is_follower
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_is_follower
+msgid "Is Follower"
+msgstr "Est Suiveur"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_trainer
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_trainer
+msgid "Is a trainer"
+msgstr "Est un formateur"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_training_location
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_training_location
+msgid "Is a training location"
+msgstr "Est un lieu de formation"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_attendee
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_attendee
+msgid "Is an attendee"
+msgstr "Est un participant"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_institution
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_institution
+msgid "Is an institution"
+msgstr "Est une institution"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee____last_update
+#: model:ir.model.fields,field_description:training_base.field_training_session____last_update
+#: model:ir.model.fields,field_description:training_base.field_training_sitting____last_update
+#: model:ir.model.fields,field_description:training_base.field_training_training____last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__write_uid
+#: model:ir.model.fields,field_description:training_base.field_training_session__write_uid
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__write_uid
+#: model:ir.model.fields,field_description:training_base.field_training_training__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__write_date
+#: model:ir.model.fields,field_description:training_base.field_training_session__write_date
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__write_date
+#: model:ir.model.fields,field_description:training_base.field_training_training__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__location_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__location_id
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
+msgid "Location"
+msgstr "Lieu de formation"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_main_attachment_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_main_attachment_id
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_has_error
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_has_error
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__res_partner__attendance__blocked
+msgid "No attendance"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_needaction_counter
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_needaction_counter
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_has_error_counter
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_has_error_counter
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__message_needaction_counter
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_needaction_counter
+#: model:ir.model.fields,help:training_base.field_training_training__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr "Nombre de messages ayant besoin de votre aide"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__message_has_error_counter
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_has_error_counter
+#: model:ir.model.fields,help:training_base.field_training_training__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages délivrés avec erreur"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__message_unread_counter
+#: model:ir.model.fields,help:training_base.field_training_sitting__message_unread_counter
+#: model:ir.model.fields,help:training_base.field_training_training__message_unread_counter
+msgid "Number of unread messages"
+msgstr "Nombre de messages non lus"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__price
+#: model:ir.model.fields,field_description:training_base.field_training_training__price
+msgid "Price"
+msgstr "Prix"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__user_id
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_search
+msgid "Responsible"
+msgstr "Responsable"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__session_id
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
+msgid "Session"
+msgstr "Session"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_session
+#: model:ir.model.fields,field_description:training_base.field_training_training__session_ids
+#: model:ir.ui.menu,name:training_base.menu_sessions
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Sessions"
+msgstr "Sessions"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Set attendance"
+msgstr "Présent"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Set attendance unknown"
+msgstr "Sans réponse"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Set no attendance"
+msgstr "Absent"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_attendee__sitting_id
+msgid "Sitting"
+msgstr "Séance"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_sitting
+#: model:ir.model.fields,field_description:training_base.field_training_session__sitting_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__sitting_ids
+#: model:ir.ui.menu,name:training_base.menu_sittings
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Sittings"
+msgstr "Séances"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__start_hour
+msgid "Start Hour"
+msgstr "Heure de début"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__name
+#: model:ir.model.fields,field_description:training_base.field_training_training__name
+msgid "Title"
+msgstr "Titre"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__trainer_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__trainer_id
+#: model:res.groups,name:training_base.group_training_trainer
+msgid "Trainer"
+msgstr "Formateur"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_trainers
+#: model:ir.ui.menu,name:training_base.menu_trainers
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_search
+msgid "Trainers"
+msgstr "Formateurs"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_training
+#: model:ir.model.fields,field_description:training_base.field_training_session__training_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__training_id
+#: model:ir.module.category,name:training_base.module_category_training
+#: model:ir.ui.menu,name:training_base.menu_training_global
+#: model:ir.ui.menu,name:training_base.top_menu_training
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_form
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
+msgid "Training"
+msgstr "Formation"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_training_locations
+#: model:ir.ui.menu,name:training_base.menu_training_locations
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_search
+msgid "Training Locations"
+msgstr "Lieu de formation"
+
+#. module: training_base
+#: model:res.groups,name:training_base.group_training_manager
+msgid "Training Manager"
+msgstr "Formateur"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_attendee
+msgid "Training attendee"
+msgstr "Participant"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_session
+msgid "Training session"
+msgstr "Session de formation"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_sitting
+msgid "Training sitting"
+msgstr ""
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_training
+#: model:ir.ui.menu,name:training_base.menu_trainings
+msgid "Trainings"
+msgstr "Formations"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_unread
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_unread
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_unread
+msgid "Unread Messages"
+msgstr "Messages non lus"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__message_unread_counter
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_unread_counter
+#: model:ir.model.fields,field_description:training_base.field_training_training__message_unread_counter
+msgid "Unread Messages Counter"
+msgstr ""

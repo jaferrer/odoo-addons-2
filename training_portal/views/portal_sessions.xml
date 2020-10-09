@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- region sessions list -->
+    <template id="portal_sessions_list" name="My sessions">
+        <t t-call="portal.portal_layout">
+            <t t-if="not sessions">
+                <div class="alert alert-warning" role="alert">
+                    No session available for your account.
+                </div>
+            </t>
+            <t t-if="sessions" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Session</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Trainer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="sessions" t-as="session">
+                        <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.name"/></a></td>
+                        <td><t t-esc="session.sitting_ids.date" /></td>
+                        <td><t t-esc="session.location_id.display_name" /></td>
+                        <td><t t-esc="session.trainer_id.display_name" /></td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+    <!-- endregion sessions list -->
+
+    <template id="portal_session">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <h5 class="mb-0">
+                        <small class="text-muted"></small><span t-field="session.name"/>
+                        <span class="float-right"></span>
+                    </h5>
+                </t>
+                <t t-set="card_body">
+                    <div class="row">
+                        <div t-if="session.sitting_ids.date" class="col-12 col-md-6 mb-2 mb-md-0">
+                            <h6>Date</h6>
+                            <div class="row">
+                                <div class="col flex-grow-0 pr-3">
+                                    <t t-esc="session.sitting_ids.date" />
+                                </div>
+                                <div class="col pl-sm-0">
+                                    <address t-field="session.trainer_id" t-options='{"widget": "contact", "fields": ["name", "email"]}'/>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-if="session.location_id" class="col-12 col-md-6">
+                            <h6>Location</h6>
+                            <div class="row">
+                                <div class="col flex-grow-0 pr-3">
+                                    <img t-if="project.user_id.image_1024" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(project.user_id.image_1024)" alt="Contact"/>
+                                    <img t-else="" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/user_menu_avatar.png" alt="Contact"/>
+                                </div>
+                                <div class="col pl-sm-0">
+                                    <address t-field="session.location_id" t-options='{"widget": "contact", "fields": ["name"]}'/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
