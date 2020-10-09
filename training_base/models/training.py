@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields
+from odoo import models, fields, exceptions
 
 
 class TrainingPartner(models.Model):
@@ -27,6 +27,56 @@ class TrainingPartner(models.Model):
     is_trainer = fields.Boolean("Is a trainer")
     is_institution = fields.Boolean("Is an institution")
     is_training_location = fields.Boolean("Is a training location")
+    attendance = fields.Selection([('normal', "Attendance not known"),
+                                   ('blocked', "No attendance"),
+                                   ('done', "Attendance")], string="Attendance", compute='_compute_attendance')
+
+    def _compute_attendance(self):
+        sitting_id = self.env.context.get('sitting_id', 0)
+        if not sitting_id:
+            raise exceptions.UserError("Impossible to determine attendance if no sitting provided")
+        for rec in self:
+            attendance = self.env['training.attendee'].search([('sitting_id', '=', sitting_id),
+                                                               ('partner_id', '=', rec.id)], limit=1)
+            if attendance:
+                if attendance.attendance:
+                    rec.attendance = 'done'
+                else:
+                    rec.attendance = 'blocked'
+            else:
+                rec.attendance = 'normal'
+
+    def define_attendance(self, attendance):
+        self.ensure_one()
+        sitting_id = self.env.context.get('sitting_id', 0)
+        if not sitting_id:
+            raise exceptions.UserError("Impossible to define attendance if no sitting provided")
+        attendee = self.env['training.attendee'].search([('sitting_id', '=', sitting_id),
+                                                         ('partner_id', '=', self.id)], limit=1)
+        if attendance == 'normal':
+            attendee.unlink()
+            return
+        vals = {
+            'sitting_id': sitting_id,
+            'partner_id': self.id,
+        }
+        if attendance == 'blocked':
+            vals['attendance'] = False
+        if attendance == 'done':
+            vals['attendance'] = True
+        if attendee:
+            attendee.write(vals)
+            return
+        attendee.create(vals)
+
+    def button_set_attendance(self):
+        self.define_attendance('done')
+
+    def button_set_no_attendance(self):
+        self.define_attendance('blocked')
+
+    def button_set_attendance_unknown(self):
+        self.define_attendance('normal')
 
 
 class TrainingTraining(models.Model):
@@ -53,11 +103,15 @@ class TrainingSession(models.Model):
     _inherit = 'mail.thread'
 
     name = fields.Char(string="Title", required=True)
-    training_id = fields.Many2one('training.training', string="Training", required=True)
+    training_id = fields.Many2one('training.training', string="Training", required=True, ondelete='cascade')
     trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)])
     attendee_ids = fields.Many2many('res.partner', string="Attendees", domain=[('is_attendee', '=', True)])
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
     price = fields.Float(string="Price")
+    sitting_ids = fields.One2many('training.sitting', 'session_id', string="Sittings")
+
+    def name_get(self):
+        return [(rec.id, "%s / %s" % (rec.training_id.display_name, rec.name)) for rec in self]
 
 
 class TrainingSitting(models.Model):
@@ -65,7 +119,7 @@ class TrainingSitting(models.Model):
     _description = "Training sitting"
     _inherit = 'mail.thread'
 
-    session_id = fields.Many2one('training.session', string="Session", required=True)
+    session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
     training_id = fields.Many2one('training.training', string="Training", related='session_id.training_id',
                                   readonly=True, store=True)
     trainer_id = fields.Many2one('res.partner', string="Trainer", related='session_id.trainer_id',
@@ -75,3 +129,21 @@ class TrainingSitting(models.Model):
     date = fields.Date(string="Date")
     start_hour = fields.Float(string="Start Hour")
     end_hour = fields.Float(string="End Hour")
+    attendee_ids = fields.Many2many('res.partner', related='session_id.attendee_ids')
+
+    def name_get(self):
+        return [(rec.id, "%s (date %s)" % (rec.session_id.display_name, rec.date)) for rec in self]
+
+
+class TrainingAttendee(models.Model):
+    _name = 'training.attendee'
+    _description = "Training attendee"
+
+    partner_id = fields.Many2one('res.partner', string="Attendees", required=True, ondelete='cascade')
+    sitting_id = fields.Many2one('training.sitting', string="Sitting", required=True, ondelete='cascade')
+    attendance = fields.Boolean(string="Attendance")
+
+    _sql_constraints = [
+        ('unique_attendee', 'unique (partner_id, sitting_id)', "Forbidden to define two attendances for the same "
+                                                               "sitting and the same partner.")
+    ]
