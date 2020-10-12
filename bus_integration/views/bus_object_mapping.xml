@@ -15,6 +15,7 @@
                     <field name="deactivate_on_delete"/>
                     <field name="update_prohibited"/>
                     <field name="dependency_level"/>
+                    <field name="can_select_export_to"/>
                 </tree>
             </field>
         </record>
@@ -26,6 +27,7 @@
             <field name="arch" type="xml">
                 <search string="Object Mapping">
                     <field name="model_id"/>
+                    <field name="can_select_export_to"/>
                     <group expand="0" string="Filters">
                         <filter name="is_exportable" string="is_exportable" domain="[('is_exportable','=', True)]"/>
                         <filter name="is_importable" string="is_importable" domain="[('is_importable','=', True)]"/>
@@ -34,6 +36,7 @@
                                 domain="[('deactivated_sync','=', True)]"/>
                         <filter name="deactivate_on_delete" string="Deactivate on delete"
                                 domain="[('deactivate_on_delete','=', True)]"/>
+                        <filter name="can_select_export_to" string="Can select export to" domain="[('can_select_export_to','=', True)]"/>
                     </group>
                 </search>
             </field>
@@ -61,6 +64,7 @@
                             <field name="deactivate_on_delete"/>
                             <field name="update_prohibited"/>
                             <field name="dependency_level"/>
+                            <field name="can_select_export_to"/>
                         </group>
                         <notebook>
                             <page>
