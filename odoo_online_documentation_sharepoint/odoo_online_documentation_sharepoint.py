@@ -17,8 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import urllib
-import requests
 import json
+import requests
 
 from openerp import models, fields, api, _
 from openerp.addons.connector.queue.job import job
@@ -66,9 +66,7 @@ class OdooOnlineDocumentationSharepoint(models.Model):
                     "url": url,
                     "target": "new"
                 }
-
-            else:
-                return super(OdooOnlineDocumentationSharepoint, rec).open_documentation()
+            return super(OdooOnlineDocumentationSharepoint, rec).open_documentation()
 
 
 class ExploreSharepointFolders(models.Model):
@@ -227,6 +225,15 @@ class SharepointAccessIdConfig(models.TransientModel):
     auth_code_url_sharepoint = fields.Char(u"Authentication url")
 
     @api.model
+    def _get_sharepoint_url(self):
+        """
+        get 'web.base.url.sharepoint' parameter if set otherwise 'web.base.url'
+        """
+        parameter_obj = self.env['ir.config_parameter']
+        base_url = parameter_obj.get_param('web.base.url.sharepoint', parameter_obj.get_param('web.base.url', ""))
+        return u"%s/sirail_sharepoint" % base_url
+
+    @api.model
     def get_default_username_sharepoint(self, fields):
         username_sharepoint = self.env['ir.config_parameter']. \
             get_param('odoo_online_documentation_sharepoint.username_sharepoint')
@@ -305,14 +312,12 @@ class SharepointAccessIdConfig(models.TransientModel):
         """
         Request an authorization code for ndp@sirailgroup.com to microsoft to be able to do modifications on Sharepoint.
         """
-
-        full_redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
         dbname = self.env.cr.dbname
 
         params = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
             'response_type': u"code",
-            'redirect_uri': full_redirect_uri,
+            'redirect_uri': self._get_sharepoint_url(),
             'response_mode': u"query",
             'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'state': json.dumps({'d': dbname}),
@@ -332,8 +337,6 @@ class SharepointAccessIdConfig(models.TransientModel):
         """
 
         config_parameters = self.env['ir.config_parameter']
-        redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
-
         headers = {
             'Content-Type': u"application/x-www-form-urlencoded",
         }
@@ -342,7 +345,7 @@ class SharepointAccessIdConfig(models.TransientModel):
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
             'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'code': authorization_code,
-            'redirect_uri': redirect_uri,
+            'redirect_uri': self._get_sharepoint_url(),
             'grant_type': u"authorization_code",
             'client_secret': u"Q:>QIg|I>+cE#&Vv:&=(5+ld{q[_LF%@o!=};{c1#3)",
         }
@@ -361,8 +364,6 @@ class SharepointAccessIdConfig(models.TransientModel):
         """
 
         sharepoint_refresh_token = self.env['ir.config_parameter'].get_param('sharepoint_refresh_token')
-        redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
-
         headers = {
             'Content-Type': u"application/x-www-form-urlencoded",
         }
@@ -371,7 +372,7 @@ class SharepointAccessIdConfig(models.TransientModel):
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
             'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'refresh_token': sharepoint_refresh_token,
-            'redirect_uri': redirect_uri,
+            'redirect_uri': self._get_sharepoint_url(),
             'grant_type': u"refresh_token",
             'client_secret': u"Q:>QIg|I>+cE#&Vv:&=(5+ld{q[_LF%@o!=};{c1#3)",
         }
