@@ -15,7 +15,7 @@ odoo.define('web_image_zoom_widget.image_zoom', function (require) {
             this._super();
             var self = this;
             var url_img = this.placeholder;
-            var src_img = this.options.src_img ? 'image' : this.name;
+            var src_img = this.options.src_img ? this.options.src_img : this.name;
             var size_img = this.options.src_img ? 'large' : 'small';
             var $img = null;
 
@@ -37,25 +37,23 @@ odoo.define('web_image_zoom_widget.image_zoom', function (require) {
                 $img.css("height", "" + self.options.size[1] + "px");
             }
 
-            if (self.options.src_img) {
-                self.$el.find('img.img.img-responsive').off().on('click', function () {
-                    $img.css("width", "max-content");
-                    $img.css("height", "max-content");
-                    let modal = new Dialog(self, {
-                        size: size_img,
-                        dialogClass: 'o_act_window fgdgdsgf',
-                        title: _t("Agrandissement"),
-                        $content: $img,
-                        buttons: [
-                            {
-                                text: _t("Close"), classes: 'btn-primary', close: true
-                            }
-                        ],
-                    });
-                    modal.open();
-                    modal.$el.parent('.modal-content').css('max-height', 'none');
+            self.$el.find('img.img.img-responsive').off().on('click', function () {
+                $img.css("width", "max-content");
+                $img.css("height", "max-content");
+                let modal = new Dialog(self, {
+                    size: size_img,
+                    dialogClass: 'o_act_window',
+                    title: _t("Agrandissement"),
+                    $content: $img,
+                    buttons: [
+                        {
+                            text: _t("Close"), classes: 'btn-primary', close: true
+                        }
+                    ],
                 });
-            }
+                modal.open();
+                modal.$el.parent('.modal-content').css('max-height', 'none');
+            });
         },
     });
 })
