@@ -17,15 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 {
-    'name': "Web list fixed headers",
+    'name': "Web full size pop-up",
 
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
+    'category': 'Web',
     'depends': ['web'],
-    'description': """A module that fix list headers
-        """,
+    'description': """
+Web full size pop-up
+====================
+Add an option to wizard image to open a pop-up with a full size image.
+""",
     'qweb': [
         "static/src/xml/*.xml",
     ],
