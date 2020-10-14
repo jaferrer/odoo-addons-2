@@ -17,10 +17,10 @@
     <!-- region : home menu -->
     <template id="portal_my_home_session" name="Portal My Home : session entry" inherit_id="portal.portal_my_home" priority="25">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
-            <t t-if="session_count" t-call="portal.portal_docs_entry">
+            <t t-if="sitting_count" t-call="portal.portal_docs_entry">
                 <t t-set="title">Sessions</t>
                 <t t-set="url" t-value="'/sessions'"/>
-                <t t-set="count" t-value="session_count"/>
+                <t t-set="count" t-value="sitting_count"/>
             </t>
             <t t-if="participated_session_count" t-call="portal.portal_docs_entry">
                 <t t-set="title">Participated sessions</t>

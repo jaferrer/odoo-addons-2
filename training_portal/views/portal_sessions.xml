@@ -12,17 +12,16 @@
                 <thead>
                     <tr class="active">
                         <th>Session</th>
-                        <th>Date</th>
                         <th>Location</th>
-                        <th>Trainer</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr t-foreach="sessions" t-as="session">
                         <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.name"/></a></td>
-                        <td><t t-esc="session.sitting_ids.date" /></td>
-                        <td><t t-esc="session.location_id.display_name" /></td>
-                        <td><t t-esc="session.trainer_id.display_name" /></td>
+                        <td>
+                            <t t-if="session.location_id.display_name" t-esc="session.location_id.display_name" />
+                            <t t-else="">Not available</t>
+                        </td>
                     </tr>
                 </tbody>
             </t>
@@ -30,6 +29,7 @@
     </template>
     <!-- endregion sessions list -->
 
+    <!-- region : session record -->
     <template id="portal_session">
         <t t-call="portal.portal_layout">
             <t t-call="portal.portal_record_layout">
@@ -41,32 +41,40 @@
                 </t>
                 <t t-set="card_body">
                     <div class="row">
-                        <div t-if="session.sitting_ids.date" class="col-12 col-md-6 mb-2 mb-md-0">
-                            <h6>Date</h6>
-                            <div class="row">
-                                <div class="col flex-grow-0 pr-3">
-                                    <t t-esc="session.sitting_ids.date" />
-                                </div>
-                                <div class="col pl-sm-0">
-                                    <address t-field="session.trainer_id" t-options='{"widget": "contact", "fields": ["name", "email"]}'/>
-                                </div>
+                        <t t-if="not session.sitting_ids">
+                            <div class="alert alert-warning" role="alert">
+                                No sitting available for your account.
                             </div>
-                        </div>
-                        <div t-if="session.location_id" class="col-12 col-md-6">
-                            <h6>Location</h6>
-                            <div class="row">
-                                <div class="col flex-grow-0 pr-3">
-                                    <img t-if="project.user_id.image_1024" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(project.user_id.image_1024)" alt="Contact"/>
-                                    <img t-else="" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/user_menu_avatar.png" alt="Contact"/>
-                                </div>
-                                <div class="col pl-sm-0">
-                                    <address t-field="session.location_id" t-options='{"widget": "contact", "fields": ["name"]}'/>
-                                </div>
-                            </div>
-                        </div>
+                        </t>
+                        <t t-if="session.sitting_ids" t-call="portal.portal_table">
+                            <thead>
+                                <tr class="active">
+                                    <th>Sitting</th>
+                                    <th>Date</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Location</th>
+                                    <th>Trainer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="session.sitting_ids" t-as="sitting">
+                                    <td><a t-attf-href="/sitting/#{slug(sitting)}?{{ keep_query() }}"><span t-esc="sitting.display_name"/></a></td>
+                                    <td><t t-esc="datetime.datetime.strptime(str(sitting.date), '%Y-%m-%d').strftime('%d %b %Y')" /></td>
+                                    <td><t t-esc="sitting.start_hour" t-options="{'widget': 'float_time'}" /></td>
+                                    <td><t t-esc="sitting.end_hour" t-options="{'widget': 'float_time'}" /></td>
+                                    <td>
+                                        <t t-if="sitting.location_id.display_name" t-esc="sitting.location_id.display_name" />
+                                        <t t-else="">Not available</t>
+                                    </td>
+                                    <td><t t-esc="sitting.trainer_id.display_name" /></td>
+                                </tr>
+                            </tbody>
+                        </t>
                     </div>
                 </t>
             </t>
         </t>
     </template>
+    <!-- endregion : session record -->
 </odoo>

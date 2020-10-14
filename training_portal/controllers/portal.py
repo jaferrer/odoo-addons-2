@@ -9,15 +9,17 @@ class TrainingPortal(CustomerPortal):
     def _prepare_home_portal_values(self):
         values = super(TrainingPortal, self)._prepare_home_portal_values()
 
-        # sessions not started
-        values['session_count'] = request.env['training.sitting'].search_count([
+        # sitting not started
+        values['sitting_count'] = request.env['training.sitting'].search_count([
             ('attendee_ids', 'in', request.env.user.partner_id.id),
             ('date', '>=', datetime.today()),
         ])
+
         # participated session
-        values['participated_session_count'] = request.env['res.partner'].search_count([
-            ('attendance', '=', 'done'),
-            ('id', '=', request.env.user.partner_id.id),
-        ])
+        # TODO : need to fixed the point about attendance (compute field not store)
+        # values['participated_session_count'] = request.env['res.partner'].search_count([
+        #     ('attendance', '=', 'done'),
+        #     ('id', '=', request.env.user.partner_id.id),
+        # ])
 
         return values
