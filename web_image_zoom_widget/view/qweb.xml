@@ -1,0 +1,12 @@
+<odoo>
+    <data>
+       <template id="assets_backend" name="image_zoom_in assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript"
+                        src="/web_image_zoom_widget/static/src/js/web_image_zoom_widget.js"></script>
+                <link rel="stylesheet"
+                  href="/web_image_zoom_widget/static/src/css/web_image_zoom_widget.css"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>
