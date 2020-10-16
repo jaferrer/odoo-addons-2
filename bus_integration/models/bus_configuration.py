@@ -113,6 +113,8 @@ class BusConfiguration(models.Model):
 
         error_message = self._is_not_allowed_error_message(server, login, hostname)
         if error_message:
+            # web.base.url might be wrongly. we need to recompute cached host name in case the config.parameter change
+            BusConfiguration._singleton_host_name = False
             if raise_error:
                 raise exceptions.except_orm(_(u"Error!"), error_message)
             return server, error_message, 0
