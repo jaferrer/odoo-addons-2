@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Hidden',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Binary Field Improved
 =====================
