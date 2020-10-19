@@ -47,7 +47,7 @@ class CompanyConfig(models.TransientModel):
             'date_format': "%d/%m/%Y",
             'grouping': '[3,3,3,3,3,3,3,3,3,3,3]',
             'decimal_point': ",",
-            'thousands_sep': '&nbsp;',
+            'thousands_sep': ' ',
             'time_format': "%H:%M",
             'active': True
         })
