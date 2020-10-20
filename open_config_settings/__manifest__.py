@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 A config settings model like res.config.settings, but usable by any users of a specific group, instead of only an admin
 """,
