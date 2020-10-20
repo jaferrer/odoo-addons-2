@@ -6,10 +6,10 @@
         <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
             <div class="container">
                 <div class="row">
-                    <div class="navbar-col col-xs-6">
+                    <div class="navbar-col col-md-6">
                         <span id="view_title"/>
                     </div>
-                    <div class="navbar-col col-xs-6">
+                    <div class="navbar-col col-md-6">
                         <button id="validate_receipt"
                                 type="button"
                                 class="btn btn-success btn-margin-left pull-right js_validate_receipt hidden">

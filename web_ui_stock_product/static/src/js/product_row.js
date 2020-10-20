@@ -22,7 +22,7 @@ odoo.define('web_ui_stock_product.ProductRow', function (require) {
             
             if (this.product.tracking === "lot" || this.product.tracking === "serial" &&
                 this.product.lot_id === false) {
-                this.productView.reequestNumLot(this);
+                this.productView.requestNumLot(this);
             }
         },
         renderElement: function () {

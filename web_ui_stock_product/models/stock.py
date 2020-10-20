@@ -26,6 +26,15 @@ class WebUiError(Exception):
 class StockPickingTypeWebUiStockProduct(models.Model):
     _inherit = 'stock.picking.type'
 
+    @api.multi
+    def get_all_picking_owners(self):
+        list_owners = []
+        for owner in self.env['res.partner'].search([('customer', '=', True)]):
+            list_owners.append({
+                'id': owner.id,
+                'name': owner.display_name
+            })
+        return list_owners
 
     @api.multi
     def web_ui_get_production_lot_by_name(self, name):
@@ -84,7 +93,7 @@ class StockPickingTypeWebUiStockProduct(models.Model):
         return product.web_ui_get_product_info_one(production_lot)
 
     @api.multi
-    def do_validate_scan(self, product_infos):
+    def do_validate_scan(self, product_infos, owner_id=None):
         """
         Crée un stock.picking dont les stock.move sont remplies grâce aux lignes de scan.
         - stock.picking.type de la vue de scan d'articles.
@@ -104,14 +113,15 @@ class StockPickingTypeWebUiStockProduct(models.Model):
                 'location_id': product_info.get('location_id', False) or self.default_location_src_id.id,
                 'location_dest_id': self.env.ref('stock.stock_location_stock').id,
             })
-        moves.action_confirm()
-        picking = moves[0].picking_id
-        picking.action_assign()
-
-        return {
-            'id': picking.id,
-            'name': picking.name
-        }
+        if moves:
+            moves.action_confirm()
+            picking = moves[0].picking_id
+            picking.owner_id = owner_id
+            picking.action_assign()
+            return {
+                'id': picking.id,
+                'name': picking.name
+            }
 
 
 class ProductProductWebUiStockProduct(models.Model):
@@ -141,6 +151,7 @@ class ProductProductWebUiStockProduct(models.Model):
         return {
             'id': self.id,
             'name': self.display_name,
+            'short_name': self.name,
             'location_id': found_location and found_location.id or '',
             'location_barcode': found_location and found_location.barcode or '',
             'default_code': self.default_code or "-",

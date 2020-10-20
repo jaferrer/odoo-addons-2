@@ -19,9 +19,10 @@ button.btn-margin-left {
 }
 
 .picking-nav .picking-focus {
-    font-size: 1.7em;
+    font-size: 2em;
     color: orange;
     font-weight: bold;
+        line-height: 1;
 }
 .picking-nav #picking-qty {
     font-size: 42px;
@@ -79,4 +80,14 @@ button.btn-margin-left {
 .container.center-container {
     padding-bottom: 100px;
 
+}
+
+#picking-product > span.product-ref:before {
+    content: '[';
+}
+#picking-product > span.product-ref:after {
+    content: ']';
+}
+#picking-product > span.product-name {
+    font-size: 16px;
 }

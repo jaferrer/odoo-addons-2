@@ -175,7 +175,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                     }
                 )
                 .fail((errors, event) => {
-                    this.activity.notifyError("Produit introuvable");
+                    this.activity.notifyError(`Produit introuvable (${code})`);
                     event.preventDefault();
                 });
         },

@@ -13,7 +13,7 @@
         <div class="container">
 
             <div class="row">
-                <p class="button-group text-right col-xs-12" role="group">
+                <p class="button-group text-right col-md-12" role="group">
                     <button class="btn btn-primary" id="no-picking-btn" type="button">
                         Rangement sans bon <span class="fa fa-play-circle"></span>
                     </button>
@@ -66,7 +66,7 @@
 
                     <t t-if='widget.moveLine'>
 
-                        <div class="col-xs-12 picking-flex">
+                        <div class="col-md-12 picking-flex">
                             <div>
                                  <p id="picking-product">
                                      <t t-esc="widget.moveLine.name"/>
@@ -93,14 +93,14 @@
                 <div class="row">
 
                     <t t-if='widget.showManualInput'>
-                        <div class="col-xs-12">
+                        <div class="col-md-12">
                             <p>
                                 <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
                             </p>
                         </div>
                     </t>
 
-                    <div class="col-xs-12">
+                    <div class="col-md-12">
                         <div class="btn-group dropup btn-navigation-action">
                           <button type="button" class="btn btn-lg btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
                           <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

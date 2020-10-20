@@ -103,7 +103,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             StockPickingType.call('web_ui_has_one_operation_left', [[this.activity.pickingTypeId], this.pickingId])
             .then((res) => {
                 if (res.empty) {
-                     window.history.back();
+                    this.activity.notifyError("Transfert indisponible");
+                    setTimeout(function() { window.history.back(); }, 1000);
                 } else if (res.last_operation) {
                     this.isLast = true;
                     this.scanProduct(res.last_operation);
@@ -120,7 +121,7 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             }
         },
         validate_move_line: function () {
-            StockPickingType.call('web_ui_get_storage_add_move', [[this.activity.pickingTypeId], this.moveLineId, this.moveLine.qty_done])
+            StockPickingType.call('web_ui_get_storage_add_move', [[this.activity.pickingTypeId], this.moveLine.id, this.moveLine.qty_done])
                 .then(() => {
                     this.next_move_line();
                 });

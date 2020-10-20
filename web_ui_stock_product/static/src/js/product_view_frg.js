@@ -1,9 +1,8 @@
 odoo.define('web_ui_stock_product.ProductView', function (require) {
     "use strict";
 
-    var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
-    var Widget = require('web.Widget');
-    var core = require('web.core');
+    var StockFragment = require('web_ui_stock.StockFragment');
+
     var ProductRow = {
         Row: require('web_ui_stock_product.ProductRow'),
         Error: require('web_ui_stock_product.ProductRow.Error'),
@@ -19,73 +18,46 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
         lot: 3
     }
 
-    var ProductView = Widget.extend({
+    return StockFragment.extend({
         template: 'ProductView',
+        activity: null,
+        ownerId: null,
         state: STATES.product,
-        init: function (parent, action, options) {
-            this._super(parent, action, options);
-            this.pickingTypeId = parseInt(options.picking_type_id || "0");
-            this.storageScreen = options.storage_screen || false;
-            this.is_internal_move = options.type === 'internal_move';
-            this.auto_max_qty = this.is_internal_move;
-            this.rows = [];
-            this.lot_row = false;
-            this.barcode_scanner = new BarcodeScanner();
-            this.currentProduct = null;
+        rows: [],
+        lot_row: false,
+        currentProduct: null,
+        init: function (activity, ownerId) {
+            this._super();
+            this.activity = activity;
+            this.ownerId = ownerId ? parseInt(ownerId) : null;
         },
-        renderElement: function () {
+       renderElement: function() {
             this._super();
             this.productBlock = this.$('#product-block');
-            this.$('#btn_exit').click((ev) => window.history.back());
             this.product_table_body = this.$('#product_table_body');
             this.needLot = this.$('#need_for_lot');
-            StockPickingType.call('name_get', [[this.pickingTypeId]]).then((res) => this.setTitle(res[0][1]));
-
-            this.connectScanner();
-            this.$('#search-code').focus(() => {
-                this.disconnectScanner();
-                this.$('#search-code').on('keyup', (e) => {
-                    if (e.key === 'Enter') {
-                        this.scan(this.$('#search-code').val())
-                    }
-                })
-            });
-            this.$('#search-code').blur(() => {
-                this.$('#search-code').off('keyup');
-                this.connectScanner();
-            });
 
             this.$('#clear-search-code').click(() => {
-                this.$('#search-code').val('');
-                this.$('#search-code').focus();
+                this.codeInput.val('');
+                this.codeInput.focus();
             });
             this.$('#btn_delete_all_rows').click(() => {
                 this.$('.line-error').remove()
                 this.rows.forEach((row) => row.deleteRow());
             });
-            this.$('button.js_validate_scan').click(ev => {
+            this.renderState();
+        },
+        registerValidation: function() {
+            $('#validate-activity').click(ev => {
                 this.validate_scan()
-            });
-
-            // Si on arrive sur cet écran depuis le gestionnaire de chariot
-            if (this.storageScreen) {
-                this.$('#back_to_handling_screen').removeClass('hidden');
-            }
-            this.$('#back_to_handling_screen').click(() => {
-                this.back_to_handling_screen()
             });
         },
         start: function () {
             this._super();
+            this.init_title();
         },
-        setTitle: function (title) {
-            $("#view_title").text(title);
-        },
-        connectScanner: function () {
-            this.barcode_scanner.connect(this.scan.bind(this));
-        },
-        disconnectScanner: function () {
-            this.barcode_scanner.disconnect();
+        init_title: function () {
+            StockPickingType.call('name_get', [[this.activity.pickingTypeId]]).then((res) => this.activity.set_activity_title(res[0][1]));
         },
         requestLocation: function (row) {
             this.currentProduct = row;
@@ -109,7 +81,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
         },
         scan: function (value) {
             console.log(value);
-            this.$('#search-code').val('');
+            this.codeInput.val('');
             switch (this.state) {
                 case STATES.product:
                     this.scanProduct(value);
@@ -123,7 +95,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             }
         },
         scanProduct: function (value) {
-            StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], value, false, this.is_internal_move])
+            StockPickingType.call('web_ui_get_product_info_by_name', [[this.activity.pickingTypeId], value, false, this.activity.is_internal_move])
                 .always(() => {
                     this.renderState();
                 })
@@ -135,7 +107,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                         row.prependTo(this.product_table_body);
                     } else {
                         let row = this.rows.find(it => it.product.id === produ.id);
-                        if (row.product.tracking !== 'serial' && !this.auto_max_qty) {
+                        if (row.product.tracking !== 'serial' && !this.activity.auto_max_qty) {
                             row.increaseQty();
                         }
                     }
@@ -149,7 +121,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                 });
         },
         scanLot: function (value) {
-            StockPickingType.call('web_ui_get_production_info_for_product', [[this.pickingTypeId], value, this.lot_row.productRow.product.id])
+            StockPickingType.call('web_ui_get_production_info_for_product', [[this.activity.pickingTypeId], value, this.lot_row.productRow.product.id])
                 .then((produ) => {
                     let row = this.rows.find(it => it.product.id === produ.id);
                     if (row) {
@@ -171,7 +143,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                 });
         },
         scanLocation: function (value) {
-            StockPickingType.call('web_ui_get_location_info_by_name_batch', [[this.pickingTypeId], value])
+            StockPickingType.call('web_ui_get_location_info_by_name_batch', [[this.activity.pickingTypeId], value])
                 .then((produ) => {
                     this.currentProduct.product.location_id = produ.id
                     this.currentProduct.product.location_barcode = produ.barcode
@@ -196,31 +168,22 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                     'location_id': row.product.location_id,
                 }
             ));
-            StockPickingType.call('do_validate_scan', [[this.pickingTypeId], product_infos])
+            var queryParams = [[this.activity.pickingTypeId], product_infos]
+            if (this.ownerId) {
+                queryParams.push(this.ownerId);
+            }
+            StockPickingType.call('do_validate_scan', queryParams)
                 .then((picking) => {
-                    if (this.is_internal_move) {
-                        this.continue_to_storage(picking)
+                    if (this.activity.is_internal_move) {
+                        this.activity.continue_to_storage(picking)
                     } else {
-                        this.back_to_handling_screen(picking)
+                        this.activity.back_to_handling_screen(picking)
                     }
                 });
         },
-        back_to_handling_screen: function (picking={}) {
-            this.do_action('stock.ui.storage_handling', {
-                'picking_type_id': this.pickingTypeId,
-                'picking_id': picking.id,
-                'picking_name': picking.name
-            });
-        },
-        continue_to_storage: function (picking) {
-            this.do_action('stock.ui.storage', {
-                'picking_type_id': this.pickingTypeId,
-                'storage_screen': this.storageScreen,
-                'picking_id': picking.id
-            });
-        },
         renderState: function () {
-            this.$('#title-intro').addClass('hidden');
+            $('#validate-activity').removeClass('hidden');
+            this.registerValidation();
             switch (this.state) {
                 case STATES.product:
                     this.productBlock.removeClass('hidden');
@@ -250,9 +213,6 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                     this.$('#big_helper').addClass('alert-danger');
                     break;
             }
-        },
+        }
     });
-
-    core.action_registry.add('stock.ui.product', ProductView);
-    return ProductView;
 });

@@ -14,7 +14,7 @@
                             <span id="view_title"/>
                         </div>
                         <div class="navbar-col col">
-                            <button id="validate_batch"
+                            <button id="validate-activity"
                                     type="button"
                                     class="btn btn-success btn-margin-left pull-right hidden">
                                 Valider

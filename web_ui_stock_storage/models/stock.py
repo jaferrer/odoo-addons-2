@@ -65,8 +65,9 @@ class StockPickingType(models.Model):
     @api.multi
     def web_ui_has_one_operation_left(self, picking_id):
         res = {'empty': False, 'last_operation': None}
-        spo = self.env['stock.pack.operation'].read_group([('picking_id', '=', picking_id), ('qty_done', '=', 0)],
-                                                                       ['product_id'], ['product_id'])
+        spo = self.env['stock.pack.operation'].read_group(
+            [('picking_id', '=', picking_id), ('qty_done', '=', 0)], ['product_id'], ['product_id']
+        )
         if not spo:
             res = {'empty': True}
         elif len(spo) == 1:

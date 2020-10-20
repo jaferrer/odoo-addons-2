@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
 
-    <t t-name="ProductView">
+    <t t-name="ProductSelection">
 
-        <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
-            <div class="container">
-                <div class="row">
-                    <div class="navbar-col col-xs-6">
-                        <button id="back_to_handling_screen"
-                                type="button"
-                                class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
-                        <span id="view_title"/>
-                    </div>
-                    <div class="navbar-col col-xs-6">
-                        <button id="validate_scan"
-                                type="button"
-                                class="btn btn-success btn-margin-left pull-right js_validate_scan">
-                            Valider
-                        </button>
-                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
-                    </div>
-                </div>
+        <div class="jumbotron">
+            <div id="big_helper" class="container">
+                <h1>Création de chariot</h1>
+                <p>Veuillez choisir un proprietaire</p>
             </div>
-        </nav>
+        </div>
+
+        <div class="container">
+
+            <table id="product_selection_table" class="table ui_stock_table table-hover">
+                <tbody id="product_selection_table_body">
+                    <t t-foreach="widget.ownerList" t-as="owner">
+                        <tr t-att-data-owner_id="owner.id" class="owner-item ui_stock_item">
+                            <td class="main-col">
+                                <p>
+                                    <t t-esc="owner.name"/>
+                                </p>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+
+    <t t-name="ProductView">
 
         <div class="template-container">
 
             <div id="big_helper" class="jumbotron alert-info">
 
                 <div class="container">
-                    <h1 id="title-intro">Création de chariot</h1>
                     <h4 id="title-scan-product">Vous pouvez scanner un article ou le saisir a la main</h4>
                     <h4 id="title-scan-lot" class="hidden">Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro ou de supprimer l'article pour continuer</h4>
                     <h4 id="title-scan-location" class="hidden">Cet article est présent à plusieurs emplacements, merci de scanner celui utilisé</h4>
-                    <div class="input-group">
+                    <div id="search-input" class="input-group">
                         <input id="search-code" type="text" class="form-control" placeholder="Saisie manuelle"/>
                         <span class="input-group-btn">
                             <button id="clear-search-code" class="btn btn-danger" type="button">x</button>
