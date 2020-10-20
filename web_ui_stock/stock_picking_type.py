@@ -24,6 +24,7 @@ class StockPickTypeWebUiAction(models.Model):
 
     name = fields.Char(u"Name", required=True)
     action = fields.Char(u"Action", required=True)
+    type = fields.Char(u"Type", required=False, default="")
 
 
 class StockPickingType(models.Model):
@@ -36,6 +37,7 @@ class StockPickingType(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': "/web_ui_stock/web/?action=%s&picking_type_id=%s" % (self.web_action_id.action, self.id),
-            'target': 'self'
+            'url': "/web_ui_stock/web/?action=%s&picking_type_id=%s&type=%s" %
+                   (self.web_action_id.action, self.id, self.web_action_id.type),
+            'target': 'self',
         }

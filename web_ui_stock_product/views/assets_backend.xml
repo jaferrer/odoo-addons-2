@@ -4,11 +4,13 @@
 
         <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
-                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list.js"/>
-                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row.js"/>
-                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_error.js"/>
-                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_numpad.js"/>
-                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_lot.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_activity.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_selection_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_view_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_numpad.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_row.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_row_error.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_row_lot.js"/>
             </xpath>
         </template>
 

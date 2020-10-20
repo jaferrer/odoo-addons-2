@@ -4,9 +4,10 @@
 
         <template id="assets_backend" name="stock storage assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
-                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list.js"/>
-                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list_row.js"/>
-                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_main_list_row_error.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_activity.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_selection_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_navigate_frg.js"/>
+                <script type="text/javascript" src="/web_ui_stock_storage/static/src/js/storage_numpad_frg.js"/>
             </xpath>
         </template>
 
