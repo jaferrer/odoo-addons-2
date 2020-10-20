@@ -22,6 +22,7 @@ from openerp import models, fields, api, _
 
 class BusBase(models.Model):
     _name = 'bus.base'
+    _inherit = 'bus.synchronized.model'
 
     name = fields.Char(u"Name")
     bus_username = fields.Char(u"BUS user name", required=True)

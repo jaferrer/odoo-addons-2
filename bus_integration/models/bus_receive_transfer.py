@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -83,7 +103,14 @@ class BusReceiveTransfer(models.Model):
         for val in vals:
             record_value = record[val]
             vals_value = vals.get(val)
-            if isinstance(record_value, models.Model):
+            if isinstance(record._fields.get(val), fields.One2many):
+                # we keep existing ids
+                # either new object are linked to this record, they will be added by the post-dependency mechanism
+                # or some objects have changed the relation to another record B of this type. In this case, they will
+                # be updated by the post-dependency mechanism of the record B, and the ORM will update this o2m field
+                # Until then, we must not change th ids to not break the 'not null' constraint on the reverse m2o
+                continue
+            elif isinstance(record_value, models.Model):
                 if len(record_value) > 1:
                     record_value = record_value.ids
                     record_value.sort()
@@ -94,7 +121,7 @@ class BusReceiveTransfer(models.Model):
                 change_vals[val] = vals_value
         return change_vals
 
-    def import_datas(self, transfer, odoo_record, transfer_vals, record_vals):
+    def import_datas(self, transfer, odoo_record, transfer_vals, record_vals, message):
         received_record_write_date = json.loads(transfer_vals['received_data'])['write_date']
         if not transfer:
             # creates bus_receive_transfer record
@@ -108,14 +135,18 @@ class BusReceiveTransfer(models.Model):
                                 'data received (%s)' % (transfer.display_name, transfer.external_key,
                                                         transfer.origin_write_date, received_record_write_date)
                 return transfer, odoo_record, ('info', error_message)
-            transfer.origin_write_date = received_record_write_date
+            if transfer.origin_write_date != received_record_write_date:
+                transfer.origin_write_date = received_record_write_date
 
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
-            odoo_record = odoo_record\
-                .with_context(bus_receive_transfer_external_key=transfer.external_key)\
+            odoo_record = odoo_record \
+                .with_context(bus_receive_transfer_external_key=transfer.external_key) \
                 .create(vals)
         elif vals:
-            odoo_record.write(vals)
-        transfer.local_id = odoo_record.id
+            odoo_record \
+                .with_context(bus_receive_transfer_external_key=transfer.external_key) \
+                .write(vals)
+        if vals and transfer.local_id != odoo_record.id:
+            transfer.local_id = odoo_record.id
         return transfer, odoo_record, False

@@ -18,6 +18,7 @@
 #
 
 from openerp import models, fields, api, exceptions, _
+from openerp.exceptions import ValidationError
 
 
 class OdooOnlineDocumentation(models.Model):
@@ -31,9 +32,6 @@ class OdooOnlineDocumentation(models.Model):
     seen_in_sales = fields.Boolean(string=u"Must be seen in sales", default=False)
     seen_in_purchases = fields.Boolean(string=u"Must be seen in purchases", default=False)
     seen_in_prod = fields.Boolean(string=u"Must be seen in manufacturing", default=False)
-
-    _sql_constraints = [('path_unique_per_file', 'unique(path)',
-                         _(u"You cannot have twice the same file."))]
 
     @api.multi
     def remove_attachments(self):
@@ -73,6 +71,25 @@ class OdooOnlineDocumentation(models.Model):
                     "url": url,
                     "target": "self"
                 }
+
+    @api.model
+    def exist_path_doublons(self, path, id):
+        return self.env['odoo.online.documentation']\
+                        .search_count([('path', '=', path),
+                                       ('path', '!=', False),
+                                       ('nature', '=', 'sharepoint'),
+                                       ('id', '!=', id)]) > 0
+
+    @api.constrains('path', 'nature')
+    def _check_unique_path_for_sharepoints(self):
+        for rec in self:
+            if rec.nature == 'sharepoint':
+                if not rec.path:
+                    raise ValidationError(
+                        _(u"Path must be completed for document of type sharepoint %s" % rec.name))
+                if self.exist_path_doublons(rec.path, rec.id):
+                    raise ValidationError(
+                                _(u"Different document of type sharepoint cannot have the same path %s" % rec.path))
 
 
 class OdooOnlineDocumentType(models.Model):

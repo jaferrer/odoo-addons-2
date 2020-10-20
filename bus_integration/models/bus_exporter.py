@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -35,7 +55,7 @@ class BusSynchronizationExporter(models.AbstractModel):
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
     @api.model
-    def run_export(self, backend_bus_configuration_export_id, force_domain=False):
+    def run_export(self, backend_bus_configuration_export_id, force_domain=False, jobify=True):
         """
         Create and send messages
         :param backend_bus_configuration_export_id: models to export with their conf
@@ -50,7 +70,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
 
         active_test = True
-        if batch.treatment_type != 'BUS_SYNCHRONIZATION':
+        if batch.treatment_type not in ('BUS_SYNCHRONIZATION', 'RESTRICT_IDS_SYNCHRONIZATION'):
             object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
             if not object_mapping or not object_mapping.is_exportable:
                 raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
@@ -71,7 +91,6 @@ class BusSynchronizationExporter(models.AbstractModel):
             },
             'export': None
         }
-
         ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
         export_chunk = batch.chunk_size or False
         if export_chunk:
@@ -93,8 +112,12 @@ class BusSynchronizationExporter(models.AbstractModel):
 
         msgs_group_uuid = "%s %s" % (str(uuid.uuid4()), batch.display_name)
         for export_msg in message_list:
-            job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
-                                       msgs_group_uuid)
+            if jobify:
+                job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
+                                           msgs_group_uuid)
+            else:
+                job_generate_message(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
+                                     msgs_group_uuid)
         return msgs_group_uuid
 
     @api.model
@@ -114,13 +137,19 @@ class BusSynchronizationExporter(models.AbstractModel):
         if batch.mapping_object_id.deactivated_sync:
             active_test = False
         exported_records = self.with_context(active_test=active_test).env[model_name].search([('id', 'in', ids)])
+        if 'exported_to_bus_base_ids' in self.env[model_name]._fields.keys():
+            for record in exported_records:
+                base_ids = list(set(record.exported_to_bus_base_ids.ids + [batch.recipient_id.id]))
+                record.sudo().write({'exported_to_bus_base_ids': [(6, 0, base_ids)]})
         message_type = message_dict.get('header').get('treatment')
         if message_type == 'DELETION_SYNCHRONIZATION':
             result = self._generate_msg_body_deletion(exported_records, model_name)
         elif message_type == 'CHECK_SYNCHRONIZATION':
             result = self._generate_check_msg_body(exported_records, model_name, message_dict['header']['dest'])
         elif message_type == 'BUS_SYNCHRONIZATION':
-            result = self._generate_bus_synchronization_msg_body(exported_records, model_name)
+            result = self._generate_bus_synchronization_msg_body(exported_records)
+        elif message_type == 'RESTRICT_IDS_SYNCHRONIZATION':
+            result = {'body': {'root': {exported_records._name: exported_records.ids or [0]}}}
         elif message_type == 'SYNCHRONIZATION':
             result = self._generate_msg_body(exported_records, model_name)
         else:
@@ -128,9 +157,10 @@ class BusSynchronizationExporter(models.AbstractModel):
         message_dict['body'] = result['body']
 
         message = self.env['bus.message'].create_message_from_batch(message_dict, batch,
-                                                                    self.env.context['job_uuid'], msgs_group_uuid)
+                                                                    self.env.context.get('job_uuid', 'no_job'),
+                                                                    msgs_group_uuid)
 
-        if not ids:
+        if not ids and message_type not in ['RESTRICT_IDS_SYNCHRONIZATION']:
             message.add_log(u"no models to export")
             message.date_done = datetime.datetime.now()
             return
@@ -142,7 +172,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             message.add_log(u"could not create send message job", 'error')
 
     # region def _generate_msg_body(self, exported_records, model_name):
-    def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
+    def _generate_bus_synchronization_msg_body(self, exported_records):
         message_dict = {'body': {'root': {exported_records._name: {}}}}
         for record in exported_records:
             record_id = str(record.id)
@@ -152,10 +182,16 @@ class BusSynchronizationExporter(models.AbstractModel):
         return message_dict
 
     def _generate_msg_body(self, exported_records, model_name):
+        """
+        :param exported_records: recordset
+        :param model_name: 'model.name'
+        :return: the dictionary for message 'body'
+        """
         message_dict = {
             'body': {
                 'root': {},
                 'dependency': {},
+                'post_dependency': {},
             }
         }
         object_mapping = self.env['bus.object.mapping'].get_mapping(model_name)
@@ -170,10 +206,12 @@ class BusSynchronizationExporter(models.AbstractModel):
                 xml_id = self.get_xml_id(model_name, record.id)
                 if xml_id:
                     message_dict['body']['root'][model_name][record_id]['xml_id'] = xml_id
-            list_export_field = object_mapping.get_field_to_export()
+            list_export_field = object_mapping.get_field_to_export()  # list of field.object.mapping
             for field in list_export_field:
-                if field.type_field == 'many2many' or field.type_field == 'one2many':
-                    message_dict = self.fill_x2many(message_dict, record, field)
+                if field.type_field == 'many2many':
+                    message_dict = self.fill_many2many(message_dict, record, field)
+                elif field.type_field == 'one2many':
+                    message_dict = self.fill_one2many(message_dict, record, field)
                 elif field.type_field == 'many2one':
                     message_dict = self.fill_many2one(message_dict, record, field)
                 elif field.type_field in self.authorize_field_type:
@@ -194,7 +232,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
             if field.field_name in record._inherit_fields:
-                parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field.field_name]
+                parent_model, link_field, _, _ = record._inherit_fields[field.field_name]
                 model = parent_model
                 res_id = record[link_field].id
             else:
@@ -222,12 +260,12 @@ class BusSynchronizationExporter(models.AbstractModel):
             'type_field': 'many2one'
         }
         sub_record = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field, sub_record)
+        message_dict = self.fill_dependency(message_dict, field, sub_record)
         return message_dict
 
     @api.model
-    def fill_x2many(self, message_dict, record, field):
-        """ one2many or many2many field """
+    def fill_many2many(self, message_dict, record, field):
+        """ many2many field """
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'ids': record[field.field_name].ids,
@@ -235,18 +273,45 @@ class BusSynchronizationExporter(models.AbstractModel):
             'type_field': field.type_field
         }
         sub_records = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field, sub_records)
+        message_dict = self.fill_dependency(message_dict, field, sub_records)
         return message_dict
 
     @api.model
-    def fill_dependancy(self, message_dict, field, records):
+    def fill_one2many(self, message_dict, record, field):
+        """ one2many field
+            We do not send ids, we send them as post_dependancyrequest
+            in receiver base, existing ids will be kept when present in post_dependency, otherwise, ids will
+            be added by the ORM when the missing objects will be synchronized from the post-dependency synchronisation
+            request that will be issued after receiver object's creation
+        """
+        record_id = str(record.id)
+        message_dict['body']['root'][record._name][record_id][field.map_name] = {
+            'ids': [],
+            'model': field.field_id.relation,
+            'type_field': field.type_field
+        }
+        sub_records = record[field.field_name]
+        message_dict = self.fill_post_dependency(message_dict, field, sub_records)
+        return message_dict
+
+    @api.model
+    def fill_dependency(self, message_dict, field, records):
+        return self.fill_any_dependency('dependency', message_dict, field, records)
+
+    @api.model
+    def fill_post_dependency(self, message_dict, field, records):
+        message_dict['body'].setdefault('post_dependency', {})
+        return self.fill_any_dependency('post_dependency', message_dict, field, records)
+
+    @api.model
+    def fill_any_dependency(self, dependency_type, message_dict, field, records):
         model_name = field.field_id.relation
-        if not message_dict['body']['dependency'].get(model_name):
-            message_dict['body']['dependency'][model_name] = {}
+        if not message_dict['body'].get(dependency_type, {}).get(model_name):
+            message_dict['body'][dependency_type][model_name] = {}
         for sub_record in records:
             sub_record_id = str(sub_record.id)
-            if not message_dict['body']['dependency'][model_name].get(sub_record_id):
-                message_dict['body']['dependency'][model_name][sub_record_id] = {}
+            if not message_dict['body'][dependency_type][model_name].get(sub_record_id):
+                message_dict['body'][dependency_type][model_name][sub_record_id] = {}
         return message_dict
 
     @api.model
@@ -257,7 +322,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             message_dict['body']['root'][model][record_id]['translation'][field.map_name] = {}
             for translation in translations:
                 message_dict['body']['root'][model][record_id]['translation'][field.map_name][translation.lang] = {
-                    'source': translation.source,
+                    'src': translation.src,
                     'value': translation.value
                 }
         return message_dict
@@ -342,6 +407,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['parent'] = message_dict.get('header').get('id')
         resp['body'] = {
             'dependency': {},
+            'post_dependency': {},
             'root': {},
         }
         resp['body']['return'] = {
@@ -375,7 +441,64 @@ class BusSynchronizationExporter(models.AbstractModel):
         return new_msg
 
     @api.model
+    def send_post_dependancy_synchronization_demand(self, parent_message_id, demand):
+        message = self.env['bus.message'].browse(parent_message_id)
+        message_dict = json.loads(message.message)
+        resp = collections.OrderedDict()
+        destination = message_dict.get('header').get('origin')
+        origin = message_dict.get('header').get('dest')
+        resp['header'] = message_dict.get('header')
+        resp['header']['origin'] = origin
+        resp['header']['dest'] = destination
+        resp['header']['message_parent_id'] = False
+        resp['header']['cross_id_origin_parent_id'] = False
+        resp['header']['treatment'] = 'POST_DEPENDENCY_DEMAND_SYNCHRONIZATION'
+        resp['body'] = {
+            'dependency': {},
+            'root': {},
+            'demand': demand
+        }
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
+        return new_msg
+
+    @api.model
     def send_dependency_synchronization_response(self, parent_message_id):
+        demand, message, resp = self._prepare_dependency_synchro_response(parent_message_id)
+        try:
+            model_content, dependancy_content, post_dep_content = self._generate_dependance_message(message, demand)
+            resp['body']['root'] = model_content
+            resp['body']['dependency'] = dependancy_content
+            resp['body']['post_dependency'] = post_dep_content
+        except exceptions.ValidationError as validation_error:
+            message.add_log(validation_error.value, 'error')
+            return False
+
+        resp['header'].pop('cross_id_origin_id')
+        resp['header']['cross_id_origin_parent_id'] = message.cross_id_origin_id
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
+        return True
+
+    @api.model
+    def send_post_dependency_synchronization_response(self, parent_message_id):
+        demand, message, resp = self._prepare_dependency_synchro_response(parent_message_id)
+        try:
+            model_content, dependancy_content, post_dep_content = self._generate_dependance_message(message, demand)
+            resp['body']['root'] = model_content
+            resp['body']['dependency'] = dependancy_content
+            resp['body']['post_dependency'] = post_dep_content
+        except exceptions.ValidationError as validation_error:
+            message.add_log(validation_error.value, 'error')
+            return False
+
+        resp['header'].pop('cross_id_origin_parent_id')  # we need the responde msg to have no cross_id_origin_parent_id
+        # so the parent message (synchro message that triggered the post-dep request) will not be processed again
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
+        return True
+
+    def _prepare_dependency_synchro_response(self, parent_message_id):
         message = self.env['bus.message'].browse(parent_message_id)
         message_dict = json.loads(message.message)
         resp = collections.OrderedDict()
@@ -390,23 +513,12 @@ class BusSynchronizationExporter(models.AbstractModel):
             'root': {},
         }
         demand = message_dict.get('body', {}).get('demand', {})
-        try:
-            model_content, dependancy_content = self._generate_dependance_message(message, demand)
-            resp['body']['root'] = model_content
-            resp['body']['dependency'] = dependancy_content
-        except exceptions.ValidationError as validation_error:
-            message.add_log(validation_error.value, 'error')
-            return False
-
-        resp['header'].pop('cross_id_origin_id')
-        resp['header']['cross_id_origin_parent_id'] = message.cross_id_origin_id
-        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
-        new_msg.send(resp)
-        return True
+        return demand, message, resp
 
     def _generate_dependance_message(self, message, demand):
         model_content = {}
         dependency_content = {}
+        post_dependency_content = {}
         # TODO:  Envoyer les logs au bus pour permettre de les identifiers directement dans le bus
         for model_name in demand.keys():
             record_ids = demand.get(model_name).keys()
@@ -427,7 +539,10 @@ class BusSynchronizationExporter(models.AbstractModel):
             for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():
                 dependency_content.setdefault(dep_model, dependency_content.get(dep_model, {}))
                 dependency_content[dep_model].update(dep_value)
-        return model_content, dependency_content
+            for post_dep_model, post_dep_value in result.get('body', {}).get('post_dependency', {}).items():
+                post_dependency_content.setdefault(post_dep_model, post_dependency_content.get(post_dep_model, {}))
+                post_dependency_content[post_dep_model].update(post_dep_value)
+        return model_content, dependency_content, post_dependency_content
 
     @api.model
     def send_deletion_return_message(self, message_id, return_message):
@@ -447,3 +562,36 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['body']['return'] = return_message
         message.send(resp)
         return True
+
+    @api.model
+    def send_restrict_id_response(self, parent_message, result_dict):
+        message_dict = json.loads(parent_message.message)
+
+        log_message = u""
+        return_state = 'done'
+        for log in parent_message.log_ids:
+            if log.type == 'error':
+                return_state = 'error'
+            log_message += u"%s : %s \n" % (log.type, log.information)
+
+        dest = message_dict.get('header').get('origin')
+
+        resp = collections.OrderedDict()
+        resp['header'] = message_dict.get('header')
+        resp['header']['origin'] = message_dict.get('header').get('dest')
+        resp['header']['dest'] = dest
+        resp['header']['treatment'] = 'RESTRICT_IDS_SYNCHRONIZATION_RETURN'
+        resp['header']['parent'] = message_dict.get('header').get('id')
+        resp['body'] = {
+            'dependency': {},
+            'root': {},
+        }
+        resp['body']['return'] = {
+            'result': result_dict,
+            'log': log_message,
+            'state': return_state,
+        }
+        message = self.env['bus.message'].create_message(resp, 'sent', parent_message.configuration_id,
+                                                         parent_message.id)
+        message.send(resp)
+        return message

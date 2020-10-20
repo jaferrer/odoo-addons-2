@@ -1,0 +1,163 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* database_monitoring_disk_usage
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-01-26 10:44+0000\n"
+"PO-Revision-Date: 2018-01-26 10:44+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,date:0
+msgid "Date"
+msgstr "Date"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,table_id:0
+msgid "Table"
+msgstr "Table"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,table_name:0
+msgid "Table name"
+msgstr "Nom de la table"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,cardinality:0
+#: field:odoo.monitoring.database.table,current_cardinality:0
+msgid "Cardinality"
+msgstr "Cardinalité"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,disk_size_data:0
+#: field:odoo.monitoring.database.table,current_disk_size_data:0
+msgid "Size on disk (data)"
+msgstr "Taille sur le disque (données)"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,disk_size_index:0
+#: field:odoo.monitoring.database.table,current_disk_size_index:0
+msgid "Size on disk (index)"
+msgstr "Taille sur le disque (index)"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,disk_size_total:0
+#: field:odoo.monitoring.database.table,current_disk_size_total:0
+#: view:odoo.monitoring.database.table:database_monitoring_disk_usage.odoo_monitoring_database_table_tree
+msgid "Size on disk (total)"
+msgstr "Taille sur le disque (total)"
+
+#. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.database.table,disk_usage_line_ids:0
+msgid "Measures of disk usage"
+msgstr "Mesures de l'utilisation du disque"
+
+#. module: database_monitoring_disk_usage
+#: model:ir.actions.act_window,name:database_monitoring_disk_usage.act_window_odoo_monitoring_disk_usage_by_table
+#: model:ir.ui.menu,name:database_monitoring_disk_usage.menu_odoo_monitoring_disk_usage_by_table
+msgid "Disk Usage By Table"
+msgstr "Utilisation du disque par table"
+
+#. module: database_monitoring_disk_usage
+#: model:ir.actions.act_window,name:database_monitoring_disk_usage.act_window_total_disk_usage
+#: model:ir.ui.menu,name:database_monitoring_disk_usage.menu_total_disk_usage
+msgid "Total Disk Usage"
+msgstr "Utilisation totale du disque"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.database.table:database_monitoring_disk_usage.odoo_monitoring_disk_usage_by_table_tree
+msgid "View cardinality evolution"
+msgstr "Voir l'évolution de la cardinalité"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.database.table:database_monitoring_disk_usage.odoo_monitoring_disk_usage_by_table_tree
+msgid "View disk usage evolution"
+msgstr "Voir l'évolution de l'utilisation du disque"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 30 days"
+msgstr "30 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 60 days"
+msgstr "60 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 90 days"
+msgstr "90 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 120 days"
+msgstr "120 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 150 days"
+msgstr "150 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Disk Size > 1Mb"
+msgstr "Espace disque > 1Mb"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Disk Size > 10Mb"
+msgstr "Espace disque > 10Mb"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Disk Size > 100Mb"
+msgstr "Espace disque > 100Mb"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Disk Size > 1Gb"
+msgstr "Espace disque > 1Gb"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Disk Size > 10Gb"
+msgstr "Espace disque > 10Gb"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Cardinality > 1k"
+msgstr "Cardinalité > 1k"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Cardinality > 10k"
+msgstr "Cardinalité > 10k"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Cardinality > 100k"
+msgstr "Cardinalité > 100k"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Cardinality > 1M"
+msgstr "Cardinalité > 1M"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Day"
+msgstr "Jour"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Table"
+msgstr "Table"

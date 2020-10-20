@@ -63,3 +63,8 @@ msgstr "Administrateur connecteurs"
 #: field:queue.job,date_requeued:0
 msgid "Requeued at"
 msgstr "Remis en queue à"
+
+#. module: connector_improved
+#: code:common/connector_improved/connector_improved.py:75
+msgid "Job in state done cannot be requeued"
+msgstr "Un job a l'état terminé ne peut pas être remis en queue"

@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -38,6 +58,7 @@ class BusConfigurationExport(models.Model):
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion"),
+                                       ('RESTRICT_IDS_SYNCHRONIZATION', u"Restrict ids"),
                                        ('CHECK_SYNCHRONIZATION', u"Check"),
                                        ('BUS_SYNCHRONIZATION', u"Bus")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
@@ -46,6 +67,7 @@ class BusConfigurationExport(models.Model):
                                            string=u'Last transfer status', compute="_compute_last_transfer")
     last_transfer_id = fields.Many2one('bus.message', string=u"Last message",
                                        compute='_compute_last_transfer')
+    last_sync_date = fields.Datetime(u"Last sync date", help=u"Date of last sync all or sync diff", readonly=True)
     chunk_size = fields.Integer(u"Export chunk size")
     domain = fields.Char(u"Domain", required=True, default="[]", help=u"""
         You can see the additional object/functions in the model bus.configuration.export.
@@ -58,9 +80,32 @@ class BusConfigurationExport(models.Model):
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True,
                                       readonly=True)
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
+    nb_messages = fields.Integer(string=u"Nb Messages", compute='_compute_nb_messages')
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
     active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
+    hide_create_cron = fields.Boolean(string="Hide cron creation button", default=False,
+                                      help=u"This will prevent the apparition of the cron creation button")
+    hide_sync_all = fields.Boolean(string="Hide sync all button", default=False,
+                                   help=u"This will prevent the apparition of the <sync all> button")
+    hide_sync_diff = fields.Boolean(string="Hide sync diff button", default=False,
+                                    help=u"This will prevent the apparition of the <sync diff> button")
+
+    def _compute_nb_messages(self):
+        for rec in self:
+            rec.nb_messages = len(rec.bus_message_ids)
+
+    @api.multi
+    def view_messages(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'bus.message',
+            'target': 'current',
+            'domain': [('id', 'in', self.bus_message_ids.ids)]
+        }
 
     @api.multi
     @api.depends('model')
@@ -90,26 +135,29 @@ class BusConfigurationExport(models.Model):
         """  compute local fields cron_sync_all & cron_sync_diff """
         env_ir_cron = self.env['ir.cron']
         for rec in self:
-            rec.cron_sync_all = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_all = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_id', '=', rec.id)], limit=1)
-            rec.cron_sync_diff = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_diff = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
-    def sync_all(self):
+    def sync_all(self, jobify=True):
         """ run the batch, exports all self.model's records matching self.domain"""
         self.ensure_one()
-        self.env['bus.exporter'].run_export(self.id)
+        self.last_sync_date = fields.Datetime.now()
+        self.env['bus.exporter'].run_export(self.id, jobify=jobify)
 
     @api.multi
     def sync_diff(self):
         """ run the batch, exports all self.model's records matching self.domain and created or update
-        since the last last export"""
-        force_domain = "[('write_date', '>', last_send_date)]"
+        since the last export
+        """
+        force_domain = "[('write_date_bus', '>', '%s')]" % self.get_last_send_date()
         job_uuids = {}
         for rec in self:
+            self.last_sync_date = fields.Datetime.now()
             uuid = self.env['bus.exporter'].run_export(rec.id, force_domain)
             job_uuids[rec.id] = uuid
         return job_uuids[self.id] if len(self) == 1 else job_uuids
@@ -181,9 +229,15 @@ class BusConfigurationExport(models.Model):
 
     @api.multi
     def get_last_send_date(self):
+        """
+        used by sync_diff to get the date of the last time the model have been synchronized
+        NOTE : the time is set before starting execution of sync_xxx to ensure next call to sync_diff will
+        not miss ids changed before start of sync_diff execution and end of execution
+        However, if synchronization fails, the ids are lost for sync_diff, only sync_all will resync them
+        :return: date+time as string, can be used for domain, now if never synchronized
+        """
         self.ensure_one()
-        return self.last_transfer_id and self.last_transfer_id.write_date or fields.Datetime\
-            .to_string(datetime.strptime('1900', '%Y'))
+        return self.last_sync_date or fields.Datetime.now()
 
     @api.multi
     def compute_dependency_level(self):

@@ -58,6 +58,22 @@ action = self.manual_consideration(cr, uid, context.get('active_ids'), context=c
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_manual_consideration)"/>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_update_table">
+            <field name="name">Update table</field>
+            <field name="model_id" ref="sale_stock_manual_link.model_procurement_sale_link"/>
+            <field name="code">
+                self.update_table_model(cr, uid, context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_table">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">procurement.sale.link</field>
+            <field name="name">Update table</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_table)"/>
+        </record>
+
         <record model="ir.ui.view" id="procurement_sale_link_tree">
             <field name="name">procurement_sale_link_tree</field>
             <field name="model">procurement.sale.link</field>

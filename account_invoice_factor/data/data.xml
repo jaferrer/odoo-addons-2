@@ -1,0 +1,10 @@
+<openerp>
+    <data>
+        <record model="document.directory" id="dir_factor">
+            <field name="name">Factor</field>
+            <field name="user_id" eval="False"/>
+            <field name="parent_id" ref="document.dir_root"/>
+            <field name="ressource_id">0</field>
+        </record>
+    </data>
+</openerp>

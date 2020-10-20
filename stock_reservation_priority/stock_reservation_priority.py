@@ -41,7 +41,7 @@ class StockReservationPriorityStockMove(models.Model):
                 AND sl.parent_left < %s
                 AND sq.reservation_id IS NOT NULL
         """
-        params = (product_id, location.parent_left, location.parent_right)
+        params = (product_id, int(location.parent_left), int(location.parent_right))
         if picking_id:
             res += " AND (sm.picking_id != %s OR sm.picking_id IS NULL)"
             params += (picking_id,)

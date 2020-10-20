@@ -48,6 +48,8 @@ class StockQuantPackageMove(models.TransientModel):
         loc = False
         for package in packages:
             loc = package.location_id
+            if loc.usage not in ['internal', 'transit']:
+                raise exceptions.ValidationError(u"Move from non-internal or non-transit locations prohibited")
             if not package.parent_id and package.location_id:
                 item = {
                     'package': package.id,

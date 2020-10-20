@@ -19,15 +19,16 @@
 
 from datetime import timedelta, datetime as dt
 
-from openerp import models, api, fields
+from openerp import models, api, fields, _
 from openerp.tools import config
-
+from openerp import exceptions
 
 class QueueJob(models.Model):
     _inherit = 'queue.job'
 
     date_requeued = fields.Datetime(string=u"Requeued at", track_visibility='onchange')
     job_function_id = fields.Many2one('queue.job.function', index=True)
+    active = fields.Boolean(index=True)
 
     @api.multi
     def set_to_done(self):
@@ -36,12 +37,19 @@ class QueueJob(models.Model):
             job.button_done()
 
     @api.model
-    def enqueue_oudated_jobs(self):
+    def enqueue_outdated_jobs(self):
         started_jobs = self.search([('state', '=', 'started')])
-        worker_real_limit_seconds = config.parser.get_option_group('limit_time_real') or 120
+        worker_real_limit_seconds = config['limit_time_real'] or 120  # jobs CPU timeout
         jobs_to_enqueue = self
         for job in started_jobs:
-            ref_date = job.eta or job.date_started
+            dates = []
+            if job.eta:
+                dates += [job.eta]
+            if job.date_started:
+                dates += [job.date_started]
+            if not dates:
+                continue
+            ref_date = max(dates)
             time_delta_seconds = (dt.now() - fields.Datetime.from_string(ref_date)).seconds
             if time_delta_seconds > worker_real_limit_seconds:
                 jobs_to_enqueue |= job
@@ -70,9 +78,18 @@ class QueueJob(models.Model):
 
     @api.multi
     def requeue(self):
+        for rec in self:
+            if rec.state == 'done':
+                raise exceptions.except_orm(_(u"Error"), _(u"Job in state done cannot be requeued"))
         result = super(QueueJob, self).requeue()
         self.write({'date_requeued': fields.Datetime.now()})
         return result
+
+    @api.multi
+    def button_requeue(self):
+        self.requeue()
+        result = _('Manually requeued by %s') % self.env.user.name
+        self.write({'result': result})
 
     @api.model
     def create(self, vals):

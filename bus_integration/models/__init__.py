@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from . import bus_synchronized_model_abstract
 from . import bus_base
 from . import bus_binder
 from . import bus_mapper
@@ -34,4 +35,5 @@ from . import ir_model
 from . import ir_cron
 from . import ir_ui_view
 from . import mapping_configuration_helper
+from . import track_send_bus_base_abstract
 from . import access_rights

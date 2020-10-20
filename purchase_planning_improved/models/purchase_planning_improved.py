@@ -145,19 +145,26 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                 msg += _(u"LATE by %i day(s)") % rec.opmsg_delay
             rec.opmsg_text = msg
 
+    @api.model
+    def get_path_covering_dates_query(self):
+        module_path = modules.get_module_path('purchase_planning_improved')
+        return module_path + '/sql/' + 'covering_dates_query.sql'
+
     @api.multi
     def compute_coverage_state(self, force_product_ids=None):
-        module_path = modules.get_module_path('purchase_planning_improved')
         product_ids = force_product_ids or []
+        orders_to_compute_limit_order_date = self.env['purchase.order']
         if not force_product_ids:
             products = self.mapped('product_id')
             if not products:
                 return
             product_ids = products.ids
-        with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
+        path_covering_dates_query = self.get_path_covering_dates_query()
+        with open(path_covering_dates_query) as sql_file:
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
             for result_line in self.env.cr.dictfetchall():
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
+                orders_to_compute_limit_order_date |= line.order_id
                 if line.product_id.type == 'product':
                     real_need_date = result_line['real_need_date'] or False
                     date_required = real_need_date and self.env['procurement.order']. \
@@ -172,7 +179,20 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                                                  company=line.order_id.company_id,
                                                  schedule_date=date_required,
                                                  ref_product=line.product_id) or False
+                    if limit_order_date:
+                        delivery_location = line.order_id.picking_type_id.default_location_dest_id
+                        if delivery_location:
+                            calendar = line.order_id.company_id.calendar_id
+                            if not calendar:
+                                _, calendar = delivery_location.get_resource_and_calendar_for_location()
+                            jours_fermeture = calendar and calendar.leave_ids or []
+                            # If Sirail is closed at the 'limit order date',choose the soonest date when Sirail is open.
+                            for jour in jours_fermeture:
+                                if jour.date_from <= fields.Datetime.to_string(limit_order_date) <= jour.date_to:
+                                    limit_order_date = delivery_location.schedule_working_days(-1, limit_order_date)
+                                    break
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
+
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
                     dict_pol = {
                         'date_required': date_required,
@@ -192,6 +212,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                         'opmsg_reduce_qty': line.product_qty,
                     }
                 line.write(dict_pol)
+        if orders_to_compute_limit_order_date:
+            restrict_to_order_ids = orders_to_compute_limit_order_date.ids
+            self.env['purchase.order'].cron_compute_limit_order_date(restrict_to_order_ids=restrict_to_order_ids)
 
     @api.model
     def cron_compute_coverage_state(self):
@@ -257,35 +280,29 @@ class PurchaseOrderPlanningImproved(models.Model):
     limit_order_date = fields.Date(string=u"Limit order date to be late", readonly=True)
 
     @api.model
-    def cron_compute_limit_order_date(self):
-        self.env.cr.execute("""SELECT
+    def cron_compute_limit_order_date(self, restrict_to_order_ids=None):
+        restrict_to_order_ids = restrict_to_order_ids or []
+        query = """SELECT
   po.id                     AS order_id,
   min(pol.limit_order_date) AS new_limit_order_date
 FROM purchase_order po
   INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
-WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')
+WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')"""
+        if restrict_to_order_ids:
+            query += """ AND po.id IN %s"""
+        query += """
 GROUP BY po.id
 ORDER BY po.id
-""")
+"""
+        if restrict_to_order_ids:
+            self.env.cr.execute(query, (tuple(restrict_to_order_ids),))
+        else:
+            self.env.cr.execute(query)
         result = self.env.cr.dictfetchall()
-        order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
-            delivery_location = order.picking_type_id.default_location_dest_id
-            if delivery_location:
-                calendar = order.company_id.calendar_id
-                if not calendar:
-                    _, calendar = delivery_location.get_resource_and_calendar_for_location()
-                jours_fermeture = calendar and calendar.leave_ids or []
-                # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
-                for jour in jours_fermeture:
-                    if jour.date_from <= item['new_limit_order_date'] <= jour.date_to:
-                        item['new_limit_order_date'] = delivery_location. \
-                            schedule_working_days(-1, fields.Datetime.from_string(item['new_limit_order_date']))
-                        break
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
-            order_with_limit_dates_ids += [item['order_id']]
 
     @api.multi
     def compute_coverage_state(self):

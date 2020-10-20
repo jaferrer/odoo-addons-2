@@ -38,8 +38,8 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 
     def __init__(self, proc_id):
         self.proc_id = proc_id
-        super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
-                                                                  _(u"You can't cancel a protected procurement"))
+        super(ForbiddenCancelProtectedProcurement,
+              self).__init__(_(u"Error!"), _(u"You can't cancel a protected procurement (ID=%s)") % proc_id)
 
 
 @job(default_channel='root.procurement_just_in_time_chunk')
@@ -67,6 +67,9 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
     objects_to_delete.unlink()
 
+@job(default_channel='root.auto_delete_cancelled_moves_procs')
+def job_pop_delete_cancelled_moves_and_procs_jobs(session, model_name):
+    session.env[model_name].delete_cancelled_moves_and_procs()
 
 @job(default_channel='root.update_rsm_treat_by_scheduler')
 def job_rsm_treat_by_scheduler(session, model_name, ids):
@@ -136,7 +139,7 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True, index=True)
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -145,7 +148,7 @@ class ProcurementOrderQuantity(models.Model):
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
-    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True, index=True)
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -157,6 +160,112 @@ class ProcurementOrderQuantity(models.Model):
     @api.model
     def get_default_supplierinfos_for_orderpoint_confirm(self):
         return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
+
+    @api.model
+    def delete_old_controller_lines(self):
+        keep_stock_controller_lines_for = bool(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.keep_stock_controller_lines_for', default=0))
+        last_date_done = dt.now() - relativedelta(days=keep_stock_controller_lines_for)
+        last_date_done = fields.Datetime.to_string(last_date_done)
+        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
+                            (last_date_done,))
+
+    @api.model
+    def insert_new_controller_lines(self, orderpoints, company_id):
+        self.env.cr.execute("""INSERT INTO stock_scheduler_controller
+(orderpoint_id,
+ product_id,
+ location_id,
+ location_sequence,
+ run_procs,
+ done,
+ create_date,
+ write_date,
+ create_uid,
+ write_uid,
+ company_id)
+
+WITH user_id AS (SELECT %s AS user_id),
+
+     company_id AS (SELECT %s AS company_id),
+
+     manufactured_products AS (
+       SELECT pp.id AS product_id,
+              pr.location_id,
+              TRUE  AS is_manufactured_product
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_location_route_categ rel ON rel.categ_id = pt.categ_id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id, pr.location_id
+
+       UNION ALL
+
+       SELECT pp.id AS product_id,
+              pr.location_id,
+              TRUE  AS is_manufactured_product
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_route_product rel ON rel.product_id = pt.id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id, pr.location_id),
+
+     orderpoints_to_insert AS (
+       SELECT op.id                             AS orderpoint_id,
+              op.product_id,
+              op.location_id,
+              COALESCE(slss.name :: INTEGER, 0) AS location_sequence,
+              FALSE                             AS run_procs,
+              FALSE                             AS done,
+              CURRENT_TIMESTAMP                 AS create_date,
+              CURRENT_TIMESTAMP                 AS write_date,
+              (SELECT user_id
+               FROM user_id)                    AS create_uid,
+              (SELECT user_id
+               FROM user_id)                    AS write_uid
+       FROM stock_warehouse_orderpoint op
+              INNER JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
+              INNER JOIN product_product pp ON pp.id = op.product_id AND COALESCE(pp.active, FALSE) IS TRUE
+              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id AND
+                                                      mpbl.location_id = op.location_id
+       WHERE op.id IN %s
+         AND (COALESCE(slss.exclude_non_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS TRUE)
+         AND (COALESCE(slss.exclude_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS FALSE)
+       GROUP BY op.id, slss.name),
+
+     list_sequences AS (
+       SELECT location_sequence
+       FROM orderpoints_to_insert
+       GROUP BY location_sequence)
+
+SELECT *,
+       (SELECT company_id FROM company_id) AS company_id
+FROM orderpoints_to_insert
+
+UNION ALL
+
+SELECT NULL                                AS orderpoint_id,
+       NULL                                AS product_id,
+       NULL                                AS location_id,
+       location_sequence,
+       TRUE                                AS run_procs,
+       FALSE                               AS done,
+       CURRENT_TIMESTAMP                   AS create_date,
+       CURRENT_TIMESTAMP                   AS write_date,
+       (SELECT user_id
+        FROM user_id)                      AS create_uid,
+       (SELECT user_id
+        FROM user_id)                      AS write_uid,
+       (SELECT company_id FROM company_id) AS company_id
+FROM list_sequences""", (self.env.uid, company_id, tuple(orderpoints.ids + [0])))
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
@@ -184,96 +293,18 @@ class ProcurementOrderQuantity(models.Model):
         if run_moves:
             domain = company_id and [('company_id', '=', company_id)] or False
             self.env['procurement.order'].run_confirm_moves(domain)
-        last_date_done = dt.now() - relativedelta(months=1)
-        last_date_done = fields.Datetime.to_string(last_date_done)
-        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
-                            (last_date_done,))
-        self.env.cr.execute("""INSERT INTO stock_scheduler_controller
-(orderpoint_id,
- product_id,
- location_id,
- location_sequence,
- run_procs,
- done,
- create_date,
- write_date,
- create_uid,
- write_uid)
-
-WITH user_id AS (SELECT %s AS user_id),
-
-     manufactured_products AS (
-       SELECT pp.id AS product_id,
-              TRUE  AS is_manufactured_product
-       FROM product_product pp
-              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
-              INNER JOIN stock_location_route_categ rel ON rel.categ_id = pt.categ_id
-              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
-              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
-                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
-       WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id
-
-       UNION ALL
-
-       SELECT pp.id AS product_id,
-              TRUE  AS is_manufactured_product
-       FROM product_product pp
-              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
-              INNER JOIN stock_route_product rel ON rel.product_id = pt.id
-              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
-              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
-                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
-       WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id),
-
-     orderpoints_to_insert AS (
-       SELECT op.id                             AS orderpoint_id,
-              op.product_id,
-              op.location_id,
-              COALESCE(slss.name :: INTEGER, 0) AS location_sequence,
-              FALSE                             AS run_procs,
-              FALSE                             AS done,
-              CURRENT_TIMESTAMP                 AS create_date,
-              CURRENT_TIMESTAMP                 AS write_date,
-              (SELECT user_id
-               FROM user_id)                    AS create_uid,
-              (SELECT user_id
-               FROM user_id)                    AS write_uid
-       FROM stock_warehouse_orderpoint op
-              INNER JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
-              INNER JOIN product_product pp ON pp.id = op.product_id AND COALESCE(pp.active, FALSE) IS TRUE
-              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id
-       WHERE op.id IN %s
-         AND (COALESCE(slss.exclude_non_manufactured_products, FALSE) IS FALSE
-         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS TRUE)
-         AND (COALESCE(slss.exclude_manufactured_products, FALSE) IS FALSE
-         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS FALSE)
-       GROUP BY op.id, slss.name),
-
-     list_sequences AS (
-       SELECT location_sequence
-       FROM orderpoints_to_insert
-       GROUP BY location_sequence)
-
-SELECT *
-FROM orderpoints_to_insert
-
-UNION ALL
-
-SELECT NULL              AS orderpoint_id,
-       NULL              AS product_id,
-       NULL              AS location_id,
-       location_sequence,
-       TRUE              AS run_procs,
-       FALSE             AS done,
-       CURRENT_TIMESTAMP AS create_date,
-       CURRENT_TIMESTAMP AS write_date,
-       (SELECT user_id
-        FROM user_id)    AS create_uid,
-       (SELECT user_id
-        FROM user_id)    AS write_uid
-FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+        # we invalidate the already existing line of stock controller not yet started
+        # done_date is kept to NULL, so we have a way to identify controller line invalidated
+        if company_id:
+            msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.now())
+            self.env.cr.execute("""UPDATE stock_scheduler_controller
+    SET done= TRUE,
+        job_uuid = %s
+    WHERE coalesce(done, FALSE) IS FALSE
+      AND job_uuid IS NULL
+      AND company_id = %s;""", (msg, company_id,))
+        self.delete_old_controller_lines()
+        self.insert_new_controller_lines(orderpoints, company_id=company_id or self.env.user.company_id.id)
         return {}
 
     @api.multi
@@ -364,23 +395,47 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return result
 
     @api.model
+    def pop_delete_cancelled_moves_and_procs_jobs(self):
+        job = self.env['queue.job'].search([('state', 'not in', ['done', 'failed']),
+                                            ('func_name', 'ilike', "%delete_cancelled_moves_and_procs%"),], limit=1)
+        if job:
+            return u"Job %s already in execution" % job.name
+        job_pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
+
+    @api.model
     def delete_cancelled_moves_and_procs(self, jobify=True):
-        procs_to_delete = self.search([('to_delete', '=', True)])
+        self.env.cr.execute("""SELECT id
+FROM procurement_order
+WHERE coalesce(to_delete, FALSE) IS TRUE""")
+        procurement_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for proc in procs_to_delete:
+            while procurement_to_delete_ids:
+                procurement_to_delete_id = procurement_to_delete_ids[0]
+                procurement_to_delete_ids = procurement_to_delete_ids[1:]
+                _logger.info(u"Poping job for procurement ID=%s (%s remaining)",
+                             procurement_to_delete_id, len(procurement_to_delete_ids))
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'procurement.order', proc.ids)
+                                                           'procurement.order', [procurement_to_delete_id])
+                self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
-                                                 'procurement.order', procs_to_delete.ids)
-        moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
+                                                 'procurement.order', procurement_to_delete_ids)
+        self.env.cr.execute("""SELECT id
+FROM stock_move
+WHERE coalesce(to_delete, FALSE) IS TRUE""")
+        move_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for moves in moves_to_delete:
+            while move_to_delete_ids:
+                move_to_delete_id = move_to_delete_ids[0]
+                move_to_delete_ids = move_to_delete_ids[1:]
+                _logger.info(u"Poping job for move ID=%s (%s remaining)",
+                             move_to_delete_id, len(move_to_delete_ids))
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'stock.move', moves.ids)
+                                                           'stock.move', [move_to_delete_id])
+                self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
-                                                 'stock.move', moves_to_delete.ids)
+                                                 'stock.move', move_to_delete_ids)
 
 
 class StockMoveJustInTime(models.Model):
@@ -926,6 +981,7 @@ class StockSchedulerController(models.Model):
     job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
     date_done = fields.Datetime(string=u"Date done")
     done = fields.Boolean(string=u"Done", index=True)
+    company_id = fields.Many2one('res.company', string=u"Company", required=True, index=True)
 
     @api.multi
     def set_to_done(self):
@@ -940,12 +996,15 @@ class StockSchedulerController(models.Model):
             controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
 
     @api.model
-    def is_pop_orderpoints_process_running(self):
+    def get_stock_scheduler_blocking_job_function_names(self):
+        return ['openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints',
+                'openerp.addons.scheduler_async.scheduler_async.run_procure_orderpoint_async']
+
+    @api.model
+    def is_any_stock_scheduler_blocking_process(self):
         return self.env['queue.job']. \
-            search(
-            [('job_function_id.name', '=',
-              'openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints'),
-             ('state', 'not in', ('done', 'failed'))], limit=1)
+            search([('job_function_id.name', 'in', self.get_stock_scheduler_blocking_job_function_names()),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
 
     @api.model
     def is_head_scheduler_function_running(self):
@@ -958,9 +1017,7 @@ class StockSchedulerController(models.Model):
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
         line_min_sequence = self.search([('done', '=', False)], order='location_sequence', limit=1)
-        if self.is_pop_orderpoints_process_running():
-            return
-        if self.is_head_scheduler_function_running():
+        if self.is_any_stock_scheduler_blocking_process():
             return
         if line_min_sequence:
             min_sequence = line_min_sequence.location_sequence
@@ -1004,9 +1061,15 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            pop_sub_process_orderpoints. \
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s controler lines, %s remaining",
+                                         len(chunk_line), len(controller_lines_no_run))
+                            job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
+                            chunk_line.write({'job_uuid': job_uuid,
+                                              'job_creation_date': fields.Datetime.now()})
+                            # We want the stock scheduler to start immediately
+                            self.env.cr.commit()
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)

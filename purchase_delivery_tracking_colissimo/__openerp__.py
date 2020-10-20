@@ -30,7 +30,7 @@ Purchase delivery tracking (Colissimo)
 This module allows to track the Colissimo deliveries
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['purchase_delivery_tracking_colissimo.xml'],
     'demo': [],
     'test': [],
     'installable': True,

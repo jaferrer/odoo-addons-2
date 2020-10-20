@@ -16,16 +16,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from openerp import fields, models, api, exceptions, _
+from openerp import fields, models, api, _
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    ligne_compte_tiers = fields.Boolean(string=u"Has a third party line of account",
+    ligne_compte_tiers_avec_facture = fields.Boolean(string=u"Has a third party line of account with an invoice",
                                         help=u"If the account is in type : payable, receivable, liquidity or staff",
-                                        compute="_get_ligne_compte_tiers", readonly=True)
-    extourne = fields.Boolean(string=u"Is in reversal")
+                                        compute="_get_ligne_compte_tiers_avec_facture", readonly=True)
     reimputation = fields.Boolean(string=u"Is in re-allocate : Enter your final journal entries, all lines of the "
                                          u"previous journal entry will be reversed (offline third party account)")
     original_account_move_id = fields.Many2one('account.move', string=u"Original account move")
@@ -35,24 +34,42 @@ class AccountMove(models.Model):
         string=u"Accounting date of the change is different from that of the original posting")
 
     @api.multi
-    @api.depends('line_id', 'line_id.compte_tiers')
-    def _get_ligne_compte_tiers(self):
+    @api.depends('line_id', 'line_id.compte_tiers_avec_facture')
+    def _get_ligne_compte_tiers_avec_facture(self):
         for rec in self:
-            rec.ligne_compte_tiers = [True for l in rec.line_id if l.compte_tiers] or False
+            rec.ligne_compte_tiers_avec_facture = [True for l in rec.line_id if l.compte_tiers_avec_facture] or False
+
+    @api.multi
+    def extourner(self):
+
+        def _inverse_line(line):
+            line2 = line.copy()
+            line2.update({
+                'debit': line2['credit'],
+                'credit': line2['debit'],
+            })
+            return line2
+
+        self.ensure_one()
+        copy_data = self.copy_data()[0]
+        context = self.env.context.copy()
+        context.update({
+            'form_title': _("Reversal the accounting entry"),
+            'default_extourne_parent_id': self.id,
+            'default_name': u"EXT/" + self.name,
+            'default_journal_id': copy_data.get('journal_id'),
+            'default_period_id': copy_data.get('period_id'),
+            'default_partner_id': copy_data.get('partner_id'),
+            'default_company_id': self.company_id.id,
+            'default_ref': self.ref,
+            'default_date': copy_data.get('date'),
+            'default_to_check': True,
+            'default_line_id': [(lambda l:(0, 0, _inverse_line(l[2])))(line) for line in copy_data.get('line_id')],
+        })
+        return self.return_account_move_form(context)
 
     @api.model
     def create(self, vals):
-        to_reimpute = False
-        if vals.get('extourne', False):
-            # Reverse the account.move
-            original_account_move_id = self.default_get(["original_account_move_id"]).get('original_account_move_id',
-                                                                                          False)
-            name = self.default_get(["name"]).get('name', vals.get("reference", ""))
-            vals.update({
-                "extourne": False,
-                'name': u"EXT/" + name
-            })
-            self.generate_extourne(original_account_move_id)
         if vals.get('reimputation', False):
             to_reimpute = self.default_get(["original_account_move_id"]).get('original_account_move_id', False)
             name = self.default_get(["name"]).get('name', vals.get("reference", ""))
@@ -61,21 +78,6 @@ class AccountMove(models.Model):
         new_account_move = super(AccountMove, self).create(vals)
         new_account_move.reimputation = False
         return new_account_move
-
-    def generate_extourne(self, original_account_move_id):
-        # create a new account move and inverse debit and credit of lines
-        original_account_move = self.search([('id', '=', original_account_move_id)])
-        account_move_reverse = original_account_move.copy()
-        account_move_reverse.write({
-            'extourne_parent_id': original_account_move_id,
-            'to_check': True
-        })
-        for line in account_move_reverse.line_id:
-            line.write({
-                'debit': line.credit,
-                'credit': line.debit,
-            })
-        return account_move_reverse
 
     def return_account_move_form(self, context_vars):
         form = self.env.ref('account.view_move_form', False)
@@ -92,26 +94,6 @@ class AccountMove(models.Model):
             'context': context_vars
         }
 
-    @api.multi
-    def extourner(self):
-        self.ensure_one()
-        copy_data = self.copy_data()[0]
-        context = self.env.context.copy()
-        context.update({
-            'form_title': _("Reversal the accounting entry"),
-            'default_extourne': True,
-            'default_original_account_move_id': self.id,
-            'default_name': self.name,
-            'default_journal_id': copy_data.get('journal_id'),
-            'default_period_id': copy_data.get('period_id'),
-            'default_partner_id': copy_data.get('partner_id'),
-            'default_company_id': self.company_id.id,
-            'default_ref': self.ref,
-            'default_date': copy_data.get('date'),
-            'default_line_id': copy_data.get('line_id'),
-        })
-        return self.return_account_move_form(context)
-
     @api.model
     def generate_reimputation_lines(self, original_account_move_id, new_list_lines):
         today = fields.Date.today()
@@ -120,11 +102,11 @@ class AccountMove(models.Model):
         for new_list_line in new_list_lines:
             new_line = new_list_line[2]
             new_line.update({'date': change_date or new_line.get('date_maturity', False)})
-            if new_line.get('compte_tiers', False) and new_line.get("reimputation", False):
+            if new_line.get('compte_tiers_avec_facture', False) and new_line.get("reimputation", False):
                 new_list_lines.remove(new_list_line)
         # inverse of the original move
         for line in original_account_move.line_id:
-            if not line.compte_tiers:
+            if not line.compte_tiers_avec_facture:
                 new_key = len(new_list_lines) + 1
                 inverse_line = line.copy_data()[0]
                 date = change_date or line.date_maturity
@@ -171,11 +153,13 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
-    compte_tiers = fields.Boolean(string=u"Third party line of account", compute="_get_compte_tiers")
+    compte_tiers_avec_facture = fields.Boolean(
+        string=u"Third party line of account with an invoice", compute="_get_compte_tiers_avec_facture")
     reimputation = fields.Boolean(string=u"Is in re-allocate", related="move_id.reimputation")
 
     @api.multi
     @api.depends('account_id', 'account_id.type')
-    def _get_compte_tiers(self):
+    def _get_compte_tiers_avec_facture(self):
         for rec in self:
-            rec.compte_tiers = rec.account_id.type in ('payable', 'receivable', 'liquidity', 'staff')
+            rec.compte_tiers_avec_facture = \
+                rec.account_id.type in ('payable', 'receivable', 'liquidity', 'staff') and rec.invoice

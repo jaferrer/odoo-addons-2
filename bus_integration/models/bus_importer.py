@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -30,7 +50,14 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def import_synchronization_message(self, message_id):
+        """
+        1) check if dependency are needed (from the id listed in the dependency key of the message,
+           check in bus.binder if the id is synchronized)
+        2) if yes, return the list of id needed
+        3) if no, create/update the record and return the post dependencies to complete the one2many fields
+        """
         import_results = {}
+        post_demand = {}
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message, encoding='utf-8')
         root = message_dict.get('body', {}).get('root', {})
@@ -38,12 +65,15 @@ class BusSynchronizationImporter(models.AbstractModel):
         if not demand:
             for model in root.keys():
                 import_results[model] = {}
-                for record in root.get(model).values():
+                records_dict = root.get(model)
+                ordered_record_keys = sorted(records_dict, key=lambda k: records_dict[k]['write_date'])
+                for key in ordered_record_keys:
+                    record = records_dict[key]
                     original_id = record.get('id', False)
                     external_key = record.get('external_key', False)
                     result = self.run_import(message, record, model)
                     if not result:
-                        error_log = self.get_syncrhonization_errors(message_id, model, original_id)
+                        error_log = self.get_synchronization_errors(message_id, model, original_id)
                         result = {
                             'id': False,
                             'external_key': external_key,
@@ -54,10 +84,11 @@ class BusSynchronizationImporter(models.AbstractModel):
                     else:
                         result.update({'bus_original_id': original_id})
                     import_results[model][original_id] = result
-        return import_results, demand
+            post_demand = self.check_needed_post_dependencies(message)
+        return import_results, demand, post_demand
 
     @api.model
-    def get_syncrhonization_errors(self, message_id, model, original_id):
+    def get_synchronization_errors(self, message_id, model, original_id):
         message_logs = self.env['bus.message.log'].search([('message_id', '=', message_id), ('model', '=', model),
                                                            ('sender_record_id', '=', original_id)])
         nb_log = 0
@@ -91,8 +122,15 @@ class BusSynchronizationImporter(models.AbstractModel):
         return result
 
     def check_needed_dependencies(self, message):
-        demand = {}
         dependencies = message.get_json_dependencies()
+        return self.check_for_dependencies(dependencies, message)
+
+    def check_needed_post_dependencies(self, message):
+        post_dependencies = message.get_json_post_dependencies()
+        return self.check_for_dependencies(post_dependencies, message, with_log=False)
+
+    def check_for_dependencies(self, dependencies, message, demand=None, with_log=True):
+        demand = demand if demand else {}
         for model in dependencies.keys():
             for record_id in dependencies[model].keys():
                 needed = self.check_needed_dependency(dependencies[model][record_id], model)
@@ -101,8 +139,9 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if needed_model not in demand:
                         demand[needed_model] = {}
                     demand[needed_model][record_id] = {'external_key': needed.get('external_key')}
-                    log = message.add_log(u"Record needed", 'info')
-                    log.write({'sender_record_id': record_id, 'model': needed_model})
+                    if with_log:
+                        log = message.add_log(u"Record needed", 'info')
+                        log.write({'sender_record_id': record_id, 'model': needed_model})
         return demand
 
     def check_needed_dependency(self, record, model):
@@ -167,7 +206,7 @@ class BusSynchronizationImporter(models.AbstractModel):
         for field in translations:
             for lang in translations.get(field):
                 if field in self.env[transfer.model]._inherit_fields:
-                    parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field]
+                    parent_model, link_field, _, _ = record._inherit_fields[field]
                     model = parent_model
                     record_id = record[link_field].id
                 else:
@@ -184,6 +223,12 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def run_import(self, message, record, model):
+        """
+        :param message: a bus.message object
+        :param record: dictionary containing the fields : value for one record
+        :param model: 'model.model'
+        :return False if error, {'external_key': external_key, 'id': local_id}
+        """
         external_key = record.pop('external_key')
         translation = record.pop('translation', False)
         record_id = record.get('id')
@@ -214,7 +259,7 @@ class BusSynchronizationImporter(models.AbstractModel):
             try:
                 with self.env.cr.savepoint():
                     transfer, odoo_record, error_tuple = transfer \
-                        .import_datas(transfer, odoo_record, binding_data, record_data)
+                        .import_datas(transfer, odoo_record, binding_data, record_data, message)
                     if error_tuple:
                         errors.append(error_tuple)
                     if translation:
@@ -272,6 +317,35 @@ class BusSynchronizationImporter(models.AbstractModel):
         return unlink
 
     @api.model
+    def run_synchro_restrict_ids(self, message):
+        """
+        inactive synchronized records not in ids if active field is present or delete them
+        """
+        message_dict = json\
+            .loads(message.message, encoding='utf-8')\
+            .get('body', {})\
+            .get('root', {})
+
+        return_dict = {}
+        for model in message_dict.keys():
+            return_dict[model] = {}
+            if not self.env[model]._fields.get('active'):
+                error = "%s has no 'active' field. restrict id by deletion not implemented" % model
+                message.add_log(error, 'error')
+                return_dict[model]['error'] = error
+            else:
+                ids_to_keep = message_dict[model]
+                receive_transfer_to_delete = self.env['bus.receive.transfer'].search([
+                    ('model', '=', model),
+                    ('local_id', 'not in', ids_to_keep)
+                ])
+                ids_to_inactive = receive_transfer_to_delete.mapped('local_id')
+                records = self.env[model].browse(ids_to_inactive)
+                records.write({'active': False})
+                return_dict[model]['inactivated'] = records.ids
+        return return_dict
+
+    @api.model
     def register_synchro_deletion_return(self, message_id):
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message, encoding='utf-8')
@@ -320,6 +394,13 @@ class BusSynchronizationImporter(models.AbstractModel):
             for id in result[model].keys():
                 external_key = result[model][id]
                 self.create_receive_transfer(message, model, external_key, id, False, False)
+        return True
+
+    @api.model
+    def register_synchro_restrict_ids_return(self, message):
+        message_dict = json.loads(message.message, encoding='utf-8')
+        result = message_dict.get('body', {}).get('return', {}).get('state', 'error')
+        return result == 'done'
 
     @api.model
     def import_bus_references(self, message, dict_result, return_state):

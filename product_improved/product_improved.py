@@ -98,11 +98,16 @@ WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
 
-    seller_id = fields.Many2one('res.partner', string=u"Main Supplier", readonly=True, track_visibility='onchange')
+    seller_id = fields.Many2one('res.partner', string=u"Main Supplier", readonly=True, track_visibility='onchange',
+                                related=None)
 
     @api.model
     def update_seller_ids(self):
-        for product in self.search([]):
+        self.env.cr.execute("""SELECT pp.id
+FROM product_product pp
+       LEFT JOIN product_template pt ON pt.id = pp.product_tmpl_id
+WHERE coalesce(pp.seller_id, 0) != coalesce(pt.seller_id, 0)""")
+        for product in self.search([('id', 'in', [item[0] for item in self.env.cr.fetchall()])]):
             product.seller_id = product.product_tmpl_id.seller_id
 
     @api.multi
@@ -118,7 +123,10 @@ class ProductLabelProductProduct(models.Model):
             positive_operators = ['=', 'ilike', '=ilike', 'like', '=like']
             products = self.env['product.product']
             if operator in positive_operators:
-                products = self.search([('default_code', operator, name)] + args, limit=limit)
+                # in order to be symetrical, we look for name in default_code and name fields
+                # this way, each product falls either into "contains" or "do not contains"
+                products = self.search(['|', ('default_code', operator, name), ('name', operator, name)] + args,
+                                       limit=limit)
                 if not products:
                     products = self.search([('ean13', operator, name)] + args, limit=limit)
             if not products and operator not in expression.NEGATIVE_TERM_OPERATORS:
@@ -173,6 +181,11 @@ class ProductSupplierinfoImproved(models.Model):
 
     @api.multi
     def update_seller_ids_for_products(self):
+        # odoo-addons/sirail#2521 :
+        # avoid deadlocks when receiving product.supplier info from bus.
+        # seller id will be computed later
+        if self.env.context.get('bus_receive_transfer_external_key'):
+            return
         templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
         if templates:
             self.env['product.template'].with_context(restrict_to_template_ids=templates.ids).update_seller_ids()
@@ -204,7 +217,6 @@ class PricelistImproved(models.Model):
             seller = product.seller_ids[0]
         return seller
 
-
     @api.model
     def find_supplierinfos_for_product(self, product, partner_id):
         """ :return: recordset of supplierinfo (fourniture d'achat
@@ -216,4 +228,3 @@ class PricelistImproved(models.Model):
         if not sellers and product.seller_ids:
             sellers = [product.seller_ids[0]]
         return sellers
-

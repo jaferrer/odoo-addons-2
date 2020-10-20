@@ -23,13 +23,13 @@ from openerp import models, fields
 class BusMessageLog(models.Model):
     _name = 'bus.message.log'
 
-    message_id = fields.Many2one('bus.message', string=u"Message")
+    message_id = fields.Many2one('bus.message', string=u"Message", ondelete='cascade', index=True, required=True)
     type = fields.Selection([('warning', u"Warning"), ('error', u"Error"), ('info', u"Info"),
-                             ('processed', u"Processed")], string=u"Log type")
+                             ('processed', u"Processed")], string=u"Log type", index=True)
     information = fields.Text(srtring=u"Log information")
-    model = fields.Char(u"Model")
-    sender_record_id = fields.Integer(u"Sender record id")
-    recipient_record_id = fields.Integer(u"Recipient record id")
-    external_key = fields.Integer(u"External key")
-    recipient_id = fields.Many2one('bus.base', u"Recipient base")
-    sender_id = fields.Many2one('bus.base', u"Sender base")
+    model = fields.Char(u"Model", index=True)
+    sender_record_id = fields.Integer(u"Sender record id", index=True)
+    recipient_record_id = fields.Integer(u"Recipient record id", index=True)
+    external_key = fields.Integer(u"External key", index=True)
+    recipient_id = fields.Many2one('bus.base', u"Recipient base", index=True)
+    sender_id = fields.Many2one('bus.base', u"Sender base", index=True)

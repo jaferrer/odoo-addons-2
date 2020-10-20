@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -29,6 +49,8 @@ class BusSynchronizationBinder(models.AbstractModel):
 
     @api.model
     def _get_transfer(self, external_key, model):
+        if not external_key or not model:
+            return self.env['bus.receive.transfer']
         transfer = self.env['bus.receive.transfer'].search([('external_key', '=', str(external_key)),
                                                             ('model', '=', str(model))], limit=1)
         return transfer
@@ -96,9 +118,7 @@ class BusSynchronizationBinder(models.AbstractModel):
 
         errors = []
         transfer, odoo_record = self.get_record_by_external_key(external_key, model)
-        if transfer:
-            transfer.local_id = odoo_record.id
-        else:
+        if not transfer:
             log_message = ""
             if model_mapping.key_xml_id and xml_id and self.is_valid_xml_id(xml_id):
                 odoo_record = self.get_record_by_xml(xml_id, model_mapping.model_name)

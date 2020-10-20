@@ -29,14 +29,26 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"/>
-                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"/>
-                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button" type="object" attrs="{'invisible': [('cron_sync_all','!=',False)]}"/>
-                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button" type="object" attrs="{'invisible': [('cron_sync_diff','!=',False)]}"/>
+                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"
+                        attrs="{'invisible': ['|', ('cron_sync_all','=',False), ('hide_sync_all','=',True)]}"/>
+                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"
+                        attrs="{'invisible': ['|', ('cron_sync_diff','=',False), ('hide_sync_diff','=',True)]}"/>
+                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button"
+                                type="object" attrs="{'invisible': [('cron_sync_all','!=',False), ('hide_create_cron','=',True)]}"/>
+                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button"
+                                type="object" attrs="{'invisible': [('cron_sync_diff','!=',False), ('hide_create_cron','=',True)]}"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
+
+
                     </header>
                     <sheet>
+                        <div class="oe_right oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="object"
+                                    name="view_messages" icon="fa-comments">
+                                <field string="Messages" name="nb_messages" widget="statinfo"/>
+                            </button>
+                        </div>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only"/>
                             <h1>
@@ -52,6 +64,7 @@
                                 <field name="bus_reception_treatment"/>
                                 <field name="sequence"/>
                                 <field name="active"/>
+                                <field name="last_sync_date" readonly="1"/>
                             </group>
                             <group>
                                 <field name="model"/>
@@ -63,11 +76,10 @@
                                 <field name="cron_sync_diff" />
                             </group>
                         </group>
-                        <notebook>
-                            <page id="histo" string="History">
-                                <field name="bus_message_ids" nolabel="1" options="{'reload_on_button': true}"/>
-                            </page>
-                        </notebook>
+                        <!-- field must be included to be used in domain -->
+                        <field name="hide_sync_diff" invisible="1"/>
+                        <field name="hide_sync_all" invisible="1"/>
+                        <field name="hide_create_cron" invisible="1"/>
                     </sheet>
                 </form>
             </field>
@@ -88,7 +100,7 @@
                     <group expand="0" string="Group By">
                         <filter string="Recipient" name="group_by_recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>
-                        <filter string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
+                        <filter name="group_by_treatment_type" string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
                     </group>
                 </search>
             </field>

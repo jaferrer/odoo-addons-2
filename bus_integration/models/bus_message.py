@@ -1,6 +1,4 @@
-# -*- coding: utf8 -*-
-#
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#  -*- coding: utf8 -*-
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,9 +16,26 @@
 #
 
 import json
+import math
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from openerp.addons.connector.queue.job import job
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response
+
+
+@job
+def job_bus_message_cleaner(session, model_name):
+    session.env[model_name].clean_old_messages_async()
+
+
+@job(default_channel='root.bus_message_cleaner_chunk')
+def job_bus_message_cleaner_chunk(session, model_name, message_ids):
+    for message in session.env[model_name].browse(message_ids):
+        message.unlink()
+    return "unlink old bus messages %s: job done." % message_ids
 
 
 class BusMessage(models.Model):
@@ -29,7 +44,7 @@ class BusMessage(models.Model):
     -------------------------------------------------
     <<lvl I - mother original request>>                     CROSS ID               parent
     -------------------------------------------------
-    | -> #1 - SYNC REQUEST                                  master:1
+    | -> #1 - SYNC REQUEST                                  master:1
     | <- #2 - DEP REQUEST                                   master:1                  #1
     | -----------------------------------------------
     | <<lvl II - 1st mother dependency response>>
@@ -43,6 +58,33 @@ class BusMessage(models.Model):
     |   |   | <- #6 - DEP OK                                master:3>master:5         #5          ==> rerun #3
     |   | --------------------------------------------
     |   | <- #7 - DEP OK (from #3)                          master:1>master:3         #3           ==> rerun #1
+    | ------------------------------------------------
+    | <- #8 - SYNC OK                                       master:1                  #1
+    -------------------------------------------------
+
+    messages hierarchy example in case of one2many (sync data from child A  to child B)
+        -------------------------------------------------
+    <<lvl I - mother original request>>                     CROSS ID               parent
+    -------------------------------------------------
+    | -> #1 - SYNC REQUEST                                  master:1                            request product.to.send
+    | <- #2 - DEP REQUEST                                   master:1                  #1        request production.lot
+    | -----------------------------------------------
+    | <<lvl II - 1st  dependency response>>
+    | -----------------------------------------------
+    |   | -> #3 - DEP RESPONSE                              master:1>master:3         #2        send production.lot
+    |   | <- #4 - DEP OK                                    master:1>master:3         #3          ==> rerun #1
+    |   | --------------------------------------------
+    | <- #5 - SYNC OK                                        master:1                 #1
+    | -----------------------------------------------
+    | <<lvl I - post dependency request>>
+    | -----------------------------------------------
+    | <- #6 - POST DEP REQUEST   (POST DEPENDENCY)           master:1>master:3         #3        request pedigree.line
+    | -----------------------------------------------
+    | <<lvl II - post dependency response>>
+    | -----------------------------------------------
+    |   | -> #7 - DEP RESPONSE                              master:1>master:5         #6        send pedigree line
+    |   | <- #8 - DEP OK                                    master:1>master:5         #7        ==> rerun #1
+    |   | --------------------------------------------
     | ------------------------------------------------
     | <- #8 - SYNC OK                                       master:1                  #1
     -------------------------------------------------
@@ -63,6 +105,7 @@ class BusMessage(models.Model):
     treatment = fields.Selection([('SYNCHRONIZATION', u"Synchronization request"),
                                   ('DEPENDENCY_SYNCHRONIZATION', u"Dependency response"),
                                   ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Dependency request"),
+                                  ('POST_DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Post dependency request"),
                                   ('SYNCHRONIZATION_RETURN', u"Synchronization response"),
                                   ('DELETION_SYNCHRONIZATION', u"Deletion request"),
                                   ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion response"),
@@ -70,10 +113,12 @@ class BusMessage(models.Model):
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ('BUS_SYNCHRONIZATION', u"bus synchro request"),
                                   ('BUS_SYNCHRONIZATION_RETURN', u"bus synchro response"),
+                                  ('RESTRICT_IDS_SYNCHRONIZATION', u"Restrict ID request"),
+                                  ('RESTRICT_IDS_SYNCHRONIZATION_RETURN', u"Restrict ID response"),
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
     exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
-    message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
+    message_parent_id = fields.Many2one('bus.message', string=u"Parent message", index=True)
     message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
     # enable to identify a message across all the databases (mother/bus/child)
@@ -87,6 +132,8 @@ class BusMessage(models.Model):
     body = fields.Text(u"body", compute="_compute_message_fields", readonly=True)
     body_root_pretty_print = fields.Text(u"Body root", compute="_compute_message_fields", readonly=True)
     body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_message_fields", readonly=True)
+    body_post_dependencies_pretty_print = fields.Text(u"Body post-dependencies", compute="_compute_message_fields",
+                                                      readonly=True)
     body_models = fields.Text(u"Models", compute="_compute_message_models", readonly=True, store=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
@@ -112,6 +159,11 @@ class BusMessage(models.Model):
         return self.get_json_message().get('body', {}).get('dependency', {})
 
     @api.multi
+    def get_json_post_dependencies(self):
+        self.ensure_one()
+        return self.get_json_message().get('body', {}).get('post_dependency', {})
+
+    @api.multi
     def deactive(self):
         self.write({'active': False})
 
@@ -129,7 +181,9 @@ class BusMessage(models.Model):
                 body_dict = message_dict.get('body', {}).get('root', {})
                 models = body_dict.keys()
                 for model in models:
-                    keys = body_dict.get(model).keys()
+                    keys = []
+                    if isinstance(body_dict.get(model), dict):
+                        keys = body_dict.get(model).keys()
                     ids = [int(key) for key in keys]
                     exported_ids += u"%s : %s, " % (model, ids)
             rec.exported_ids = exported_ids
@@ -138,11 +192,10 @@ class BusMessage(models.Model):
     def _compute_cross_id_str(self):
         for rec in self:
             if rec.cross_id_origin_parent_id:
-                rec.cross_id_str = "{0:s}:{1:d}>{0:s}:{2:d}".format(rec.cross_id_origin_base,
-                                                                    rec.cross_id_origin_parent_id,
-                                                                    rec.cross_id_origin_id)
+                rec.cross_id_str = "%s:%s>%s:%s" % (rec.cross_id_origin_base, rec.cross_id_origin_parent_id,
+                                                    rec.cross_id_origin_base, rec.cross_id_origin_id)
             else:
-                rec.cross_id_str = "{0:s}:{1:d}".format(rec.cross_id_origin_base, rec.cross_id_origin_id)
+                rec.cross_id_str = "%s:%s" % (rec.cross_id_origin_base, rec.cross_id_origin_id)
 
     @api.multi
     @api.depends('message')
@@ -175,10 +228,13 @@ class BusMessage(models.Model):
 
                 body_dict = message_dict.get('body')
                 dependencies_dict = body_dict.pop('dependency', {})
+                post_dependencies_dict = body_dict.pop('post_dependency', {})
                 rec.body = json.dumps(body_dict)
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
                 rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
+                rec.body_post_dependencies_pretty_print = json.dumps({'post_dependency': post_dependencies_dict},
+                                                                     indent=4)
             except ValueError:
                 rec.body = rec.message
                 rec.body_root_pretty_print = rec.message
@@ -264,10 +320,20 @@ class BusMessage(models.Model):
 
     @api.multi
     def is_error(self):
+        """
+        We use a SQL request instead of ORM because of memory issue when too much info logs message ratached to this
+        message, also we use LIMIT 1 and retrieve only id because we are only interested in the existence of error
+         or not
+        """
         self.ensure_one()
-        log_errors = self.env['bus.message.log'].search([('message_id', '=', self.id), ('type', '=', 'error')])
+        request = """
+        SELECT id FROM bus_message_log
+        WHERE message_id = %s AND type = 'error'
+        LIMIT 1;"""
+        self.env.cr.execute(request, (self.id,))
+        log_errors = self.env.cr.fetchall()
         state = json.loads(self.message).get('body', {}).get('return', {}).get('state', False)
-        return log_errors or state == "error"
+        return bool(log_errors) or state == "error"
 
     @api.multi
     def add_log(self, message, log_type='info'):
@@ -340,10 +406,33 @@ class BusMessage(models.Model):
                                                      self.configuration_id.id, json.dumps(msg_content_dict))
         return self.job_send_uuid
 
+    @api.model
+    def clean_old_messages_async(self):
+        keep_messages_for = self.env.ref('bus_integration.backend').keep_messages_for
+        if not keep_messages_for:
+            return
+        limit_date = datetime.now() - relativedelta(days=keep_messages_for)
+        old_msgs = self.search([('create_date', '<', fields.Datetime.to_string(limit_date))])
+        chunk_size = 100
+        cpt = 0
+        max = int(math.ceil(len(old_msgs) / float(chunk_size)))
+        while old_msgs:
+            cpt += 1
+            chunk = old_msgs[:chunk_size]
+            old_msgs = old_msgs[chunk_size:]
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_bus_message_cleaner_chunk.delay(session, 'bus.message', chunk.ids,
+                                                description="bus message cleaner (chunk %s/%s)" % (cpt, max))
+
+    @api.model
+    def cron_bus_message_cleaner(self):
+        job_bus_message_cleaner.delay(ConnectorSession.from_env(self.env), 'bus.message',
+                                      description=u"bus message cleaner - remove old messages.")
+
 
 class BusMessageHearderParam(models.Model):
     _name = 'bus.message.header.param'
 
-    message_id = fields.Many2one('bus.message', u"Message", required=True)
+    message_id = fields.Many2one('bus.message', u"Message", required=True, ondelete='cascade', index=True)
     name = fields.Char(u"Key", required=True)
     value = fields.Char(u"Value")

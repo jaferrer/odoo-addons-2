@@ -19,11 +19,10 @@
 
 import socket
 import json
-import jsonrpclib
 import logging
+import jsonrpclib
 
-from openerp import fields, models, api, exceptions
-from openerp.tools.safe_eval import safe_eval
+from openerp import fields, models, api
 from openerp.addons.connector.exception import FailedJobError
 
 _logger = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ class BusSendMessage(models.AbstractModel):
     @api.multi
     def get_connexion(self):
         for rec in self:
-            server, res, connection = rec.try_connexion()
+            _, res, _ = rec.try_connexion()
             rec.connection_status = res
 
     @api.multi
@@ -68,11 +67,25 @@ class BusSendMessage(models.AbstractModel):
             result = self._return_last_jsonrpclib_error()
         if raise_error and result != "OK":
             raise FailedJobError(result)
-        return (server, result, connection)
+        return server, result, connection
 
+    def send_search_read(self, server, login, model, domain, fields):
+        args = [
+            self.database,
+            login,
+            self.password,
+            model,
+            'search_read',
+            domain,
+            fields
+        ]
+        try:
+            return server.call(service='object', method='execute', args=args)
+        except jsonrpclib.ProtocolError:
+            raise FailedJobError(self._return_last_jsonrpclib_error())
 
     def send_odoo_message(self, model, function, code, message):
-        server, result, login = self.try_connexion(raise_error=True)
+        server, _, login = self.try_connexion(raise_error=True)
         args = [
             self.database,
             login,
@@ -83,10 +96,10 @@ class BusSendMessage(models.AbstractModel):
             message
         ]
         try:
-            result = server.call(service='object', method='execute', args=args)
-            return result
+            return server.call(service='object', method='execute', args=args)
         except jsonrpclib.ProtocolError:
             raise FailedJobError(self._return_last_jsonrpclib_error())
 
+    @api.model
     def _return_last_jsonrpclib_error(self):
         return json.loads(jsonrpclib.history.response).get('error').get('data').get('message')

@@ -17,16 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
-
 from openerp import models, api, fields
+
+
+_logger = logging.getLogger(__name__)
 
 
 @job
 def job_launch_useless_messages_deletion(session, model_name, context):
     session.env[model_name].with_context(context).launch_useless_messages_deletion()
     return "End of deletion"
+
+
+@job(default_channel='root.mail_message_cleaner_chunk')
+def job_delete_useless_message_for_model(session, model_name, model, context):
+    session.env[model_name].with_context(context).launch_useless_messages_deletion_for_model(model)
+    return "deleted chunck of %s" % model_name
 
 
 class MailThreadImprovedModels(models.Model):
@@ -49,15 +58,43 @@ class MailThreadImprovedModels(models.Model):
     @api.model
     def launch_useless_messages_deletion(self):
         models_list = self.compute_models_to_process()
-
-
         for model in models_list:
+            job_delete_useless_message_for_model\
+                .delay(ConnectorSession.from_env(self.env),
+                       'mail.message',
+                       model,
+                       dict(self.env.context),
+                       description=u"Poping job to delete unused chunk of mail.message for %s" % model,
+                       priority=100, )
+
+    @api.model
+    def launch_useless_messages_deletion_for_model(self, model):
+        chunck_size = 100
+        try:
             table_name = self.env[model]._table
-            self.env.cr.execute("""DELETE FROM mail_message
-WHERE model = '%s' AND
-      NOT exists(SELECT 1
-                 FROM %s current_table
-                 WHERE current_table.id = mail_message.res_id);""" % (model, table_name,))
+        except KeyError:
+            return  # in the case some model have been removed by an update
+        req = """SELECT id FROM mail_message
+                WHERE model = '%s' AND
+                      NOT exists(SELECT 1
+                                 FROM %s current_table
+                                 WHERE current_table.id = mail_message.res_id)
+                 LIMIT %s;"""
+        self.env.cr.execute(req % (model, table_name, chunck_size))
+        res = self.env.cr.fetchall()
+        msg_to_delete_ids = res and reduce(lambda x, y: x + y, res)
+        _logger.debug("=== useless_messages_deletion_for_model %s deleting %s", model, msg_to_delete_ids)
+        if msg_to_delete_ids:
+            del_req = """DELETE FROM mail_message WHERE id IN %s""" % str(msg_to_delete_ids)
+            self.env.cr.execute(del_req)
+            # we launch again the same job to handle the next chunck, it will return doing nothing if no more msg
+            job_delete_useless_message_for_model\
+                .delay(ConnectorSession.from_env(self.env),
+                       'mail.message',
+                       model,
+                       dict(self.env.context),
+                       description=u"Poping job to delete chunk of unused mail.message for %s" % model,
+                       priority=100,)
 
     @api.model
     def create(self, vals):

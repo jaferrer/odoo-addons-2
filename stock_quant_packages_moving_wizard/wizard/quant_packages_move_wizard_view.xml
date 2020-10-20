@@ -15,9 +15,9 @@
                         <field name="pack_move_items"
                             nolabel="1">
                             <tree editable="bottom">
-                                <field name="package" />
-                                <field name="source_loc" />
-                                <field name="dest_loc" />
+                                <field name="package" readonly="1"/>
+                                <field name="source_loc" readonly="1"/>
+                                <field name="dest_loc" invisible="1" />
                             </tree>
                         </field>
                     </group>

@@ -26,6 +26,10 @@
                                     <field name="consider_end_contract_effect" class="oe_inline"/>
                                     <label for="consider_end_contract_effect"/>
                                 </div>
+                                <div>
+                                    <field name="keep_stock_controller_lines_for" class="oe_inline"/>
+                                    <label for="keep_stock_controller_lines_for"/>
+                                </div>
                             </div>
                         </group>
                     </form>

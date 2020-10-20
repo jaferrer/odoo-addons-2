@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- tree view -->
+        <record id="view_factor_transmission_tree" model="ir.ui.view">
+            <field name="name">view.factor.transmission.tree</field>
+            <field name="model">factor.transmission</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="create_date" />
+                    <field name="bank_id" string="factor bank"/>
+                    <field name="message_last_post" string="Last send date"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- form view -->
+        <record id="view_factor_transmission_form" model="ir.ui.view">
+            <field name="name">view.factor.transmission.form</field>
+            <field name="model">factor.transmission</field>
+            <field name="arch" type="xml">
+                <form edit="false">
+                    <header>
+                        <span attrs="{'invisible': [('debtors_file_id', '=', False)]}">
+                            <button name="action_display_mail_wizard" string="Send to factor" type="object" class="oe_highlight"/>
+                        </span>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="bank_id" options="{'no_create': True}"/>
+                            <field name="message_last_post" widget="date" readonly="True"/>
+                        </group>
+                        <div attrs="{'invisible': ['|',('bank_id', '=', False),('bank_factor_settings_errors', '!=', False)]}">
+
+                            <separator string="Factor files"/>
+                            <field name="debtors_file_id"/>
+                            <field name="open_items_file_id"/>
+                            <separator string="Related invoices"/>
+                            <field name="invoice_ids"/>
+                        </div>
+                        <field name="bank_factor_settings_errors"
+                               attrs="{'invisible': [('bank_factor_settings_errors', '=', False)]}"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- menu transmitted factors-->
+        <record id="action_show_transmitted_factors" model="ir.actions.act_window">
+            <field name="name">Factor transmission</field>
+            <field name="res_model">factor.transmission</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+        <menuitem name="Transmitted factors" id="menu_transmitted_factors" action="action_show_transmitted_factors"
+                  groups="account.group_account_manager" parent="account.menu_finance_bank_and_cash" sequence="7"/>
+
+        <!--Email template-->
+        <record id="mail_template_transmit_factor" model="email.template">
+            <field name="name">Factor Email Template</field>
+            <field name="email_from">'noreply@localhost'</field>
+            <field name="subject">Factor ${object.bank_id.acc_number}</field>
+            <field name="partner_to">${(object.bank_id.partner_id.id)}</field>
+            <field name="model_id" ref="account_invoice_factor.model_factor_transmission"/>
+            <field name="send_object_attachments" eval="True"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="lang">${object.bank_id.partner_id.lang}</field>
+            <field name="body_html"><![CDATA[
+<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+
+    <p>Hello,</p>
+    <p>Please find enclosed new invoices and refunds included the debtors (NC*.txt) and open_items (NA*.txt) files</p>
+    <p>Regards,</p>
+    <p>${user.name}</p>
+</div>
+            ]]></field>
+        </record>
+    </data>
+</openerp>

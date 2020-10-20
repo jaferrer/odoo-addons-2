@@ -245,14 +245,6 @@ class IncompeteProductionMrpProduction(models.Model):
             return []
 
     @api.multi
-    def button_update(self):
-        orders_no_backorder = self.search([('id', 'in', self.ids),
-                                           ('backorder_id', '=', False),
-                                           ('state', 'not in', ['draft', 'done', 'cancel'])])
-        orders_no_backorder._action_compute_lines()
-        orders_no_backorder.update_moves()
-
-    @api.multi
     def action_assign(self):
         result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:

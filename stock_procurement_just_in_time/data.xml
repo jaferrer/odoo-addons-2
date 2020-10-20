@@ -67,7 +67,7 @@
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model">procurement.order</field>
-            <field name="function">delete_cancelled_moves_and_procs</field>
+            <field name="function">pop_delete_cancelled_moves_and_procs_jobs</field>
             <field name="args"/>
         </record>
 
@@ -85,6 +85,12 @@
             <field name="function">cron_update_treat_by_scheduler_rsm</field>
             <field name="args"/>
         </record>
+
+        <record model="ir.config_parameter" id="parameter_keep_stock_controller_lines_for">
+            <field name="key">stock_procurement_just_in_time.keep_stock_controller_lines_for</field>
+            <field name="value">3</field>
+        </record>
+
     </data>
 
 </openerp>

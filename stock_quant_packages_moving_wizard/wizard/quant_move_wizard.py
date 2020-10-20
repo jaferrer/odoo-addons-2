@@ -40,6 +40,8 @@ class StockQuantMove(models.TransientModel):
         quants = quant_obj.browse(cr, uid, quants_ids, context=context)
         items = []
         for quant in quants:
+            if quant.location_id.usage not in ['internal', 'transit']:
+                raise exceptions.ValidationError(u"Move from non-internal or non-transit locations prohibited")
             if not quant.package_id:
                 item = {
                     'quant': quant.id,
