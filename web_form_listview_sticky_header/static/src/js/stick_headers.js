@@ -6,7 +6,7 @@ var FormRenderer = require('web.FormRenderer');
 var StickyHeaderFormRenderer = FormRenderer.include({
 
     on_attach_callback: function () {
-        var listViews = '.o_field_one2many table.o_list_view';
+        var listViews = '.o_form_nosheet .o_field_one2many table.o_list_view';
         var contentArea = '.o_content';
         var offset = $('.o_form_statusbar').outerHeight();
 

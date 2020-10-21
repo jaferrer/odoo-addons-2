@@ -16,38 +16,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from odoo import fields, models, api
 
-
-class ResCompany(models.Model):
-    _inherit = 'res.company'
-
-    ape = fields.Char(related='partner_id.ape')
+from odoo import api, models
 
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    ape = fields.Char('APE')
-
-
-class CompanyConfig(models.TransientModel):
-    _name = 'company.config'
-    _description = 'company.config'
+    @api.model
+    def create_from_ui(self, partner):
+        if 'is_company' in partner:
+            partner['is_company'] = partner['is_company'] == 'true'
+        return super(ResPartner, self).create_from_ui(partner)
 
     @api.model
-    def update_lang(self, force_update=False):
-        lang_fr = self.env['res.lang'].search([('code', '=', 'fr_FR')])
-        if not lang_fr or force_update:
-            self.env['base.language.install'].create({
-                'lang': 'fr_FR',
-                'overwrite': True
-            }).lang_install()
-        lang_fr.write({
-            'date_format': "%d/%m/%Y",
-            'grouping': '[3,3,3,3,3,3,3,3,3,3,3]',
-            'decimal_point': ",",
-            'thousands_sep': '&nbsp;',
-            'time_format': "%H:%M",
-            'active': True
-        })
+    def get_names_order(self):
+        """Allow POS frontend to retrieve 'partner_names_order'"""
+        return self._get_names_order()
