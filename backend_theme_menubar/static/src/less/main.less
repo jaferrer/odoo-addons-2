@@ -1,0 +1,64 @@
+.navbar {
+    z-index: 10;
+}
+
+.o_cp_switch_buttons {
+    .active {
+        z-index: 10;
+    }
+}
+
+.o_sub_menu {
+    .o_sub_menu_logo {
+        display: none;
+    }
+    .o_sub_menu_footer {
+        display: none;
+    }
+}
+
+.o_tooltip.active {
+    z-index: 1051;
+}
+
+.o_web_client {
+    &.o_fullscreen {
+        #oe_main_menu_navbar,
+        .o_main .o_sub_menu,
+        .navbar,
+        .main-nav{
+            display: none
+        }
+    }
+
+    >.o_loading {
+        z-index: 10;
+    }
+}
+
+@media (max-width: @screen-sm-max) {
+    .o_control_panel {
+        // Remove z-index from CP buttons so it doesn't overlap the menu
+        .btn-group > .btn.active {
+            z-index: initial;
+        }
+
+        // Better horizontal space usage for buttons
+        justify-content: space-between;
+        .o_cp_left, .o_cp_right {
+            width: inherit;
+        }
+    }
+}
+
+.o_chat_window {
+    z-index: 1000;
+}
+
+.company-logo {
+    height: @navbar-height;
+}
+
+header > .main-nav > .container-fluid .o_sub_menu > .o_sub_menu_content > .oe_secondary_menu.single-menu > li.app-name {
+    display: none;
+}
