@@ -170,6 +170,8 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:
                 if item[1] not in dict_proc_sellers:
+                    if not self.env['res.partner'].search([('id', '=', item[1])]):
+                        continue  # Do not take into account desactivated supplier
                     dict_proc_sellers[item[1]] = []
                 dict_proc_sellers[item[1]] += [item[0]]
         for seller_id in dict_proc_sellers.keys():
