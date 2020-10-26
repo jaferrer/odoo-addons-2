@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend" name="Open Mobile Assets" inherit_id="web.assets_backend" priority="110">
+        <xpath expr=".">
+            <link rel="stylesheet" type="text/css" href="/backend_theme_menubar/static/lib/css/drawer.3.2.2.css"/>
+            <link rel="stylesheet" href="/backend_theme_menubar/static/src/less/main.less"/>
+            <link rel="stylesheet" href="/backend_theme_menubar/static/src/less/navbar.less"/>
+            <link rel="stylesheet" href="/backend_theme_menubar/static/src/less/app_drawer.less"/>
+            <link rel="stylesheet" href="/backend_theme_menubar/static/src/less/variables.less"/>
+
+            <script type="application/javascript" src="/backend_theme_menubar/static/lib/js/iscroll-probe.5.2.0.js"/>
+            <script type="application/javascript" src="/backend_theme_menubar/static/lib/js/drawer.3.2.2.js"/>
+            <script type="application/javascript" src="/backend_theme_menubar/static/src/js/backend_theme_menubar.js"/>
+        </xpath>
+    </template>
+
+</odoo>
