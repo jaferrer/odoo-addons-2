@@ -31,7 +31,7 @@ GaugeWidget.include({
         }
 
         var degree = Math.PI/180,
-            width = 150,
+            width = 170,
             height = 100,
             outerRadius = Math.min(width, height)*0.75,
             innerRadius = outerRadius*0.7,
@@ -65,12 +65,12 @@ GaugeWidget.include({
         // addText(title, 16, 0, -outerRadius-16).style("font-weight",'bold');
 
         // center value
-        addText(utils.human_number(value, 1), fontSize, 0, -2).style("font-weight",'bold');
+        addText(utils.human_number(value, 0, 2), fontSize, 0, -2).style("font-weight",'bold');
 
         // bottom label
         addText(0, 14, -(outerRadius+innerRadius)/2, 16);
         addText(label, 14, 0, 16);
-        addText(isNaN(max_value) ? '0' : utils.human_number(max_value, 1), 14, (outerRadius+innerRadius)/2, 16);
+        addText(isNaN(max_value) ? '0' : utils.human_number(max_value, 0, 2), 14, (outerRadius+innerRadius)/2, 16);
 
         // chart
         svg.append("path")
