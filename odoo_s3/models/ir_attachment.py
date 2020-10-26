@@ -26,6 +26,7 @@ from cStringIO import StringIO
 from minio import Minio
 
 from odoo import api, models, exceptions
+from odoo.tools import config
 
 _logger = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ class S3Attachment(models.Model):
     _s3_bucket = False
 
     def _storage(self):
+        if config['test_enable']:
+            return super(S3Attachment, self)._storage()
         return self.env.context.get('force_attachment_storage', 's3')
 
     def _connect_to_S3_bucket(self):
@@ -104,7 +107,7 @@ class S3Attachment(models.Model):
             if not self._s3_bucket:
                 self._s3_bucket = self._connect_to_S3_bucket()
         except Exception as e:
-            _logger.error('S3: _file_write was not able to connect (%s), gonna try other filestore', e)
+            _logger.error('S3: _file_write was not able to connect (%s)', e)
             return super(S3Attachment, self)._file_write(value, checksum)
 
         bin_value = value.decode('base64')
