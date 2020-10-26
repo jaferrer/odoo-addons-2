@@ -111,7 +111,7 @@ class S3Attachment(models.Model):
             return super(S3Attachment, self)._file_write(value, checksum)
 
         bin_value = value.decode('base64')
-        fname, full_path = self._get_path(bin_value, checksum)
+        fname, _ = self._get_path(bin_value, checksum)
         bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
         key = '%s/%s' % (self.env.registry.db_name, fname)
         s3_key = None
@@ -193,7 +193,7 @@ class S3Attachment(models.Model):
             try:
                 self._s3_bucket.remove_object(bucket_name, check_key_name)
             except Exception as e:
-                _logger.error('S3: _file_gc_s3 was not able to gc check_key %s: %s', bucket_name, check_key_name, e)
+                _logger.error('S3: _file_gc_s3 was not able to gc %s check_key %s: %s', bucket_name, check_key_name, e)
 
         # commit to release the lock
         cr.commit()
@@ -252,13 +252,13 @@ class S3Attachment(models.Model):
         except Exception as e:
             _logger.error('S3: Copy filestore to S3. Was not able to connect (%s), gonna try other filestore', e)
 
-        for root, dirs, files in os.walk(full_path):
+        for root, _, files in os.walk(full_path):
             for file_name in files:
                 path = os.path.join(root, file_name)
                 self._s3_bucket.fput_object(bucket_name, '%s/%s' % (db_name, path[len(full_path):]), path)
                 _logger.debug('S3: Copy filestore to S3. Loading file %s to %s/%s',
                               db_name, path, path[len(full_path):])
-        self.env['ir.config_parameter'].sudo().set_param('ir_attachment.location_s3_copied_to', '%' % bucket_name,
+        self.env['ir.config_parameter'].sudo().set_param('ir_attachment.location_s3_copied_to %s' % bucket_name,
                                                          groups=['base.group_system'])
         return True
 
