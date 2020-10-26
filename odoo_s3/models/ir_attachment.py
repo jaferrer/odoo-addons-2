@@ -1,14 +1,31 @@
-# -*- coding: utf-8 -*-
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# -*- coding: utf8 -*-
+#
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# pylint: disable=W0703
 
-from odoo import api, models, exceptions
-
-from minio import Minio
-
-from cStringIO import StringIO
 import base64
 import logging
 import os
+from cStringIO import StringIO
+
+from minio import Minio
+
+from odoo import api, models, exceptions
 
 _logger = logging.getLogger(__name__)
 
@@ -18,6 +35,9 @@ class S3Attachment(models.Model):
     """
     _inherit = "ir.attachment"
     _s3_bucket = False
+
+    def _storage(self):
+        return self.env.context.get('force_attachment_storage', 's3')
 
     def _connect_to_S3_bucket(self):
         get_param = self.env['ir.config_parameter'].sudo().get_param
@@ -34,9 +54,13 @@ class S3Attachment(models.Model):
 
     @api.model
     def _file_read(self, fname, bin_size=False):
-        if not self._storage() == 's3':
+        if self._storage() != 's3':
             # storage is not as s3 type
             return super(S3Attachment, self)._file_read(fname, bin_size=bin_size)
+
+        res = super(S3Attachment, self)._file_read(fname, bin_size=bin_size)
+        if res:
+            return res
 
         try:
             if not self._s3_bucket:
@@ -48,9 +72,11 @@ class S3Attachment(models.Model):
         s3_key = None
         bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
         key = '%s/%s' % (self.env.registry.db_name, fname)
+        bin_data = ''
         try:
             s3_key = self._s3_bucket.get_object(bucket_name, key)
-            res = base64.b64encode(s3_key.read())
+            bin_data = s3_key.read()
+            res = base64.b64encode(bin_data)
             _logger.debug('S3: _file_read read %s:%s from bucket successfully', bucket_name, key)
 
         except Exception as e:
@@ -60,6 +86,12 @@ class S3Attachment(models.Model):
             if s3_key:
                 s3_key.close()
                 s3_key.release_conn()
+        if res:
+            # Try to cache file locally
+            try:
+                self.with_context(force_attachment_storage='file')._file_write(res, self._compute_checksum(bin_data))
+            except Exception as e:
+                _logger.error('S3: unable to cache %s file locally: %s', key, e)
         return res
 
     @api.model
@@ -163,6 +195,7 @@ class S3Attachment(models.Model):
         # commit to release the lock
         cr.commit()
         _logger.info("S3: filestore gc %d checked, %d removed", len(checklist), removed)
+        self.with_context(force_attachment_storage='file')._file_gc()
 
     def _mark_for_gc(self, fname):
         """ We will mark for garbage collection in both s3 and filesystem
@@ -187,7 +220,7 @@ class S3Attachment(models.Model):
         except Exception:
             _logger.error('S3: _mark_for_gc Was not able to save key:%s', new_key)
             raise exceptions.UserError(u"_mark_for_gc Was not able to save key: %s" % new_key)
-
+        self.with_context(force_attachment_storage='file')._mark_for_gc(fname)
 
     def _copy_filestore_to_s3(self):
         with api.Environment.manage():
@@ -219,7 +252,7 @@ class S3Attachment(models.Model):
         for root, dirs, files in os.walk(full_path):
             for file_name in files:
                 path = os.path.join(root, file_name)
-                self._s3_bucket.fput_object(bucket_name,  '%s/%s' % (db_name, path[len(full_path):]), path)
+                self._s3_bucket.fput_object(bucket_name, '%s/%s' % (db_name, path[len(full_path):]), path)
                 _logger.debug('S3: Copy filestore to S3. Loading file %s to %s/%s',
                               db_name, path, path[len(full_path):])
         self.env['ir.config_parameter'].sudo().set_param('ir_attachment.location_s3_copied_to', '%' % bucket_name,
@@ -276,4 +309,3 @@ class S3Attachment(models.Model):
             status_res.append(status)
 
         return status_res, totals
-

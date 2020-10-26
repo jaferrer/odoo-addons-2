@@ -2,18 +2,13 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import hashlib
-import os
 import logging
-import boto3
-import botocore
-from botocore.exceptions import ClientError
 
 from odoo.tests.common import TransactionCase
 
-
 _logger = logging.getLogger(__name__)
 
-HASH_SPLIT = 2      # FIXME: testing implementations detail is not a good idea
+HASH_SPLIT = 2  # FIXME: testing implementations detail is not a good idea
 
 
 class TestIrAttachment(TransactionCase):
@@ -41,11 +36,11 @@ class TestIrAttachment(TransactionCase):
 
         # 'ir_attachment.location' is undefined test database storage
         a1 = self.Attachment.create({'name': 'a1', 'datas': self.blob1_b64})
-        self.assertEqual('%s\n' % a1.datas, self.blob1_b64, 'The body of the attachment is different for key:%s' % self.blob1_fname)
+        self.assertEqual('%s\n' % a1.datas, self.blob1_b64,
+                         'The body of the attachment is different for key:%s' % self.blob1_fname)
 
         a1_db_datas = a1.db_datas
         self.assertEqual(a1_db_datas, None)
-
 
     def test_02_no_duplication(self):
         a2 = self.Attachment.create({'name': 'a2', 'datas': self.blob1_b64})
