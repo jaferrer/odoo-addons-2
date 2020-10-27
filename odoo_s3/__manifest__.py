@@ -20,7 +20,7 @@
     'category': 'Uncategorized',
     'version': '0.1',
     'depends': ['base', 'base_setup'],
-    'auto_install': True,
+    'auto_install': False,
     'external_dependencies': {
         'python': ['minio'],
     },
