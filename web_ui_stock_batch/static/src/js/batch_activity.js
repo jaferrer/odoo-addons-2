@@ -39,7 +39,7 @@ odoo.define('web_ui_stock_batch.BatchActivity', function (require) {
         },
         init_fragment_batch_navigate: function (batchId, moveLineId=null) {
             let navigateOptions = {
-                skipFirstStep: false,
+                skipFirstStep: true,
                 canTapLocation: true,
                 showManualInput: false
             }
