@@ -117,15 +117,7 @@ class S3Attachment(models.Model):
         s3_key = None
 
         try:
-            metadata = {
-                'name': self.name or '',
-                'res_id': str(self.res_id) or '',
-                'res_model': self.res_model or '',
-                'description': self.description or '',
-                'create_date': str(self.create_date or '')
-            }
-
-            self._s3_bucket.put_object(bucket_name, key, StringIO(bin_value), len(bin_value), metadata=metadata)
+            self._s3_bucket.put_object(bucket_name, key, StringIO(bin_value), len(bin_value))
             _logger.debug('S3: _file_write %s:%s was successfully uploaded', bucket_name, key)
         except Exception as e:
             _logger.error('S3: _file_write was not able to write (%s): %s', key, e)
