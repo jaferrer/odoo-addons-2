@@ -48,6 +48,7 @@ class AccountInvoice(models.Model):
         res['value']['allow_transmit_factor'] = factor_bank_ok
         return res
 
+    @api.multi
     def _force_send_to_factor(self):
         self.ensure_one()
         if self.state != 'paid' and self.allow_transmit_factor and not self.factor_needs_transmission:
