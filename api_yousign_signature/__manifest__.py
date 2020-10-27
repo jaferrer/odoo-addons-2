@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Yousign API',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 API Yousign Signature
 =====================
