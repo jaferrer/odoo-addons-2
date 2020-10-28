@@ -49,7 +49,7 @@ class StockReservationPriorityStockMove(models.Model):
         return res, params
 
     @api.multi
-    def action_assign(self):
+    def action_assign(self, no_prepare=False):
         to_assign_ids = self and self.ids or []
         moves_to_assign = self.search([('id', 'in', to_assign_ids)], order='priority desc, date_expected asc, id asc')
         reserved_quant_qties = {}
@@ -95,4 +95,4 @@ class StockReservationPriorityStockMove(models.Model):
                     if moves_to_unreserve_ids:
                         moves_to_unreserve = self.env['stock.move'].browse(moves_to_unreserve_ids)
                         moves_to_unreserve.do_unreserve()
-        return super(StockReservationPriorityStockMove, moves_to_assign).action_assign()
+        return super(StockReservationPriorityStockMove, moves_to_assign).action_assign(no_prepare=no_prepare)
