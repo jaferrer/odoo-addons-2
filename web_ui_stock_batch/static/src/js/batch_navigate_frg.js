@@ -242,7 +242,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.$('#info-text').text("Allez à l'emplacement demandé");
         },
         renderStateProduct: function () {
-            this.$('#picking-location').removeClass('picking-focus');
+            this.$('#picking-location').addClass('picking-focus');
             this.$('#picking-product').addClass('picking-focus');
             this.$('#picking-qty-done').addClass('picking-focus');
             this.$('#picking-name').removeClass('picking-focus');
