@@ -87,7 +87,7 @@ class TrainingTraining(models.Model):
     def _get_default_user_id(self):
         return self.env.user
 
-    name = fields.Char(string="Title", required=True)
+    name = fields.Char(string="Title", required=True, track_visibility='onchange')
     user_id = fields.Many2one('res.users', string="Responsible", required=True, default=_get_default_user_id)
     duration = fields.Float(string="Duration (days)")
     price = fields.Float(string="Price")
@@ -95,6 +95,12 @@ class TrainingTraining(models.Model):
     description = fields.Text(string="Description")
     session_ids = fields.One2many('training.session', 'training_id', string="Sessions")
     sitting_ids = fields.One2many('training.sitting', 'training_id', string="Sittings", readonly=True)
+    state = fields.Selection([('draft', "Draft"),
+                              ('validated', "Validated"),
+                              ('active', "Active"),
+                              ('cancel', "Cancelled"),
+                              ('done', "Done")], strong="Status", default='draft', required=True,
+                             track_visibility='onchange')
 
 
 class TrainingSession(models.Model):
@@ -109,6 +115,15 @@ class TrainingSession(models.Model):
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
     price = fields.Float(string="Price")
     sitting_ids = fields.One2many('training.sitting', 'session_id', string="Sittings")
+    state = fields.Selection([('draft', "Draft"),
+                              ('offered', "Offered"),
+                              ('registrations', "Registrations"),
+                              ('ready', "Ready"),
+                              ('convocations_sent', "Convocations sent"),
+                              ('cancel', "Cancelled"),
+                              ('finished', "Finished"),
+                              ('done', "Done")], strong="Status", default='draft', required=True,
+                             track_visibility='onchange')
 
     def name_get(self):
         return [(rec.id, "%s / %s" % (rec.training_id.display_name, rec.name)) for rec in self]

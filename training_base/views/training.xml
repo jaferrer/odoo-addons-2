@@ -16,6 +16,7 @@
                     <field name="user_id"/>
                     <field name="duration"/>
                     <field name="price"/>
+                    <field name="state"/>
                 </tree>
             </field>
         </record>
@@ -30,8 +31,10 @@
                     <field name="user_id"/>
                     <field name="aimed_public"/>
                     <field name="description"/>
+                    <field name="state"/>
                     <group expand="0" name="group_by" string="Group By">
                         <filter name="group_by_user_id" string="Responsible" domain="[]" context="{'group_by' : 'user_id'}"/>
+                        <filter name="group_by_state" string="State" domain="[]" context="{'group_by' : 'state'}"/>
                     </group>
                 </search>
             </field>
@@ -43,9 +46,12 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <field name="state" widget="statusbar" clickable="1"/>
+                    </header>
                     <sheet>
                         <group>
-                            <field name="name"/>
+                            <field name="name" placeholder="Training..."/>
                             <field name="user_id"/>
                             <field name="duration"/>
                             <field name="price"/>
@@ -53,13 +59,13 @@
                         </group>
                         <notebook>
                             <page string="Description">
-                                <field name="description"/>
+                                <field name="description" placeholder="Description..."/>
                             </page>
-                            <page string="Sessions">
-                                <field name="session_ids" context="{'default_training_id': id}"/>
+                            <page string="Sessions" attrs="{'invisible': [('state', '=', 'draft')]}">
+                                <field name="session_ids" context="{'default_training_id': id}" attrs="{'readonly': [('state', 'in', ['draft', 'done', 'cancel'])]}"/>
                             </page>
-                            <page string="Sittings">
-                                <field name="sitting_ids"/>
+                            <page string="Sittings" attrs="{'invisible': [('state', '=', 'draft')]}">
+                                <field name="sitting_ids" attrs="{'readonly': [('state', 'in', ['draft', 'done', 'cancel'])]}"/>
                             </page>
                         </notebook>
                     </sheet>
