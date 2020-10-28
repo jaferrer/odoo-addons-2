@@ -55,6 +55,8 @@
                             <field name="user_id"/>
                             <field name="duration"/>
                             <field name="price"/>
+                            <field name="nb_mini"/>
+                            <field name="nb_maxi"/>
                             <field name="aimed_public"/>
                         </group>
                         <notebook>

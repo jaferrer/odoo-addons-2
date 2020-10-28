@@ -376,6 +376,18 @@ msgid "Sittings"
 msgstr "Séances"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__nb_mini
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_mini
+msgid "Minimum number of attendees"
+msgstr "Nombre minimum de participants"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__nb_maxi
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_maxi
+msgid "Maximum number of attendees"
+msgstr "Nombre maximum de participants"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__start_hour
 msgid "Start Hour"
 msgstr "Heure de début"
