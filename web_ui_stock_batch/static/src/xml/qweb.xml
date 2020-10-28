@@ -1,36 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
 
-    <t t-name="BatchActivity">
-
-        <div>
-            <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
-                <div class="container">
-                    <div class="row">
-                        <div class="navbar-col col-xs-6">
-                            <button id="back-btn"
-                                    type="button"
-                                    class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
-                            <span id="view_title"/>
-                        </div>
-                        <div class="navbar-col col-xs-6">
-                            <button id="validate_batch"
-                                    type="button"
-                                    class="btn btn-success btn-margin-left pull-right hidden">
-                                Valider
-                            </button>
-                            <button id="exit-btn" type="button" class="btn btn-danger pull-right">Quitter</button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <div id="activity-container">
-                <!-- Les fragments seront chargés ici -->
-            </div>
-        </div>
-    </t>
-
     <t t-name="BatchSelection">
 
         <div class="jumbotron">
@@ -70,11 +40,10 @@
     </t>
 
     <t t-name="BatchView">
-
         <div class="jumbotron">
             <div class="container">
                 <p>Voici les opérations à effectuer</p>
-                <button class="btn btn-lg btn-success col-xs-12" id="start-picking-btn" type="button">
+                <button class="btn btn-lg btn-success btn-block" id="start-picking-btn" type="button">
                     <t t-if="!widget.isStarted"><span>Démarrer la vague</span></t>
                     <t t-if="widget.isStarted"><span>Reprendre la vague</span></t>
                 </button>
@@ -135,16 +104,17 @@
             </div>
 
             <t t-if='widget.moveLine'>
-                <div class="container">
+                <div class="container center-container">
                     <div class="row picking-nav">
 
-                        <div class="col-xs-12 picking-flex">
+                        <div class="col-md-12 picking-flex">
                             <div>
                                  <p id="picking-location">
                                     <t t-esc="widget.moveLine.location"/>
                                 </p>
                                 <p id="picking-product">
-                                    <t t-esc="widget.moveLine.product.name"/>
+                                    <span class="product-ref"><t t-esc="widget.moveLine.product.default_code"/></span>
+                                    <span class="product-name"><t t-esc="widget.moveLine.product.short_name"/></span>
                                 </p>
                                 <p id="picking-name">
                                     <t t-esc="widget.moveLine.picking"/>
@@ -155,20 +125,23 @@
                                 <span>/<t t-esc="widget.moveLine.qty_todo"/></span>
                             </div>
                         </div>
-
-                        <t t-if='widget.showManualInput'>
-                            <div class="col-xs-12">
-                                <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
-                            </div>
-                        </t>
                     </div>
                 </div>
 
                 <div class="container bottom-container">
                     <div class="row">
+
+                        <t t-if='widget.showManualInput'>
+                            <div class="col-md-12">
+                                <p>
+                                    <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
+                                </p>
+                            </div>
+                        </t>
+
                         <div class="col-md-12">
                             <div class="btn-group dropup btn-navigation-action">
-                              <button type="button" class="btn btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
+                              <button type="button" class="btn btn-lg btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
                               <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="caret"></span>
                               </button>
@@ -187,7 +160,7 @@
 
         <div class="jumbotron">
             <div class="container">
-                <button t-attf-class="btn btn-lg col-xs-12 #{widget.isValid and 'btn-success' or 'btn-warning'}"
+                <button t-attf-class="btn btn-lg col-md-12 #{widget.isValid and 'btn-success' or 'btn-warning'}"
                         id="validate-picking-btn"
                         type="button">Valider et terminer la vague</button>
             </div>

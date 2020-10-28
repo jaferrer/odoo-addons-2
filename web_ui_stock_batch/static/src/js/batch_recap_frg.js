@@ -60,18 +60,12 @@ odoo.define('web_ui_stock_batch.BatchRecap', function (require) {
                     if (result) {
                         this.activity.init_fragment_batch_selection();
                     } else {
-                        $.toast({
-                            text: 'Impossible de valider la vague',
-                            icon: 'error'
-                        });
+                        this.activity.notifyError("Impossible de valider la vague");
                     }
                 })
                 .fail((errors, event) => {
                     let message = errors.data ? errors.data.message : "Une erreur est survenue"
-                    $.toast({
-                        text: message,
-                        icon: 'error'
-                    });
+                    this.activity.notifyError(message);
                     event.preventDefault();
                 });
         },

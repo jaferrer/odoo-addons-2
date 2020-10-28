@@ -26,6 +26,26 @@ class WebUiError(Exception):
 class StockPickingType(models.Model):
     _inherit = 'stock.picking.type'
 
+    @api.multi
+    def web_ui_get_all_picking_storage(self):
+        self.ensure_one()
+
+        list_pickings = []
+        pickings = self.env['stock.picking'].search([
+            ('picking_type_id', '=', self.id),
+            ('state', '=', 'assigned')
+        ], order='name')
+
+        for picking in pickings:
+            list_pickings.append({
+                'id': picking.id,
+                'name': picking.name,
+                'user': picking.owner_id.name or "-",
+                'operation_count': len(picking.pack_operation_product_ids),
+            })
+
+        return list_pickings
+
     @api.model
     def web_ui_get_production_lot_by_name(self, name):
         production_lot = self.env['stock.production.lot'].search([('name', '=ilike', name)])
@@ -41,6 +61,23 @@ class StockPickingType(models.Model):
         if not production_lot:
             raise WebUiError(name, "Aucun produit trouvé avec ce numéro")
         return production_lot
+
+    @api.multi
+    def web_ui_has_one_operation_left(self, picking_id):
+        res = {'empty': False, 'last_operation': None}
+        spo = self.env['stock.pack.operation'].read_group(
+            [('picking_id', '=', picking_id), ('qty_done', '=', 0)], ['product_id'], ['product_id']
+        )
+        if not spo:
+            res = {'empty': True}
+        elif len(spo) == 1:
+            product = self.env['product.product'].browse(spo[0]['product_id'][0])
+            res = {
+                'empty': False,
+                'last_operation': product.default_code
+            }
+
+        return dict(res)
 
     @api.multi
     def web_ui_get_storage_product_info_by_name(self, name, picking_id, product=None):
@@ -129,7 +166,8 @@ class StockMoveLine(models.Model):
             'name': self.product_id.name,
             'location_id': self.location_dest_id.name,
             'product_barcode': self.product_id.barcode,
-            'qty': self.product_qty,
+            'qty_todo': self.product_qty,
+            'qty_done': self.qty_done,
             'tracking': self.product_id.tracking,
         }
         if production_lot:
@@ -144,3 +182,4 @@ class StockMoveLine(models.Model):
         self.ensure_one()
         location_id = self.picking_id.picking_type_id.web_ui_get_storage_location_id_by_name(location_name)
         self.location_dest_id = self.env['stock.location'].browse(location_id)
+        return {'name': self.location_dest_id.name}

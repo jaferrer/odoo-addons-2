@@ -14,14 +14,15 @@ button.btn-margin-left {
 }
 
 .picking-nav {
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     font-size: 16px;
 }
 
 .picking-nav .picking-focus {
-    font-size: 1.7em;
+    font-size: 2em;
     color: orange;
     font-weight: bold;
+        line-height: 1;
 }
 .picking-nav #picking-qty {
     font-size: 42px;
@@ -75,4 +76,18 @@ button.btn-margin-left {
     bottom: 0;
     left: 0;
     right: 0;
+}
+.container.center-container {
+    padding-bottom: 100px;
+
+}
+
+#picking-product > span.product-ref:before {
+    content: '[';
+}
+#picking-product > span.product-ref:after {
+    content: ']';
+}
+#picking-product > span.product-name {
+    font-size: 16px;
 }
