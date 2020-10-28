@@ -104,6 +104,11 @@ msgid "Description"
 msgstr "Description"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Training..."
+msgstr "Formation..."
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_session__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__display_name
@@ -454,3 +459,68 @@ msgstr "Messages non lus"
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_unread_counter
 msgid "Unread Messages Counter"
 msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__state
+#: model:ir.model.fields,field_description:training_base.field_training_session__state
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_search
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+msgid "State"
+msgstr "Statut"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__draft
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__validated
+msgid "Validated"
+msgstr "Validé"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__active
+msgid "Active"
+msgstr "Active"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__cancel
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__cancel
+msgid "Cancelled"
+msgstr "Annulée"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__done
+msgid "Done"
+msgstr "Terminée"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__offered
+msgid "Offered"
+msgstr "Proposée"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__registrations
+msgid "Registrations"
+msgstr "Inscriptions"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__ready
+msgid "Ready"
+msgstr "Prête"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__convocations_sent
+msgid "Convocations sent"
+msgstr "Convocations envoyées"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__finished
+msgid "Finished"
+msgstr "Terminée"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__done
+msgid "Done"
+msgstr "Clôturée"

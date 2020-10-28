@@ -13,6 +13,7 @@
                     <field name="trainer_id"/>
                     <field name="location_id"/>
                     <field name="price"/>
+                    <field name="state"/>
                 </tree>
             </field>
         </record>
@@ -33,6 +34,7 @@
                         <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
                         <filter name="group_by_location_id" string="Location" domain="[]" context="{'group_by' : 'location_id'}"/>
                         <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
+                        <filter name="group_by_state" string="Status" domain="[]" context="{'group_by' : 'state'}"/>
                     </group>
                 </search>
             </field>
@@ -44,6 +46,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <field name="state" widget="statusbar" clickable="1"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="name"/>
