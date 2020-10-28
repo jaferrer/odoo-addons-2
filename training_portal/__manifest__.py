@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Training',
-    'depends': ['training_base'],
+    'depends': [
+        'training_base',
+        'portal',
+    ],
     'description': """
 Training Portal
 ===================
