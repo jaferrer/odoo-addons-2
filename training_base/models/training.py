@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields, exceptions
+from odoo import models, fields, exceptions, api
 
 
 class TrainingPartner(models.Model):
@@ -95,6 +95,8 @@ class TrainingTraining(models.Model):
     description = fields.Text(string="Description")
     session_ids = fields.One2many('training.session', 'training_id', string="Sessions")
     sitting_ids = fields.One2many('training.sitting', 'training_id', string="Sittings", readonly=True)
+    nb_mini = fields.Integer("Minimum number of attendees")
+    nb_maxi = fields.Integer("Maximum number of attendees")
     state = fields.Selection([('draft', "Draft"),
                               ('validated', "Validated"),
                               ('active', "Active"),
@@ -115,6 +117,8 @@ class TrainingSession(models.Model):
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
     price = fields.Float(string="Price")
     sitting_ids = fields.One2many('training.sitting', 'session_id', string="Sittings")
+    nb_mini = fields.Integer("Minimum number of attendees")
+    nb_maxi = fields.Integer("Maximum number of attendees")
     state = fields.Selection([('draft', "Draft"),
                               ('offered', "Offered"),
                               ('registrations', "Registrations"),
@@ -127,6 +131,13 @@ class TrainingSession(models.Model):
 
     def name_get(self):
         return [(rec.id, "%s / %s" % (rec.training_id.display_name, rec.name)) for rec in self]
+
+    @api.onchange('training_id')
+    def onchange_training_id(self):
+        if self.training_id and self.training_id.nb_mini:
+            self.nb_mini = self.training_id.nb_mini
+        if self.training_id and self.training_id.nb_maxi:
+            self.nb_maxi = self.training_id.nb_maxi
 
 
 class TrainingSitting(models.Model):
