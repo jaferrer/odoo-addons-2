@@ -67,6 +67,11 @@ msgid "Attendees"
 msgstr "Participants"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_attendees
+msgid "Number of attendees"
+msgstr "Nombre de participants"
+
+#. module: training_base
 #: model:ir.model,name:training_base.model_res_partner
 msgid "Contact"
 msgstr "Contact"

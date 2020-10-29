@@ -12,6 +12,7 @@
                     <field name="training_id"/>
                     <field name="trainer_id"/>
                     <field name="location_id"/>
+                    <field name="nb_attendees"/>
                     <field name="price"/>
                     <field name="state"/>
                 </tree>
@@ -61,6 +62,9 @@
                         </group>
                         <notebook>
                             <page string="Attendees">
+                                <group>
+                                    <field name="nb_attendees"/>
+                                </group>
                                 <field name="attendee_ids" context="{'default_is_attendee': True}"/>
                             </page>
                             <page string="Sittings">
