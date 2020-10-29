@@ -46,6 +46,17 @@ class TrainingPartner(models.Model):
             else:
                 rec.attendance = 'normal'
 
+    @api.onchange('is_institution')
+    def onchange_is_institution(self):
+        print('onchange_is_institution', self)
+        if self.is_institution:
+            self.is_company = True
+
+    @api.onchange('is_training_location')
+    def onchange_is_training_location(self):
+        if self.is_training_location:
+            self.is_company = True
+
     def define_attendance(self, attendance):
         self.ensure_one()
         sitting_id = self.env.context.get('sitting_id', 0)
@@ -140,6 +151,8 @@ class TrainingSession(models.Model):
             self.nb_mini = self.training_id.nb_mini
         if self.training_id and self.training_id.nb_maxi:
             self.nb_maxi = self.training_id.nb_maxi
+        if self.training_id:
+            self.price = self.training_id.price
 
     @api.depends('sitting_ids', 'sitting_ids.date')
     def _compute_sitting_dates(self):

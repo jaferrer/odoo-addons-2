@@ -50,7 +50,7 @@
         </record>
 
         <menuitem id="menu_attendees" name="Attendees" action="act_window_attendees"
-                  parent="menu_contacts" sequence="20"/>
+                  parent="menu_contacts" sequence="10"/>
 
         <record model="ir.actions.act_window" id="act_window_trainers">
             <field name="name">Trainers</field>
@@ -66,21 +66,31 @@
             <field name="name">Institutions</field>
             <field name="view_mode">tree,form</field>
             <field name="res_model">res.partner</field>
-            <field name="context">{'search_default_is_institution': True, 'default_is_institution': True, 'default_is_company': True}</field>
+            <field name="context">{'search_default_is_institution': True, 'default_is_institution': True}</field>
         </record>
 
         <menuitem id="menu_institutions" name="Institutions" action="act_window_institutions"
-                  parent="menu_contacts" sequence="20"/>
+                  parent="menu_contacts" sequence="30"/>
 
         <record model="ir.actions.act_window" id="act_window_training_locations">
             <field name="name">Training Locations</field>
             <field name="view_mode">tree,form</field>
             <field name="res_model">res.partner</field>
-            <field name="context">{'search_default_is_training_location': True, 'default_is_training_location': True, 'default_is_company': True}</field>
+            <field name="context">{'search_default_is_training_location': True, 'default_is_training_location': True}</field>
         </record>
 
         <menuitem id="menu_training_locations" name="Training Locations" action="act_window_training_locations"
-                  parent="menu_contacts" sequence="20"/>
+                  parent="menu_contacts" sequence="40"/>
+
+        <record model="ir.actions.act_window" id="act_window_training_all_partners">
+            <field name="name">All partners</field>
+            <field name="view_mode">tree,form</field>
+            <field name="res_model">res.partner</field>
+            <field name="context"/>
+        </record>
+
+        <menuitem id="menu_training_all_partners" name="All partners" action="act_window_training_all_partners"
+                  parent="menu_contacts" sequence="50"/>
 
     </data>
 </openerp>
