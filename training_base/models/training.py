@@ -119,6 +119,8 @@ class TrainingSession(models.Model):
     sitting_ids = fields.One2many('training.sitting', 'session_id', string="Sittings")
     nb_mini = fields.Integer("Minimum number of attendees")
     nb_maxi = fields.Integer("Maximum number of attendees")
+    first_sitting_date = fields.Date(string="Fist sitting date", compute='_compute_sitting_dates', store=True)
+    last_sitting_date = fields.Date(string="Last sitting date", compute='_compute_sitting_dates', store=True)
     state = fields.Selection([('draft', "Draft"),
                               ('offered', "Offered"),
                               ('registrations', "Registrations"),
@@ -138,6 +140,13 @@ class TrainingSession(models.Model):
             self.nb_mini = self.training_id.nb_mini
         if self.training_id and self.training_id.nb_maxi:
             self.nb_maxi = self.training_id.nb_maxi
+
+    @api.depends('sitting_ids', 'sitting_ids.date')
+    def _compute_sitting_dates(self):
+        for rec in self:
+            sittings = self.env['training.sitting'].search([('id', 'in', rec.sitting_ids.ids)], order='date')
+            rec.first_sitting_date = sittings and sittings[0].date or False
+            rec.last_sitting_date = sittings and sittings[-1].date or False
 
 
 class TrainingSitting(models.Model):

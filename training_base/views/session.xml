@@ -63,6 +63,10 @@
                                 <field name="attendee_ids" context="{'default_is_attendee': True}"/>
                             </page>
                             <page string="Sittings">
+                                <group>
+                                    <field name="first_sitting_date"/>
+                                    <field name="last_sitting_date"/>
+                                </group>
                                 <field name="sitting_ids" context="{'default_session_id': id}">
                                     <field name="trainer_id"/>
                                     <field name="location_id"/>
