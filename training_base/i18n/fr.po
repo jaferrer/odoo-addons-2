@@ -443,6 +443,12 @@ msgid "Training Locations"
 msgstr "Lieu de formation"
 
 #. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_training_all_partners
+#: model:ir.ui.menu,name:training_base.menu_training_all_partners
+msgid "All partners"
+msgstr "Tous les contacts"
+
+#. module: training_base
 #: model:res.groups,name:training_base.group_training_manager
 msgid "Training Manager"
 msgstr "Formateur"

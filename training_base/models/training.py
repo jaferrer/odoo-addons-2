@@ -46,6 +46,17 @@ class TrainingPartner(models.Model):
             else:
                 rec.attendance = 'normal'
 
+    @api.onchange('is_institution')
+    def onchange_is_institution(self):
+        print('onchange_is_institution', self)
+        if self.is_institution:
+            self.is_company = True
+
+    @api.onchange('is_training_location')
+    def onchange_is_training_location(self):
+        if self.is_training_location:
+            self.is_company = True
+
     def define_attendance(self, attendance):
         self.ensure_one()
         sitting_id = self.env.context.get('sitting_id', 0)
