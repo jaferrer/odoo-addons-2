@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="training_survey_form" model="ir.ui.view">
+            <field name="name">training_survey_form</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="survey.survey_form" />
+            <field name="priority" eval="16" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='access_mode']" position="before">
+                    <field name="session_survey" />
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

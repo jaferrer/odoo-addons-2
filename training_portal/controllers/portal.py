@@ -10,9 +10,9 @@ class TrainingPortal(CustomerPortal):
         values = super(TrainingPortal, self)._prepare_home_portal_values()
 
         # sitting not started
-        values['sitting_count'] = request.env['training.sitting'].search_count([
-            ('attendee_ids', 'in', request.env.user.partner_id.id),
-            ('date', '>=', datetime.today()),
+        values['session_count'] = request.env['training.session'].search_count([
+            ('sitting_ids.attendee_ids', 'in', request.env.user.partner_id.id),
+            ('sitting_ids.date', '>=', datetime.today()),
         ])
 
         # participated session

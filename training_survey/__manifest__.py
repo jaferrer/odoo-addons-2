@@ -18,25 +18,26 @@
 #
 
 {
-    'name': 'Training Portal',
+    'name': 'Training Survey',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Training',
     'depends': [
         'training_base',
-        'portal',
+        'training_portal',
+        'survey'
     ],
     'description': """
-Training Portal
-===================
+Module to add survey on training session
+=========================================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/security.xml',
-        'views/portal_templates.xml',
-        'views/portal_sessions.xml',
-        'views/portal_sittings.xml',
+        'security/ir.model.access.csv',
+        'views/session.xml',
+        'views/survey.xml',
+        'views/portal/portal_sittings.xml'
     ],
     'demo': [],
     'test': [],

@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_training_survey_survey_manager,access_training_survey_survey_manager,model_survey_survey,training_base.group_training_manager,1,1,1,1
+access_training_survey_survey_attendee,access_training_training_attendee,model_survey_survey,training_base.group_training_attendee,1,0,0,0
+access_training_survey_survey_portal,access_training_training_portal,model_survey_survey,base.group_portal,1,0,0,0
