@@ -151,6 +151,8 @@ class TrainingSession(models.Model):
             self.nb_mini = self.training_id.nb_mini
         if self.training_id and self.training_id.nb_maxi:
             self.nb_maxi = self.training_id.nb_maxi
+        if self.training_id:
+            self.price = self.training_id.price
 
     @api.depends('sitting_ids', 'sitting_ids.date')
     def _compute_sitting_dates(self):
