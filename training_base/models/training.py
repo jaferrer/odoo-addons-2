@@ -125,6 +125,7 @@ class TrainingSession(models.Model):
     training_id = fields.Many2one('training.training', string="Training", required=True, ondelete='cascade')
     trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)])
     attendee_ids = fields.Many2many('res.partner', string="Attendees", domain=[('is_attendee', '=', True)])
+    nb_attendees = fields.Integer(string="Number of attendees", compute='_compute_nb_attendees', store=True)
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
     price = fields.Float(string="Price")
     sitting_ids = fields.One2many('training.sitting', 'session_id', string="Sittings")
@@ -153,6 +154,11 @@ class TrainingSession(models.Model):
             self.nb_maxi = self.training_id.nb_maxi
         if self.training_id:
             self.price = self.training_id.price
+
+    @api.depends('attendee_ids')
+    def _compute_nb_attendees(self):
+        for rec in self:
+            rec.nb_attendees = len(rec.attendee_ids)
 
     @api.depends('sitting_ids', 'sitting_ids.date')
     def _compute_sitting_dates(self):
