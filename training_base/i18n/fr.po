@@ -388,6 +388,16 @@ msgid "Maximum number of attendees"
 msgstr "Nombre maximum de participants"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__first_sitting_date
+msgid "Fist sitting date"
+msgstr "Date de première séance"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__last_sitting_date
+msgid "Last sitting date"
+msgstr "Date de dernière séance"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__start_hour
 msgid "Start Hour"
 msgstr "Heure de début"
