@@ -1,0 +1,28 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* hr_timesheet_sheet_reminder
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-05-03 08:56+0000\n"
+"PO-Revision-Date: 2018-05-03 08:56+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mail_no_send_to_wrong_addresses
+#: code:addons/mail_no_send_to_wrong_addresses/mail_compose_message.py:28
+#, python-format
+msgid "No addressee informed !"
+msgstr "Aucune destinataire renseigné !"
+
+#. module: mail_no_send_to_wrong_addresses
+#: code:addons/mail_no_send_to_wrong_addresses/mail_compose_message.py:31
+#, python-format
+msgid "No email address for the recipient : %s"
+msgstr "Pas d'email renseigné pour le destinaire : %s"
