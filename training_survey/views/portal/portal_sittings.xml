@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="portal_sitting_survey" name="Portal Sitting Survey" inherit_id="training_portal.portal_session">
+        <xpath expr="///h5" position="after">
+            <div class="row">
+                <!-- region survey : start session -->
+                <div t-if='session.survey_start_session' class="col-sm">
+                    <a t-att-href="'/survey/start/%s' % session.survey_start_session.access_token" class="btn btn-primary fa fa-question">
+                        <t t-esc="session.survey_start_session.title" />
+                    </a>
+                </div>
+                <!-- endregion : survey : start session -->
+
+                <!-- region survey : start session -->
+                <div t-if='session.survey_end_session' class="col-sm">
+                    <a t-att-href="'/survey/start/%s' % session.survey_end_session.access_token" class="btn btn-primary fa fa-question">
+                        <t t-esc="session.survey_end_session.title" />
+                    </a>
+                </div>
+                <!-- endregion : survey : start session -->
+            </div>
+        </xpath>
+    </template>
+</odoo>

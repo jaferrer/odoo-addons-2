@@ -16,8 +16,11 @@ class SittingPortal(CustomerPortal):
         return request.render('training_portal.portal_sittings_list', values)
 
     @http.route("/sitting/<model('training.sitting'):sitting>", type="http", auth="user", website=True)
-    def display_session(self, sitting, **kwargs):
+    def display_sitting(self, sitting, **kwargs):
         values = super(SittingPortal, self)._prepare_home_portal_values()
+
         values['sitting'] = request.env['training.sitting'].browse(sitting.id)
-        values['page_name'] = 'sittings'
+        values['session'] = request.env['training.session'].browse(sitting.session_id.id)
+
+        values['page_name'] = 'sessions'
         return request.render('training_portal.portal_sitting', values)

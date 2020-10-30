@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="training_survey_session">
+            <field name="name">training_survey_session</field>
+            <field name="model">training.session</field>
+            <field name="inherit_id" ref="training_base.training_session_form" />
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[2]" position="after">
+                    <page string="Surveys">
+                        <group>
+                            <field name="survey_start_session" widget="many2many_tags" />
+                            <field name="survey_end_session" widget="many2many_tags" />
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
