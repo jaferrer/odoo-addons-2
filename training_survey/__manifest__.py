@@ -37,7 +37,9 @@ Module to add survey on training session
         'security/ir.model.access.csv',
         'views/session.xml',
         'views/survey.xml',
-        'views/portal/portal_sittings.xml'
+        'views/sitting.xml',
+        'views/portal/portal_session.xml',
+        'views/portal/portal_sitting.xml',
     ],
     'demo': [],
     'test': [],
