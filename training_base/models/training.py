@@ -180,9 +180,9 @@ class TrainingSitting(models.Model):
                                  readonly=True, store=True)
     location_id = fields.Many2one('res.partner', string="Location", related='session_id.location_id',
                                   readonly=True, store=True)
-    date = fields.Date(string="Date")
-    start_hour = fields.Float(string="Start Hour")
-    end_hour = fields.Float(string="End Hour")
+    date = fields.Date(string="Date", required=True)
+    start_hour = fields.Float(string="Start Hour", required=True)
+    end_hour = fields.Float(string="End Hour", required=True)
     attendee_ids = fields.Many2many('res.partner', related='session_id.attendee_ids')
 
     def name_get(self):
