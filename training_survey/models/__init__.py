@@ -19,3 +19,4 @@
 
 from . import survey_survey
 from . import training_session
+from . import training_sitting

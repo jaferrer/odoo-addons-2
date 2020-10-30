@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 13.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-22 11:37+0000\n"
-"PO-Revision-Date: 2020-10-22 13:38+0200\n"
+"POT-Creation-Date: 2020-10-30 10:55+0000\n"
+"PO-Revision-Date: 2020-10-30 11:58+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -19,8 +19,13 @@ msgstr ""
 
 #. module: training_survey
 #: model:ir.model.fields,field_description:training_survey.field_survey_survey__session_survey
-msgid "Display survey at"
-msgstr "Afficher le sondage en"
+msgid "Display survey session at"
+msgstr "Afficher le sondage de sessions en"
+
+#. module: training_survey
+#: model:ir.model.fields,field_description:training_survey.field_survey_survey__sitting_survey
+msgid "Display survey sitting at"
+msgstr "Afficher le sondage de séances en"
 
 #. module: training_survey
 #: model:ir.model.fields.selection,name:training_survey.selection__survey_survey__session_survey__end_session
@@ -28,9 +33,19 @@ msgid "End of session"
 msgstr "Fin de session"
 
 #. module: training_survey
+#: model:ir.model.fields.selection,name:training_survey.selection__survey_survey__sitting_survey__end_sitting
+msgid "End of sitting"
+msgstr "Fin de séance"
+
+#. module: training_survey
 #: model:ir.model.fields.selection,name:training_survey.selection__survey_survey__session_survey__start_session
 msgid "Start of session"
 msgstr "Début de session"
+
+#. module: training_survey
+#: model:ir.model.fields.selection,name:training_survey.selection__survey_survey__sitting_survey__start_sitting
+msgid "Start of sitting"
+msgstr "Début de séance"
 
 #. module: training_survey
 #: model:ir.model,name:training_survey.model_survey_survey
@@ -38,17 +53,28 @@ msgid "Survey"
 msgstr "Sondage"
 
 #. module: training_survey
-#: model:ir.model.fields,field_description:training_survey.field_training_session__survey_end_session
+#: model:ir.model.fields,field_description:training_survey.field_training_session__survey_end_session_ids
 msgid "Survey end session"
 msgstr "Sondage de fin de session"
 
 #. module: training_survey
-#: model:ir.model.fields,field_description:training_survey.field_training_session__survey_start_session
+#: model:ir.model.fields,field_description:training_survey.field_training_sitting__survey_end_sitting_ids
+msgid "Survey end sitting"
+msgstr "Sondage de fin de séance"
+
+#. module: training_survey
+#: model:ir.model.fields,field_description:training_survey.field_training_session__survey_start_session_ids
 msgid "Survey start session"
 msgstr "Sondage de début de session"
 
 #. module: training_survey
+#: model:ir.model.fields,field_description:training_survey.field_training_sitting__survey_start_sitting_ids
+msgid "Survey start sitting"
+msgstr "Sondage de début de séance"
+
+#. module: training_survey
 #: model_terms:ir.ui.view,arch_db:training_survey.training_survey_session
+#: model_terms:ir.ui.view,arch_db:training_survey.training_survey_sitting
 msgid "Surveys"
 msgstr "Sondages"
 
@@ -56,3 +82,8 @@ msgstr "Sondages"
 #: model:ir.model,name:training_survey.model_training_session
 msgid "Training session"
 msgstr "Session de formation"
+
+#. module: training_survey
+#: model:ir.model,name:training_survey.model_training_sitting
+msgid "Training sitting"
+msgstr "Séance de formation"
