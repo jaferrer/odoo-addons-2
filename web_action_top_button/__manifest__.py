@@ -35,7 +35,6 @@ Usage: set the group action_top_button to an user to have its button directly di
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'web_action_top_button.xml',
-        'security/groups.xml',
     ],
     'demo': [],
     'qweb': [

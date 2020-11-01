@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Module Client',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 python utilities
 ================
