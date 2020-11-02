@@ -17,4 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import training
+from . import partner
+from . import training_training
+from . import training_session
+from . import training_sitting
+from . import mail

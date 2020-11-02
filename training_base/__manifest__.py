@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Training',
-    'depends': ['partner_firstname', 'mail'],
+    'depends': [
+        'partner_firstname',
+        'mail',
+    ],
     'description': """
 Training Management
 ===================
@@ -36,6 +39,7 @@ Training Management
         'views/session.xml',
         'views/sitting.xml',
         'views/partners.xml',
+        'data/mail_templates.xml',
     ],
     'demo': [
         'demo/demo.xml',

@@ -67,6 +67,36 @@ msgid "Attendees"
 msgstr "Participants"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocation"
+msgstr "Envoyer la convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocation again"
+msgstr "Renvoyer la convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Convocation not sent"
+msgstr "Convocation non envoyée"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocations to all attendees"
+msgstr "Envoyer les convocations à tous les participants"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Are you sure? Odoo will send the default text."
+msgstr "Êtes-vous sûr ? Odoo enverra le texte par défaut."
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Are you sure?"
+msgstr "Êtes-vous sûr ?"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__nb_attendees
 msgid "Number of attendees"
 msgstr "Nombre de participants"
@@ -230,6 +260,11 @@ msgstr "Est un participant"
 #: model:ir.model.fields,field_description:training_base.field_res_users__is_institution
 msgid "Is an institution"
 msgstr "Est une institution"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__convocation_sent
+msgid "Convocation sent"
+msgstr "Convocation envoyée"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee____last_update
@@ -557,3 +592,73 @@ msgstr "Terminée"
 #: model:ir.model.fields.selection,name:training_base.selection__training_session__state__done
 msgid "Done"
 msgstr "Clôturée"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:66
+#, python-format
+msgid "Impossible to define attendance if no sitting provided"
+msgstr "Impossible de renseigner une présence si aucune séance n'est fournie"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:98
+#, python-format
+msgid "Impossible to send a convocation with no sitting provided"
+msgstr "Impossible d'envoyer une convocation si aucune séance n'est fournie"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:101
+#, python-format
+msgid "Impossible to send a convocation with no sitting location provided"
+msgstr "Impossible d'envoyer une convocation si aucun lieu de formation n'est renseigné"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:101
+#, python-format
+msgid "Impossible to send a convocation with no sitting location adress provided"
+msgstr "Impossible d'envoyer une convocation si l'adresse du lieu de formation n'est pas renseignée"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:141
+#, python-format
+msgid "Impossible action with no sitting provided"
+msgstr "Action impossible si aucune séance n'est fournie"
+
+#. module: training_base
+#: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
+msgid "${object.company_id.name} - Convocation"
+msgstr ""
+
+#. module: training_base
+#: model:mail.template,body_html:training_base.email_template_training_convocation_to_partner
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                        Hello,\n"
+"                        <br/><br/>\n"
+"                        Here is your convocation for training of ${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Title: ${object.session_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Location: ${object.location_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Hour: from ${object.formatted_start_hour} to ${object.formatted_end_hour}.\n"
+"                        <br/><br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                        Bonjour,\n"
+"                        <br/><br/>\n"
+"                        Voici votre convocation pour la formation du ${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Titre : ${object.session_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Lieu : ${object.location_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Horaires : de ${object.formatted_start_hour} à ${object.formatted_end_hour}.\n"
+"                        <br/><br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "

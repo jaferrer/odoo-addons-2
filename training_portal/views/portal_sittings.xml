@@ -23,4 +23,21 @@
         </t>
     </template>
     <!-- endregion : portal sitting -->
+    
+    <data>
+
+        <record model="ir.ui.view" id="training_sitting_form">
+            <field name="name">training_sitting_form</field>
+            <field name="model">training.sitting</field>
+            <field name="inherit_id" ref="training_base.training_sitting_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <header position="inside">
+                    <button name="manage_portal_access" type="object" string="Grant portal access" class="btn-primary" groups="base.group_partner_manager"/>
+                </header>
+            </field>
+        </record>
+
+    </data>
+    
 </odoo>
