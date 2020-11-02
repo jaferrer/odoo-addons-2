@@ -17,8 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import partner
-from . import training_training
-from . import training_session
-from . import training_sitting
-from . import mail
+from odoo import models
+
+
+class MailComposer(models.TransientModel):
+    _inherit = 'mail.compose.message'
+
+    def action_send_mail(self):
+        if 'send_mail_convocation' in self.env.context:
+            (partner_id, sitting_id) = self.env.context['send_mail_convocation']
+            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id)
+        return super(MailComposer, self).action_send_mail()
