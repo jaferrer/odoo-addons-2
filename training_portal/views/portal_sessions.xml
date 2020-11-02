@@ -12,16 +12,11 @@
                 <thead>
                     <tr class="active">
                         <th>Session</th>
-                        <th>Location</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr t-foreach="sessions" t-as="session">
                         <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.name"/></a></td>
-                        <td>
-                            <t t-if="session.location_id.display_name" t-esc="session.location_id.display_name" />
-                            <t t-else="">Not available</t>
-                        </td>
                     </tr>
                 </tbody>
             </t>
