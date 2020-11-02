@@ -51,9 +51,6 @@ class TrainingSession(models.Model):
                              track_visibility='onchange')
     company_id = fields.Many2one('res.company', string="Company", required=True, default=_get_default_company_id)
 
-    def name_get(self):
-        return [(rec.id, "%s / %s" % (rec.training_id.display_name, rec.name)) for rec in self]
-
     @api.onchange('training_id')
     def onchange_training_id(self):
         if self.training_id and self.training_id.nb_mini:

@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Training',
-    'depends': ['partner_firstname', 'mail'],
+    'depends': [
+        'partner_firstname',
+        'mail',
+    ],
     'description': """
 Training Management
 ===================

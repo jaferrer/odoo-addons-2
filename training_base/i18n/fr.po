@@ -97,11 +97,6 @@ msgid "Are you sure?"
 msgstr "Êtes-vous sûr ?"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Convocation not sent"
-msgstr "Convocation non envoyée"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__nb_attendees
 msgid "Number of attendees"
 msgstr "Nombre de participants"
@@ -599,31 +594,31 @@ msgid "Done"
 msgstr "Clôturée"
 
 #. module: training_base
-#: code:addons/training_base/models/training.py:66
+#: code:addons/training_base/models/partner.py:66
 #, python-format
 msgid "Impossible to define attendance if no sitting provided"
 msgstr "Impossible de renseigner une présence si aucune séance n'est fournie"
 
 #. module: training_base
-#: code:addons/training_base/models/training.py:98
+#: code:addons/training_base/models/partner.py:98
 #, python-format
 msgid "Impossible to send a convocation with no sitting provided"
 msgstr "Impossible d'envoyer une convocation si aucune séance n'est fournie"
 
 #. module: training_base
-#: code:addons/training_base/models/training.py:101
+#: code:addons/training_base/models/partner.py:101
 #, python-format
 msgid "Impossible to send a convocation with no sitting location provided"
 msgstr "Impossible d'envoyer une convocation si aucun lieu de formation n'est renseigné"
 
 #. module: training_base
-#: code:addons/training_base/models/training.py:101
+#: code:addons/training_base/models/partner.py:101
 #, python-format
 msgid "Impossible to send a convocation with no sitting location adress provided"
 msgstr "Impossible d'envoyer une convocation si l'adresse du lieu de formation n'est pas renseignée"
 
 #. module: training_base
-#: code:addons/training_base/models/training.py:141
+#: code:addons/training_base/models/partner.py:141
 #, python-format
 msgid "Impossible action with no sitting provided"
 msgstr "Action impossible si aucune séance n'est fournie"

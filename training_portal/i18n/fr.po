@@ -91,6 +91,13 @@ msgid "Trainer"
 msgstr "Formateur"
 
 #. module: training_portal
+#: code:addons/training_portal/models/training.py:40
+#: model_terms:ir.ui.view,arch_db:training_portal.training_sitting_form
+#, python-format
+msgid "Grant portal access"
+msgstr "Gérer les accès au portail"
+
+#. module: training_portal
 #: model_terms:ir.ui.view,arch_db:training_portal.portal_sitting
 msgid "Your Summons"
 msgstr "Votre convocation"

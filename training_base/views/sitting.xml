@@ -44,7 +44,8 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
-                    <sheet>
+                    <header/>
+                    <sheet class="oe_form_sheet_full_screen">
                         <group>
                             <group>
                                 <field name="session_id" options="{'no_create': True}"/>
@@ -61,21 +62,21 @@
                         </group>
                         <notebook>
                             <page string="Attendees">
-                                <button name="send_convocation_to_all" type="object" string="Send convocations to all attendees" confirm="Are you sure? Odoo will send the default text."/>
+                                <button name="send_convocation_to_all" type="object" string="Send convocations to all attendees" confirm="Are you sure? Odoo will send the default text." groups="training_base.group_training_manager"/>
                                 <group> </group>
                                 <field name="attendee_ids" context="{'sitting_id': id}">
                                     <tree>
                                         <field name="firstname"/>
                                         <field name="lastname"/>
-                                        <field name="attendance" widget="state_selection"/>
+                                        <field name="attendance" widget="state_selection" groups="training_base.group_training_trainer"/>
                                         <field name="convocation_sent" invisible="1"/>
                                         <field name="convocation_sent_ids" widget="many2many_tags" invisible="1"/>
-                                        <button name="button_set_attendance" type="object" string="Set attendance" icon="fa-check"/>
-                                        <button name="button_set_no_attendance" type="object" string="Set no attendance" icon="fa-times"/>
-                                        <button name="button_set_attendance_unknown" type="object" string="Set attendance unknown" icon="fa-question"/>
-                                        <button name="send_mail_convocation" type="object" string="Send convocation" class="btn-primary" attrs="{'invisible': [('convocation_sent', '=', True)]}"/>
-                                        <button name="send_mail_convocation" type="object" string="Send convocation again" attrs="{'invisible': [('convocation_sent', '=', False)]}"/>
-                                        <button name="mark_convocation_as_not_sent" type="object" string="Convocation not sent" confirm="Are you sure ?" attrs="{'invisible': [('convocation_sent', '=', False)]}"/>
+                                        <button name="button_set_attendance" type="object" string="Set attendance" icon="fa-check" groups="training_base.group_training_trainer"/>
+                                        <button name="button_set_no_attendance" type="object" string="Set no attendance" icon="fa-times" groups="training_base.group_training_trainer"/>
+                                        <button name="button_set_attendance_unknown" type="object" string="Set attendance unknown" icon="fa-question" groups="training_base.group_training_trainer"/>
+                                        <button name="send_mail_convocation" type="object" string="Send convocation" class="btn-primary" attrs="{'invisible': [('convocation_sent', '=', True)]}" groups="training_base.group_training_manager"/>
+                                        <button name="send_mail_convocation" type="object" string="Send convocation again" attrs="{'invisible': [('convocation_sent', '=', False)]}" groups="training_base.group_training_manager"/>
+                                        <button name="mark_convocation_as_not_sent" type="object" string="Convocation not sent" confirm="Are you sure ?" attrs="{'invisible': [('convocation_sent', '=', False)]}" groups="training_base.group_training_manager"/>
                                     </tree>
                                 </field>
                             </page>
