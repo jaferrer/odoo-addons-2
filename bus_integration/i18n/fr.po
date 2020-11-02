@@ -49,3 +49,9 @@ msgstr "Données synchronisées"
 #, python-format
 msgid "Impossible to delete record on model %s, use for bus synchronisation, please deactivate the record in the sending instance"
 msgstr "Impossible de supprimer un enregistrement sur le modèle %s, utilisé par le bus, merci de désactivé l'enregistrement dans l'instance émettrice"
+
+#. module: bus_integration
+#: code:addons/bus_integration/controllers/main.py:52
+#, python-format
+msgid "Please log in using a domain name not an IP address"
+msgstr "Veuillez vous connecter en utilisant un nom de domaine et non une adresse IP"
