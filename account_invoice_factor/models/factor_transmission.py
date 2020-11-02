@@ -106,9 +106,9 @@ class FactorTransmission(models.Model):
             open_items_contents.append(self._get_open_items_line(invoice))
             debtors_contents.append(self._get_debtor_line(invoice))
 
-        open_items_filename = 'NA%s0_%s.txt' % (self.bank_id.factor_cga_account_number,
+        open_items_filename = 'NC%s0_%s.csv' % (self.bank_id.factor_cga_account_number,
                                                 datetime.today().strftime("%Y%m%d_%H%M%S"))
-        debtor_filename = 'NC%s0_%s.txt' % (self.bank_id.factor_cga_account_number,
+        debtor_filename = 'NA%s0_%s.csv' % (self.bank_id.factor_cga_account_number,
                                             datetime.today().strftime("%Y%m%d_%H%M%S"))
 
         folder = self.env.ref('account_invoice_factor.dir_factor')
@@ -149,7 +149,7 @@ class FactorTransmission(models.Model):
             country_code=partner.country_id.code,
             phone=partner.phone,
             partner_number=partner.number,
-            vat_number=invoice.num_vat_id or "",
+            vat_number=invoice.num_vat_id and invoice.num_vat_id.vat or "",
         )
 
     @api.multi

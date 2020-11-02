@@ -25,5 +25,18 @@
             </field>
         </record>
 
+        <record model="ir.actions.server" id="ir_action_server_send_invoice_to_factor">
+            <field name="name">Send to factor</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="code">self.resend_to_factor(cr, uid, context.get('active_ids'), False, context)</field>
+        </record>
+
+        <record model="ir.values" id="ir_value_send_invoice_to_factor">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">account.invoice</field>
+            <field name="name">Send to factor</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_action_server_send_invoice_to_factor)"/>
+        </record>
     </data>
 </openerp>
