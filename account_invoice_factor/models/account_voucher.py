@@ -20,13 +20,20 @@
 
 import logging
 
-from openerp import models, api
+from openerp import models, api, fields
 
 _logger = logging.getLogger(__name__)
 
 
 class AccountVoucher(models.Model):
     _inherit = 'account.voucher'
+
+    def _get_default_invoice_id(self):
+        if self.env.context.get('invoice_id'):
+            return self.env['account.invoice'].browse(self.env.context['invoice_id'])
+        return self.env['account.invoice']
+
+    invoice_id = fields.Many2one('account.invoice', string=u"Invoice", readonly=True, default=_get_default_invoice_id)
 
     @api.multi
     def proforma_voucher(self):

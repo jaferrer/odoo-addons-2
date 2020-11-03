@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
+import ipaddress
 import socket
 import logging
 from urlparse import urlparse
@@ -59,9 +59,9 @@ class BusConfiguration(models.Model):
             return hostname
 
         # ip might be the public ip
+        ipify_url = self.env['ir.config_parameter'].get_param('bus_integration.ipify')
         try:
-            url = self.env['ir.config_parameter'].get_param('bus_integration.ipify')
-            public_ip = get(url).text
+            public_ip = get(ipify_url).text
         except ConnectionError as ex:
             # fall back behaviour if ipify.org is not available don't block
             _logger.error(repr(ex))
@@ -69,6 +69,15 @@ class BusConfiguration(models.Model):
 
         if ip == public_ip:
             return hostname
+
+        # if ipify.org returns an error => throws a user friendly error
+        try:
+            ipaddress.ip_address(public_ip)
+        except ipaddress.AddressValueError as ex:
+            _logger.error(repr(ex))
+            raise BaseUrlMatchException('Public ip of %s has not been retreived by %s, '
+                                        'please try again later' % (hostname, ipify_url))
+
         error_message = 'hostname %s resolved as %s does neither match local nor public IP (127.0.0.1 and %s)'
         raise BaseUrlMatchException(error_message % (hostname, ip, public_ip))
 
@@ -113,6 +122,8 @@ class BusConfiguration(models.Model):
 
         error_message = self._is_not_allowed_error_message(server, login, hostname)
         if error_message:
+            # web.base.url might be wrongly. we need to recompute cached host name in case the config.parameter change
+            BusConfiguration._singleton_host_name = False
             if raise_error:
                 raise exceptions.except_orm(_(u"Error!"), error_message)
             return server, error_message, 0
