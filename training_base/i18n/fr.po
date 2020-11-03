@@ -149,7 +149,7 @@ msgid "hours"
 msgstr "heures"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+#: model:ir.model.fields,field_description:training_base.field_training_training__training_content
 msgid "Content of training"
 msgstr "Contenu de la formation"
 
