@@ -32,7 +32,7 @@ class TrainingPartner(models.Model):
                                    ('done', "Attendance")], string="Attendance", compute='_compute_attendance')
     convocation_sent = fields.Boolean(string="Convocation sent", compute='_compute_convocation_sent')
     convocation_sent_ids = fields.One2many('training.sitting.convocation.sent', 'partner_id')
-    biography = fields.Text("Biography")
+    biography = fields.Text(string="Biography")
 
     def _compute_attendance(self):
         sitting_id = self.env.context.get('sitting_id', 0)
