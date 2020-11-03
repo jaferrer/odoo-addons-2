@@ -68,13 +68,13 @@
                             <field name="price"/>
                             <field name="nb_mini"/>
                             <field name="nb_maxi"/>
-                            <field name="aimed_public"/>
                         </group>
                         <notebook>
                             <page string="Description">
                                 <group>
-                                    <field name="description" />
-                                    <field name="training_content" />
+                                    <field name="description"/>
+                                    <field name="aimed_public"/>
+                                    <field name="training_content"/>
                                 </group>
                             </page>
                             <page string="Sessions" attrs="{'invisible': [('state', '=', 'draft')]}">
