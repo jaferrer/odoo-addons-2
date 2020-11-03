@@ -58,7 +58,7 @@
                             <div>
                                 <label for="duration" />
                                 <field name="duration" class="oe_inline" />
-                                duration of a day
+                                Duration of a day
                                 <field name="duration_hour_day" nolabel="1" class="oe_inline" widget="float_time" />
                                 i.e.
                                 <field name="total_duration" nolabel="1" class="oe_inline" widget="float_time" /> hours
