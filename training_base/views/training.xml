@@ -53,7 +53,18 @@
                         <group>
                             <field name="name" placeholder="Training..."/>
                             <field name="user_id"/>
-                            <field name="duration"/>
+                        </group>
+                        <group>
+                            <div>
+                                <label for="duration" />
+                                <field name="duration" class="oe_inline" />
+                                duration of a day
+                                <field name="duration_hour_day" nolabel="1" class="oe_inline" widget="float_time" />
+                                i.e.
+                                <field name="total_duration" nolabel="1" class="oe_inline" widget="float_time" /> hours
+                            </div>
+                        </group>
+                        <group>
                             <field name="price"/>
                             <field name="nb_mini"/>
                             <field name="nb_maxi"/>
@@ -61,7 +72,10 @@
                         </group>
                         <notebook>
                             <page string="Description">
-                                <field name="description" placeholder="Description..."/>
+                                <group>
+                                    <field name="description" />
+                                    <field name="training_content" />
+                                </group>
                             </page>
                             <page string="Sessions" attrs="{'invisible': [('state', '=', 'draft')]}">
                                 <field name="session_ids" context="{'default_training_id': id}" attrs="{'readonly': [('state', 'in', ['draft', 'done', 'cancel'])]}"/>

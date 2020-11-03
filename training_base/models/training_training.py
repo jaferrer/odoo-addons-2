@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class TrainingTraining(models.Model):
@@ -34,9 +34,12 @@ class TrainingTraining(models.Model):
     name = fields.Char(string="Title", required=True, track_visibility='onchange')
     user_id = fields.Many2one('res.users', string="Responsible", required=True, default=_get_default_user_id)
     duration = fields.Float(string="Duration (days)")
+    duration_hour_day = fields.Float(string="Duration of one day (in hours)")
+    total_duration = fields.Float(string="Total duration (in hours)", compute="_compute_total_duration")
     price = fields.Float(string="Price")
     aimed_public = fields.Char(string="Aimed Public")
     description = fields.Text(string="Description")
+    training_content = fields.Text(string="Content of training")
     session_ids = fields.One2many('training.session', 'training_id', string="Sessions")
     sitting_ids = fields.One2many('training.sitting', 'training_id', string="Sittings", readonly=True)
     nb_mini = fields.Integer("Minimum number of attendees")
@@ -48,3 +51,8 @@ class TrainingTraining(models.Model):
                               ('done', "Done")], strong="Status", default='draft', required=True,
                              track_visibility='onchange')
     company_id = fields.Many2one('res.company', string="Company", required=True, default=_get_default_company_id)
+
+    @api.depends('duration', 'duration_hour_day')
+    def _compute_total_duration(self):
+        for rec in self:
+            rec.total_duration = rec.duration * rec.duration_hour_day

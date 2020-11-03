@@ -32,13 +32,12 @@ class TrainingPartner(models.Model):
                                    ('done', "Attendance")], string="Attendance", compute='_compute_attendance')
     convocation_sent = fields.Boolean(string="Convocation sent", compute='_compute_convocation_sent')
     convocation_sent_ids = fields.One2many('training.sitting.convocation.sent', 'partner_id')
+    biography = fields.Text("Biography")
 
     def _compute_attendance(self):
         sitting_id = self.env.context.get('sitting_id', 0)
         if not sitting_id:
-            for rec in self:
-                rec.attendance = 'normal'
-            return
+            raise exceptions.UserError("Impossible to determine attendance if no sitting provided")
         for rec in self:
             attendance = self.env['training.attendee'].search([('sitting_id', '=', sitting_id),
                                                                ('partner_id', '=', rec.id)], limit=1)
@@ -49,18 +48,6 @@ class TrainingPartner(models.Model):
                     rec.attendance = 'blocked'
             else:
                 rec.attendance = 'normal'
-
-    @api.depends('convocation_sent_ids')
-    def _compute_convocation_sent(self):
-        sitting_id = self.env.context.get('sitting_id', 0)
-        if not sitting_id:
-            for rec in self:
-                rec.convocation_sent = False
-            return
-        for rec in self:
-            rec.convocation_sent = bool(self.env['training.sitting.convocation.sent'].
-                                        search([('sitting_id', '=', sitting_id),
-                                                ('partner_id', '=', rec.id)], limit=1))
 
     @api.onchange('is_institution')
     def onchange_is_institution(self):

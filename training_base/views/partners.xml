@@ -22,6 +22,9 @@
                             <field name="is_training_location"/>
                         </group>
                     </page>
+                    <page string="Biography" attrs="{'invisible': [('is_trainer', '=', False)]}">
+                        <field name="biography" />
+                    </page>
                 </notebook>
             </field>
         </record>
