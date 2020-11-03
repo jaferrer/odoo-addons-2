@@ -17,12 +17,11 @@ class TestAccountOutstandingPayments(common.TransactionCase):
         ir_values = self.env['ir.values']
         res_partner_model = self.env['res.partner']
         sale_order_model = self.env['sale.order']
-        product_product_model = self.env['product.product']
-        journal_cash = self.env['account.journal'].search([('type', '=', 'cash')], limit=1)
-        res_partner = res_partner_model.create({'name': 'James'})
+        journal_cash = self.env.ref('account.cash_journal')
+        res_partner = self.env.ref('base.res_partner_2')
         period_id = self.env['account.period'].search([('code', '=', '00/' + time.strftime("%Y"))])
         account_id = self.env['account.account'].search([('name', 'ilike', 'Product Sales')])
-        product = product_product_model.create({'name': 'Product 1', 'default_code': 'outstanding_prod1'})
+        product = self.env.ref('product.product_product_3')
         # create a sale.order with one line
         sale_order = sale_order_model.create(
             {'partner_id': res_partner.id,
@@ -35,7 +34,8 @@ class TestAccountOutstandingPayments(common.TransactionCase):
             'price_unit': 100})
         sale_order.action_button_confirm()
         # create the invoice for that sale.order
-        account_invoice = sale_order.action_invoice_create()
+        inv_id = sale_order.action_invoice_create()
+        account_invoice = self.env['account.invoice'].browse(inv_id)
         account_invoice.signal_workflow('invoice_open')
         # make a payment on that invoice, keep it open
         proforma_voucher = self.env['account.voucher'].with_context(
