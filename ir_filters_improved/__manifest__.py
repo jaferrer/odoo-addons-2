@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Allows the creator of an ir.filters to delete it
 """,

@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Offers an interface to mass rename ir.attachment linked to a model
 """,
