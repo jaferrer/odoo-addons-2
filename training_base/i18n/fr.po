@@ -144,6 +144,21 @@ msgid "Training..."
 msgstr "Formation..."
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Duration of a day"
+msgstr "Durée d'une journée"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "hours"
+msgstr "heures"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Content of training"
+msgstr "Contenu de la formation"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_session__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__display_name
