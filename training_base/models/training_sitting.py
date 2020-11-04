@@ -19,7 +19,7 @@
 
 from odoo.tools import format_duration
 
-from odoo import models, fields
+from odoo import models, fields, api, exceptions, _
 
 
 class TrainingSitting(models.Model):
@@ -63,6 +63,28 @@ class TrainingSitting(models.Model):
                 wizard.write(wizard.onchange_template_id(context_wizard['default_template_id'],
                                                          'comment', self._name, rec.id).get('value'))
                 wizard.action_send_mail()
+
+    @api.model
+    def check_simultaneous_sittings(self):
+        for rec in self:
+            domain = [('session_id', '=', rec.session_id.id), ('id', '!=', rec.id), ('date', '=', rec.date)]
+            sittings_before = self.search(domain + [('start_hour', '<=', rec.start_hour),
+                                                    ('end_hour', '<=', rec.start_hour)])
+            sittings_after = self.search(domain + [('start_hour', '>=', rec.end_hour),
+                                                   ('end_hour', '>=', rec.end_hour)])
+            if self.search(domain + [('id', 'not in', sittings_before.ids), ('id', 'not in', sittings_after.ids)]):
+                raise exceptions.UserError(_("Two sittings cannot happen simultaneously"))
+
+    def write(self, vals):
+        result = super(TrainingSitting, self).write(vals)
+        self.check_simultaneous_sittings()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(TrainingSitting, self).create(vals)
+        result.check_simultaneous_sittings()
+        return result
 
 
 class TrainingAttendee(models.Model):
