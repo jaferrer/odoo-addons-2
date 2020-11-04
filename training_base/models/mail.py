@@ -26,5 +26,6 @@ class MailComposer(models.TransientModel):
     def action_send_mail(self):
         if 'send_mail_convocation' in self.env.context:
             (partner_id, sitting_id) = self.env.context['send_mail_convocation']
-            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id)
+            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id,
+                                                                                self.attachment_ids[0])
         return super(MailComposer, self).action_send_mail()

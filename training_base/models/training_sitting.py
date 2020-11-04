@@ -107,15 +107,17 @@ class TrainingSittingConvocationSent(models.Model):
 
     partner_id = fields.Many2one('res.partner', string="Attendee", required=True, ondelete='cascade')
     sitting_id = fields.Many2one('training.sitting', string="Sitting", required=True, ondelete='cascade')
+    summons_id = fields.Many2one('ir.attachment', string="Summons")
 
     _sql_constraints = [
         ('unique_attendee', 'unique (partner_id, sitting_id)', "Forbidden to define two lines for the same "
                                                                "sitting and the same partner.")
     ]
 
-    def create_line_if_needed(self, partner_id, sitting_id):
+    def create_line_if_needed(self, partner_id, sitting_id, summons):
         if not self.search([('partner_id', '=', partner_id), ('sitting_id', '=', sitting_id)]):
             self.create({
                 'partner_id': partner_id,
                 'sitting_id': sitting_id,
+                'summons_id': summons.id
             })
