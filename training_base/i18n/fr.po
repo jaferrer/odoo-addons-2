@@ -634,6 +634,12 @@ msgid "Impossible action with no sitting provided"
 msgstr "Action impossible si aucune séance n'est fournie"
 
 #. module: training_base
+#: code:addons/training_base/models/training_sitting.py:76
+#, python-format
+msgid "Two sittings cannot happen simultaneously"
+msgstr "Deux séances ne peuvent pas se chevaucher"
+
+#. module: training_base
 #: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
 msgid "${object.company_id.name} - Convocation"
 msgstr ""
