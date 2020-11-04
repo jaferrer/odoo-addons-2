@@ -17,7 +17,7 @@
                         <br/><br/>
                         Title: ${object.session_id.name}.
                         <br/><br/>
-                        Location: ${object.location_id.name}.
+                        Location: ${object.location_id.contact_address}.
                         <br/><br/>
                         Hour: from ${object.formatted_start_hour} to ${object.formatted_end_hour}.
                         <br/><br/>
