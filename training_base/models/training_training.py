@@ -42,6 +42,7 @@ class TrainingTraining(models.Model):
     training_content = fields.Text(string="Content of training")
     session_ids = fields.One2many('training.session', 'training_id', string="Sessions")
     sitting_ids = fields.One2many('training.sitting', 'training_id', string="Sittings", readonly=True)
+    next_session = fields.Many2one('training.session', compute='_compute_next_session')
     nb_mini = fields.Integer("Minimum number of attendees")
     nb_maxi = fields.Integer("Maximum number of attendees")
     state = fields.Selection([('draft', "Draft"),
@@ -56,3 +57,12 @@ class TrainingTraining(models.Model):
     def _compute_total_duration(self):
         for rec in self:
             rec.total_duration = rec.duration * rec.duration_hour_day
+
+    @api.depends('session_ids')
+    def _compute_next_session(self):
+        for rec in self:
+            session = self.env['training.session'].search([
+                ('state', 'in', ('offered', 'registrations')),
+                ('training_id', '=', rec.id)
+            ], limit=1)
+            rec.next_session = session
