@@ -2,9 +2,9 @@
 <openerp>
     <data>
 
-        <menuitem id="top_menu_training" name="Training" sequence="10"/>
+        <menuitem id="top_menu_training" name="Training" sequence="10" web_icon="training_base,static/img/training.png" />
 
-        <menuitem id="menu_training_global" name="Training" parent="top_menu_training" sequence="10"/>
+        <menuitem id="menu_training_global" name="Training" parent="top_menu_training" sequence="10" />
 
         <record model="ir.ui.view" id="training_training_tree">
             <field name="name">training_training_tree</field>
@@ -30,7 +30,7 @@
                     <field name="name"/>
                     <field name="user_id"/>
                     <field name="aimed_public"/>
-                    <field name="description"/>
+                    <field name="description" />
                     <field name="state"/>
                     <group expand="0" name="group_by" string="Group By">
                         <filter name="group_by_user_id" string="Responsible" domain="[]" context="{'group_by' : 'user_id'}"/>
@@ -72,9 +72,9 @@
                         <notebook>
                             <page string="Description">
                                 <group>
-                                    <field name="description"/>
+                                    <field name="description" widget="html" />
                                     <field name="aimed_public"/>
-                                    <field name="training_content"/>
+                                    <field name="training_content" widget="html" />
                                 </group>
                             </page>
                             <page string="Sessions" attrs="{'invisible': [('state', '=', 'draft')]}">
@@ -103,7 +103,8 @@
         </record>
 
         <menuitem id="menu_trainings" name="Trainings" action="act_window_training"
-                  parent="menu_training_global" sequence="10"/>
+                  parent="menu_training_global" sequence="10"
+        />
 
     </data>
 </openerp>
