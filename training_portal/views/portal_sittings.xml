@@ -6,16 +6,36 @@
             <t t-call="portal.portal_record_layout">
                 <t t-set="card_header">
                     <h5 class="mb-0">
-                        <span t-field="sitting.training_id.name"/> -
                         <span t-field="sitting.session_id.name"/>
                         <span class="float-right"></span>
                     </h5>
                 </t>
                 <t t-set="card_body">
-                    <div class="row">
-                        <!-- summons -->
-                        <div class="col-sm">
-                            <a t-if='attachment_count' class="btn btn-primary fa fa-file-pdf-o" t-attf-href="/web/content/#{attachment.summons_id.id}/#{attachment.summons_id.name}?download=true"> Your Summons</a>
+                    <!-- summons -->
+                    <div t-if='attachment_count' class="row">
+                        <div class="col-sm-9">
+                            <h5>Summons</h5>
+                            <div class="col-sm">
+                                <a class="btn btn-primary fa fa-file-pdf-o"
+                                   t-attf-href="/web/content/#{attachment.summons_id.id}/#{attachment.summons_id.name}?download=true">
+                                    Your Summons
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    <div t-if="sitting.session_id.document_ids" class="row mt-3">
+                        <div class="col-sm-9">
+                            <h5>Documents available</h5>
+                            <t t-foreach="sitting.session_id.document_ids" t-as="document">
+                                <div class="col-sm">
+                                    <a class="btn btn-primary fa fa-file-pdf-o"
+                                       t-attf-href="/web/content/#{document.id}/#{document.name}?download=true">
+                                        <t t-esc="document.name" />
+                                    </a>
+                                </div>
+                            </t>
                         </div>
                     </div>
                 </t>

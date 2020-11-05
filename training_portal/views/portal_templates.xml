@@ -7,8 +7,8 @@
                 <a t-if="session" t-attf-href="/sessions?{{ keep_query() }}">Sessions</a>
                 <t t-else="">Sessions</t>
             </li>
-            <li t-if="session" class="breadcrumb-item active">
-                <t t-esc="session.name"/>
+            <li t-if="session" t-attf-class="breadcrumb-item #{'active ' if not sitting else ''}">
+                <a t-if="session" t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><t t-esc="session.name"/></a>
             </li>
             <li t-if="sitting" class="breadcrumb-item active">
                 <t t-esc="sitting.display_name"/>
