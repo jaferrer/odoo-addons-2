@@ -15,7 +15,7 @@
                     <div class="row">
                         <!-- summons -->
                         <div class="col-sm">
-                            <button class="btn btn-primary fa fa-file-pdf-o"> Your Summons</button>
+                            <a t-if='attachment_count' class="btn btn-primary fa fa-file-pdf-o" t-attf-href="/web/content/#{attachment.summons_id.id}/#{attachment.summons_id.name}?download=true"> Your Summons</a>
                         </div>
                     </div>
                 </t>
