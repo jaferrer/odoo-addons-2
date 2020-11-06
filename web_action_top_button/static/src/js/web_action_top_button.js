@@ -51,7 +51,7 @@ odoo.define('web_action_top_button.Sidebar', function (require) {
                             });
                         }
                         else {
-                            if((action.position && action.position !== "none") || (action.position === undefined)) {
+                            if((action.position === false) || (action.position && action.position !== "none") || (action.position === undefined)) {
                                 out_items.push({
                                     label: action.name,
                                     action: action,
