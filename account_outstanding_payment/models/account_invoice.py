@@ -124,15 +124,17 @@ class AccountInvoice(models.Model):
         """
         line_to_reconcile = self.env['account.move.line']
         for inv in self:
-            line_to_reconcile += inv.move_id.line_id.filtered(
-                lambda r: not r.reconcile_ref and r.account_id.type in
-                ('payable', 'receivable'))
+            for line in inv.move_id.line_id:
+                if line.amount_residual > 0 and line.account_id.type in ('payable', 'receivable'):
+                    line_to_reconcile = line
         ir_values_obj = self.env['ir.values']
         reconciliation_writeoff_account = ir_values_obj.get_default(
             'account.config.settings', 'reconciliation_writeoff_account')
         if not reconciliation_writeoff_account:
             raise exceptions.MissingError(_('''Set the write-off account
             in Settings -> Configuration -> Invoicing -> Write-Off account'''))
+        if not line_to_reconcile:
+            return False
         return (line_to_reconcile + payment_line).reconcile_partial(
             writeoff_journal_id=self.journal_id.id,
             writeoff_period_id=self.env['account.period'].find().id,

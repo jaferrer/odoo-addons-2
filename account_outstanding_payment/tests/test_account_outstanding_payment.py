@@ -11,7 +11,7 @@ from openerp import fields
 
 class TestAccountOutstandingPayments(common.TransactionCase):
 
-    post_install = True
+    post_install = False
 
     def test_account_outstanding_payment(self):
         ir_values = self.env['ir.values']
@@ -22,6 +22,7 @@ class TestAccountOutstandingPayments(common.TransactionCase):
         period_id = self.env['account.period'].search([('code', '=', '00/' + time.strftime("%Y"))])
         account_id = self.env['account.account'].search([('name', 'ilike', 'Product Sales')])
         product = self.env.ref('product.product_product_3')
+
         # create a sale.order with one line
         sale_order = sale_order_model.create(
             {'partner_id': res_partner.id,
