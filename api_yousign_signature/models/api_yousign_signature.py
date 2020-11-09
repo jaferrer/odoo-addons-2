@@ -165,7 +165,7 @@ class ApiYousignSignature(models.TransientModel):
         if ans.status_code != 201:
             raise UserError(_("HTTP Request returned a %d error : %s" % (ans.status_code, ans.text)))
 
-        return json.loads(ans.text).get('id')
+        return json.loads(ans.text)
 
     @api.model
     def get_signed_document(self, file_id):
@@ -187,14 +187,14 @@ class ApiYousignSignature(models.TransientModel):
         # save the date when document is sent
         model_record.write({
             'is_yousign_procedure_on': True,
-            'date_send_to_sign': datetime.datetime.now()
+            'date_send_to_sign': datetime.datetime.now(),
         })
 
         model_record.yousign_doc_id = self.env['api.yousign.signature'].send_document_to_yousign(
             b64_pdf_file,
             model_record.display_name
         )
-        model_record.yousign_procedure_id = self.env['api.yousign.signature'].create_procedure(
+        json_response = self.env['api.yousign.signature'].create_procedure(
             model_record.yousign_doc_id,
             model_record.display_name,
             self.firstname,
@@ -202,6 +202,12 @@ class ApiYousignSignature(models.TransientModel):
             self.email,
             self.phone,
         )
+
+        # Save procedure ID of API Yousign
+        model_record.yousign_procedure_id = json_response.get('id')
+
+        # Save member ID of API Yousign
+        model_record.yousign_member_id = json_response.get('members')[0]['id']
 
         validation_message = "Un mail vous à été envoyé à l'adresse %s pour vous permettre de valider la signature." % \
                              self.email
