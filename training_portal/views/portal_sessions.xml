@@ -12,11 +12,13 @@
                 <thead>
                     <tr class="active">
                         <th>Session</th>
+                        <th>Administrative Contact</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr t-foreach="sessions" t-as="session">
                         <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.name"/></a></td>
+                        <td><span t-field="session.administrative_contact"/></td>
                     </tr>
                 </tbody>
             </t>
