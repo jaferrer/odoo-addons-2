@@ -159,6 +159,7 @@ odoo.define('web_webcam_screenshot.webcam_screenshot_widget', function (require)
                                     var AttachmentObj = new Model('ir.attachment');
                                     return AttachmentObj.call('create', [{
                                         'name': 'web-cam-screenshot.jpeg',
+                                        'datas_fname': 'web-cam-screenshot.jpeg',
                                         'res_model': model,
                                         'res_id': id,
                                         'datas': img_data_base64,

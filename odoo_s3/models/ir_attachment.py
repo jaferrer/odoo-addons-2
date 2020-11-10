@@ -26,7 +26,7 @@ from cStringIO import StringIO
 from minio import Minio
 
 from odoo import api, models, exceptions
-from odoo.tools import config
+from odoo.conf import server_wide_modules
 
 _logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class S3Attachment(models.Model):
     _s3_bucket = False
 
     def _storage(self):
-        if config['test_enable']:
+        if 'odoo_s3' not in server_wide_modules:
             return super(S3Attachment, self)._storage()
         return self.env.context.get('force_attachment_storage', 's3')
 
