@@ -43,19 +43,23 @@ class ResPartner(models.Model):
         return date_py.strftime("%s %s" % (lang.date_format, lang.time_format))
 
     @api.multi
-    def utcize_date(self, date_dt):
+    def utcize_date(self, date_py):
         """Return UTC date of given date (as dt)"""
         self.ensure_one()
-        tz_info = fields.Datetime.context_timestamp(self, date_dt).tzinfo
-        dt_utc = date_dt.replace(tzinfo=tz_info).astimezone(pytz.UTC).replace(tzinfo=None)
+        if isinstance(date_py, (str, unicode)):
+            date_py = fields.Date.from_string(date_py)
+        tz_info = fields.Datetime.context_timestamp(self, date_py).tzinfo
+        dt_utc = date_py.replace(tzinfo=tz_info).astimezone(pytz.UTC).replace(tzinfo=None)
         return dt_utc
 
     @api.multi
-    def localize_date(self, date_dt):
+    def localize_date(self, date_py):
         """Return TZ date of given UTC date (as dt)"""
         self.ensure_one()
-        tz_info = fields.Datetime.context_timestamp(self, date_dt).tzinfo
-        dt_loc = date_dt.replace(tzinfo=pytz.UTC).astimezone(tz_info).replace(tzinfo=None)
+        if isinstance(date_py, (str, unicode)):
+            date_py = fields.Date.from_string(date_py)
+        tz_info = fields.Datetime.context_timestamp(self, date_py).tzinfo
+        dt_loc = date_py.replace(tzinfo=pytz.UTC).astimezone(tz_info).replace(tzinfo=None)
         return dt_loc
 
 
