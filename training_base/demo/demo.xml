@@ -61,7 +61,6 @@
         </record>
 
         <record model="training.session" id="training_session_1">
-            <field name="name">Formation 1</field>
             <field name="training_id" ref="training_demo"/>
             <field name="nb_mini" eval="8"/>
             <field name="nb_maxi" eval="25"/>
@@ -69,7 +68,6 @@
         </record>
 
         <record model="training.session" id="training_session_2">
-            <field name="name">Formation 2</field>
             <field name="training_id" ref="training_demo"/>
             <field name="trainer_id" ref="demo_trainer"/>
             <field name="location_id" ref="demo_training_location"/>
