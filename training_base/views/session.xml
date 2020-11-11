@@ -8,7 +8,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree>
-                    <field name="name"/>
                     <field name="training_id"/>
                     <field name="trainer_id"/>
                     <field name="location_id"/>
@@ -25,7 +24,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
-                    <field name="name"/>
                     <field name="training_id"/>
                     <field name="trainer_id"/>
                     <field name="location_id"/>
@@ -52,7 +50,6 @@
                     </header>
                     <sheet>
                         <group>
-                            <field name="name"/>
                             <field name="training_id" options="{'no_create': True}"/>
                             <field name="trainer_id" options="{'no_create': True}"/>
                             <field name="location_id" options="{'no_create': True}"/>

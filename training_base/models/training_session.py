@@ -28,7 +28,6 @@ class TrainingSession(models.Model):
     def _get_default_company_id(self):
         return self.env.user.company_id
 
-    name = fields.Char(string="Title", required=True)
     training_id = fields.Many2one('training.training', string="Training", required=True, ondelete='cascade')
     trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)])
     attendee_ids = fields.Many2many('res.partner', string="Attendees", domain=[('is_attendee', '=', True)])
@@ -50,6 +49,20 @@ class TrainingSession(models.Model):
                               ('done', "Done")], strong="Status", default='draft', required=True,
                              track_visibility='onchange')
     company_id = fields.Many2one('res.company', string="Company", required=True, default=_get_default_company_id)
+
+    def name_get(self):
+        result = []
+        for rec in self:
+            ordered_sessions = self.search([('id', 'in', rec.training_id.session_ids.ids)],
+                                           order='first_sitting_date, id')
+            nb_sessions_for_training = len(ordered_sessions)
+            session_index = 0
+            for session in ordered_sessions:
+                session_index += 1
+                if session == rec:
+                    break
+            result += [(rec.id, "%s (%s/%s)" % (rec.training_id.name, session_index, nb_sessions_for_training))]
+        return result
 
     @api.onchange('training_id')
     def onchange_training_id(self):
