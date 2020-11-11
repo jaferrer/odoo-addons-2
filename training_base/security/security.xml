@@ -20,14 +20,25 @@
         </record>
 
         <record model="ir.rule" id="rule_training_training_group_trainer">
-            <field name="name">Trainings: access to own trainings for trainers</field>
+            <field name="name">Trainings: trainers can see their own trainings</field>
             <field name="model_id" ref="model_training_training"/>
             <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
             <field name="domain_force">['|', ('user_id', '=', user.id), ('session_ids.trainer_id.user_ids', '=', user.id)]</field>
             <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record model="ir.rule" id="rule_training_training_draft_group_trainer">
+            <field name="name">Trainings: trainers can edit draft trainings only</field>
+            <field name="model_id" ref="model_training_training"/>
+            <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
+            <field name="domain_force">[('state', '=', 'draft'), '|', ('user_id', '=', user.id), ('session_ids.trainer_id.user_ids', '=', user.id)]</field>
+            <field name="perm_read" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_write" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
         </record>
 
         <record model="ir.rule" id="rule_training_training_group_training_manager">
