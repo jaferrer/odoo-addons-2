@@ -124,3 +124,8 @@ msgstr "Votre convocation"
 #: model_terms:ir.ui.view,arch_db:training_portal.portal_session
 msgid "mt-3"
 msgstr "mt-3"
+
+#. module: training_portal
+#: model_terms:ir.ui.view,arch_db:training_portal.res_partner_form
+msgid "Give internal access to trainer"
+msgstr "Donner un accès interne au formateur"
