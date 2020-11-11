@@ -33,6 +33,7 @@
                         <filter name="group_by_session_id" string="Session" domain="[]" context="{'group_by' : 'session_id'}"/>
                         <filter name="group_by_location_id" string="Location" domain="[]" context="{'group_by' : 'location_id'}"/>
                         <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
+                        <filter name="group_by_date" string="Date" domain="[]" context="{'group_by' : 'date'}"/>
                     </group>
                 </search>
             </field>
