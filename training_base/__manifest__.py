@@ -40,6 +40,7 @@ Training Management
         'views/sitting.xml',
         'views/partners.xml',
         'data/mail_templates.xml',
+        'data/training_locations.xml',
     ],
     'demo': [
         'demo/demo.xml',

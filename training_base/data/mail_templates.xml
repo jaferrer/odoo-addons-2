@@ -18,7 +18,13 @@
                         Title: ${object.session_id.name}.
                         <br/><br/>
                         Location: ${object.location_id.contact_address}.
-                        <br/><br/>
+                        <br/>
+                        % if object.location_id.is_remote_training_location and object.remote_url:
+                        <br/>
+                        Please use <a href="${object.remote_url}">this link</a>
+                        <br/>
+                        % endif
+                        <br/>
                         Hour: from ${object.formatted_start_hour} to ${object.formatted_end_hour}.
                         <br/><br/>
                     </p>

@@ -52,6 +52,8 @@
                                 <field name="training_id" options="{'no_create': True}"/>
                                 <field name="trainer_id" options="{'no_create': True}"/>
                                 <field name="location_id" options="{'no_create': True}"/>
+                                <field name="is_remote_training_location" invisible="1"/>
+                                <field name="remote_url" attrs="{'invisible': [('is_remote_training_location', '=', False)]}" widget="url"/>
                             </group>
                             <group>
                                 <field name="date"/>

@@ -260,6 +260,12 @@ msgid "Is a training location"
 msgstr "Est un lieu de formation"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_remote_training_location
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_remote_training_location
+msgid "Is a remote training location"
+msgstr "Distanciel"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_res_partner__is_attendee
 #: model:ir.model.fields,field_description:training_base.field_res_users__is_attendee
 msgid "Is an attendee"
@@ -624,7 +630,13 @@ msgstr "Impossible d'envoyer une convocation si aucun lieu de formation n'est re
 #. module: training_base
 #: code:addons/training_base/models/partner.py:101
 #, python-format
-msgid "Impossible to send a convocation with no sitting location adress provided"
+msgid "Impossible to send a convocation for a remote training with no URL provided"
+msgstr "Impossible d'envoyer une convocation pour une formation en distanciel si aucune URL n'est renseignée"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:101
+#, python-format
+msgid "Impossible to send a convocation with no sitting location address provided"
 msgstr "Impossible d'envoyer une convocation si l'adresse du lieu de formation n'est pas renseignée"
 
 #. module: training_base
@@ -662,7 +674,13 @@ msgid ""
 "                        Title: ${object.session_id.name}.\n"
 "                        <br/><br/>\n"
 "                        Location: ${object.location_id.contact_address}.\n"
-"                        <br/><br/>\n"
+"                        <br/>\n"
+"                        % if object.location_id.is_remote_training_location and object.remote_url:\n"
+"                        <br/>\n"
+"                        Please use <a href=\"${object.remote_url}\">this link</a>\n"
+"                        <br/>\n"
+"                        % endif\n"
+"                        <br/>\n"
 "                        Hour: from ${object.formatted_start_hour} to ${object.formatted_end_hour}.\n"
 "                        <br/><br/>\n"
 "                    </p>\n"
@@ -677,8 +695,14 @@ msgstr ""
 "                        <br/><br/>\n"
 "                        Titre : ${object.session_id.name}.\n"
 "                        <br/><br/>\n"
-"                        Lieu : ${object.location_id.contact_address}.\n"
-"                        <br/><br/>\n"
+"                        Location: ${object.location_id.contact_address}.\n"
+"                        <br/>\n"
+"                        % if object.location_id.is_remote_training_location and object.remote_url:\n"
+"                        <br/>\n"
+"                        Veuillez utiliser <a href=\"${object.remote_url}\">ce lien</a>\n"
+"                        <br/>\n"
+"                        % endif\n"
+"                        <br/>\n"
 "                        Horaires : de ${object.formatted_start_hour} à ${object.formatted_end_hour}.\n"
 "                        <br/><br/>\n"
 "                    </p>\n"

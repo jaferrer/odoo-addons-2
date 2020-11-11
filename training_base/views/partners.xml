@@ -15,11 +15,12 @@
                 </page>
                 <notebook position="inside">
                     <page string="Training">
-                        <group>
+                        <group name="partner_training_fields">
                             <field name="is_attendee"/>
                             <field name="is_trainer"/>
                             <field name="is_institution"/>
                             <field name="is_training_location"/>
+                            <field name="is_remote_training_location" attrs="{'invisible': [('is_training_location', '=', False)]}"/>
                         </group>
                     </page>
                     <page string="Biography" attrs="{'invisible': [('is_trainer', '=', False)]}">

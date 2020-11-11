@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="res.partner" id="partner_training_location_remote">
+            <field name="name">Remote</field>
+            <field name="is_company" eval="True"/>
+            <field name="is_training_location" eval="True"/>
+            <field name="is_remote_training_location" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

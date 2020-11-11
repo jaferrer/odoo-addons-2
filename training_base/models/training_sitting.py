@@ -33,9 +33,11 @@ class TrainingSitting(models.Model):
     session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
     training_id = fields.Many2one('training.training', string="Training", related='session_id.training_id',
                                   readonly=True, store=True)
-    trainer_id = fields.Many2one('res.partner', string="Trainer", required=True)
+    trainer_id = fields.Many2one('res.partner', string="Trainer", required=True, domain=[('is_trainer', '=', True)])
     location_id = fields.Many2one('res.partner', string="Location", required=True,
                                   domain=[('is_training_location', '=', True)])
+    is_remote_training_location = fields.Boolean(related='location_id.is_remote_training_location')
+    remote_url = fields.Char(string="URL")
     date = fields.Date(string="Date", required=True)
     start_hour = fields.Float(string="Start Hour", required=True)
     end_hour = fields.Float(string="End Hour", required=True)
