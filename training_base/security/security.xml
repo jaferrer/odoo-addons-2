@@ -89,7 +89,7 @@
             <field name="name">Trainings sittings: access to own sittings for trainers</field>
             <field name="model_id" ref="model_training_sitting"/>
             <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
-            <field name="domain_force">['|', '|', ('session_id.trainer_id.user_ids', '=', user.id), ('session_id.training_id.user_id', '=', user.id), ('session_id.training_id.session_ids.trainer_id.user_ids', '=', user.id)]</field>
+            <field name="domain_force">['|', '|', '|', ('trainer_id.user_ids', '=', user.id), ('session_id.trainer_id.user_ids', '=', user.id), ('session_id.training_id.user_id', '=', user.id), ('session_id.training_id.session_ids.trainer_id.user_ids', '=', user.id)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_write" eval="True"/>
