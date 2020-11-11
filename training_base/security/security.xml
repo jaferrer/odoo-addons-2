@@ -31,7 +31,7 @@
         </record>
 
         <record model="ir.rule" id="rule_training_training_draft_group_trainer">
-            <field name="name">Trainings: trainers can edit draft trainings only</field>
+            <field name="name">Trainings: trainers can create/edit draft trainings only</field>
             <field name="model_id" ref="model_training_training"/>
             <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
             <field name="domain_force">[('state', '=', 'draft'), '|', ('user_id', '=', user.id), ('session_ids.trainer_id.user_ids', '=', user.id)]</field>
@@ -53,14 +53,25 @@
         </record>
 
         <record model="ir.rule" id="rule_training_session_group_trainer">
-            <field name="name">Trainings sessions: access to own sessions for trainers</field>
+            <field name="name">Trainings sessions: trainers can see their own sessions</field>
             <field name="model_id" ref="model_training_session"/>
             <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
             <field name="domain_force">['|', '|', ('trainer_id.user_ids', '=', user.id), ('training_id.user_id', '=', user.id), ('training_id.session_ids.trainer_id.user_ids', '=', user.id)]</field>
             <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record model="ir.rule" id="rule_training_session_draft_group_trainer">
+            <field name="name">Trainings sessions: trainers can create/edit draft sessions only</field>
+            <field name="model_id" ref="model_training_session"/>
+            <field name="groups" eval="[(6, 0, [ref('training_base.group_training_trainer')])]"/>
+            <field name="domain_force">[('state', '=', 'draft'), '|', '|', ('trainer_id.user_ids', '=', user.id), ('training_id.user_id', '=', user.id), ('training_id.session_ids.trainer_id.user_ids', '=', user.id)]</field>
+            <field name="perm_read" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_write" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
         </record>
 
         <record model="ir.rule" id="rule_training_session_group_training_manager">

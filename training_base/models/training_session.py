@@ -28,8 +28,12 @@ class TrainingSession(models.Model):
     def _get_default_company_id(self):
         return self.env.user.company_id
 
+    def _get_default_trainer_id(self):
+        return self.env.user.partner_id.is_trainer and self.env.user.partner_id or False
+
     training_id = fields.Many2one('training.training', string="Training", required=True, ondelete='cascade')
-    trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)])
+    trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)],
+                                 default=_get_default_trainer_id)
     attendee_ids = fields.Many2many('res.partner', string="Attendees", domain=[('is_attendee', '=', True)])
     nb_attendees = fields.Integer(string="Number of attendees", compute='_compute_nb_attendees', store=True)
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
