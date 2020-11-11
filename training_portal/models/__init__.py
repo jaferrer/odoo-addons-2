@@ -18,5 +18,4 @@
 #
 
 from . import partner
-from . import training
 from . import sitting
