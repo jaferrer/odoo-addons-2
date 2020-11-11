@@ -645,6 +645,12 @@ msgid "${object.company_id.name} - Convocation"
 msgstr ""
 
 #. module: training_base
+#: code:addons/training_base/models/training_sitting.py:87
+#, python-format
+msgid "Start and end hours are required"
+msgstr "L'heure de début et l'heure de fin sont obligatoires"
+
+#. module: training_base
 #: model:mail.template,body_html:training_base.email_template_training_convocation_to_partner
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
