@@ -33,10 +33,11 @@ class TrainingSitting(models.Model):
     session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
     training_id = fields.Many2one('training.training', string="Training", related='session_id.training_id',
                                   readonly=True, store=True)
-    trainer_id = fields.Many2one('res.partner', string="Trainer", related='session_id.trainer_id',
-                                 readonly=True, store=True)
-    location_id = fields.Many2one('res.partner', string="Location", related='session_id.location_id',
-                                  readonly=True, store=True)
+    trainer_id = fields.Many2one('res.partner', string="Trainer", required=True, domain=[('is_trainer', '=', True)])
+    location_id = fields.Many2one('res.partner', string="Location", required=True,
+                                  domain=[('is_training_location', '=', True)])
+    is_remote_training_location = fields.Boolean(related='location_id.is_remote_training_location')
+    remote_url = fields.Char(string="URL")
     date = fields.Date(string="Date", required=True)
     start_hour = fields.Float(string="Start Hour", required=True)
     end_hour = fields.Float(string="End Hour", required=True)
@@ -52,6 +53,13 @@ class TrainingSitting(models.Model):
         for rec in self:
             rec.formatted_start_hour = format_duration(rec.start_hour)
             rec.formatted_end_hour = format_duration(rec.end_hour)
+
+    @api.onchange('session_id')
+    def onchange_session_id(self):
+        for rec in self:
+            if rec.session_id:
+                rec.trainer_id = rec.session_id.trainer_id
+                rec.location_id = rec.session_id.location_id
 
     def send_convocation_to_all(self):
         for rec in self:
@@ -75,15 +83,22 @@ class TrainingSitting(models.Model):
             if self.search(domain + [('id', 'not in', sittings_before.ids), ('id', 'not in', sittings_after.ids)]):
                 raise exceptions.UserError(_("Two sittings cannot happen simultaneously"))
 
+    def check_hours_filled(self):
+        for rec in self:
+            if not rec.end_hour or not rec.start_hour:
+                raise exceptions.UserError(_("Start and end hours are required"))
+
     def write(self, vals):
         result = super(TrainingSitting, self).write(vals)
         self.check_simultaneous_sittings()
+        self.check_hours_filled()
         return result
 
     @api.model
     def create(self, vals):
         result = super(TrainingSitting, self).create(vals)
         result.check_simultaneous_sittings()
+        result.check_hours_filled()
         return result
 
 

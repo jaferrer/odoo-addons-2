@@ -37,6 +37,7 @@ Training Portal
         'views/portal_templates.xml',
         'views/portal_sessions.xml',
         'views/portal_sittings.xml',
+        'views/partners.xml',
     ],
     'demo': [],
     'test': [],

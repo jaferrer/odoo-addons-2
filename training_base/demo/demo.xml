@@ -38,6 +38,18 @@
             <field name="is_attendee" eval="True"/>
         </record>
 
+        <record model="res.partner" id="demo_trainer">
+            <field name="firstname">Demo</field>
+            <field name="lastname">Trainer</field>
+            <field name="is_trainer" eval="True"/>
+        </record>
+
+        <record model="res.partner" id="demo_training_location">
+            <field name="name">Odoo S.A.</field>
+            <field name="is_company" eval="True"/>
+            <field name="is_training_location" eval="True"/>
+        </record>
+
         <record model="training.training" id="training_demo">
             <field name="name">Découverte Odoo</field>
             <field name="user_id" ref="base.user_root"/>
@@ -59,6 +71,8 @@
         <record model="training.session" id="training_session_2">
             <field name="name">Formation 2</field>
             <field name="training_id" ref="training_demo"/>
+            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="location_id" ref="demo_training_location"/>
             <field name="nb_mini" eval="8"/>
             <field name="nb_maxi" eval="25"/>
             <field name="attendee_ids" eval="[(6, 0, [ref('training_base.attendee_4'), ref('training_base.attendee_5'), ref('training_base.attendee_6')])]"/>
@@ -66,6 +80,8 @@
 
         <record model="training.sitting" id="training_sitting_1">
             <field name="session_id" ref="training_session_1"/>
+            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-09</field>
             <field name="start_hour" eval="9.5"/>
             <field name="end_hour" eval="13"/>
@@ -73,6 +89,8 @@
 
         <record model="training.sitting" id="training_sitting_2">
             <field name="session_id" ref="training_session_1"/>
+            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-20</field>
             <field name="start_hour" eval="14"/>
             <field name="end_hour" eval="18"/>
@@ -80,6 +98,8 @@
 
         <record model="training.sitting" id="training_sitting_3">
             <field name="session_id" ref="training_session_2"/>
+            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-30</field>
             <field name="start_hour" eval="9.5"/>
             <field name="end_hour" eval="18"/>
