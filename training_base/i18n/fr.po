@@ -417,6 +417,11 @@ msgid "Set no attendance"
 msgstr "Absent"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "View convocation"
+msgstr "Voir la convocation"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__sitting_id
 msgid "Sitting"
 msgstr "Séance"
@@ -445,11 +450,13 @@ msgstr "Nombre maximum de participants"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__first_sitting_date
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
 msgid "Fist sitting date"
 msgstr "Date de première séance"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__last_sitting_date
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
 msgid "Last sitting date"
 msgstr "Date de dernière séance"
 

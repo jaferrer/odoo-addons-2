@@ -29,11 +29,15 @@
                     <field name="location_id"/>
                     <field name="price"/>
                     <field name="attendee_ids"/>
+                    <field name="first_sitting_date"/>
+                    <field name="last_sitting_date"/>
                     <group expand="0" name="group_by" string="Group By">
                         <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
                         <filter name="group_by_location_id" string="Location" domain="[]" context="{'group_by' : 'location_id'}"/>
                         <filter name="group_by_training_id" string="Training" domain="[]" context="{'group_by' : 'training_id'}"/>
                         <filter name="group_by_state" string="Status" domain="[]" context="{'group_by' : 'state'}"/>
+                        <filter name="group_by_first_sitting_date" string="Fist sitting date" domain="[]" context="{'group_by' : 'first_sitting_date'}"/>
+                        <filter name="group_by_last_sitting_date" string="Last sitting date" domain="[]" context="{'group_by' : 'last_sitting_date'}"/>
                     </group>
                 </search>
             </field>
