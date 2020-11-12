@@ -37,6 +37,9 @@ class S3Attachment(models.Model):
     _inherit = "ir.attachment"
     _s3_bucket = False
 
+    def _get_s3_bucket_name(self):
+        return os.environ.get('ODOO_S3_BUCKET', self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket'))
+
     def _storage(self):
         if 'odoo_s3' not in server_wide_modules:
             return super(S3Attachment, self)._storage()
@@ -44,15 +47,21 @@ class S3Attachment(models.Model):
 
     def _connect_to_S3_bucket(self):
         get_param = self.env['ir.config_parameter'].sudo().get_param
+        host = os.environ.get('ODOO_S3_HOST', get_param('odoo_s3.s3_host')),
+        access_key = os.environ.get('ODOO_S3_ACCESS_KEY', get_param('odoo_s3.s3_access_key')),
+        secret_key = os.environ.get('ODOO_S3_SECRET_KEY', get_param('odoo_s3.s3_secret_key')),
+        region = os.environ.get('ODOO_S3_REGION', get_param('odoo_s3.s3_region')),
+        bucket_name = self._get_s3_bucket_name()
+
         session = Minio(
-            get_param('odoo_s3.s3_host'),
-            access_key=get_param('odoo_s3.s3_access_key'),
-            secret_key=get_param('odoo_s3.s3_secret_key'),
-            region=get_param('odoo_s3.s3_region'),
+            host,
+            access_key=access_key,
+            secret_key=secret_key,
+            region=region,
         )
-        bucket_name = get_param('odoo_s3.s3_bucket')
+
         if not session.bucket_exists(bucket_name):
-            session.make_bucket(bucket_name, location=get_param('odoo_s3.s3_region'))
+            session.make_bucket(bucket_name, location=region)
         return session
 
     @api.model
@@ -73,7 +82,7 @@ class S3Attachment(models.Model):
 
         res = ''
         s3_key = None
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
         key = '%s/%s' % (self.env.registry.db_name, fname)
         bin_data = ''
         try:
@@ -112,7 +121,7 @@ class S3Attachment(models.Model):
 
         bin_value = value.decode('base64')
         fname, _ = self._get_path(bin_value, checksum)
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
         key = '%s/%s' % (self.env.registry.db_name, fname)
         s3_key = None
 
@@ -155,7 +164,7 @@ class S3Attachment(models.Model):
         # prevent all concurrent updates on ir_attachment while collecting!
         cr.execute("LOCK ir_attachment IN SHARE MODE")
 
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
         real_key_name = check_key_name = ''
         removed = 0
         checklist = {}
@@ -207,7 +216,7 @@ class S3Attachment(models.Model):
             raise exceptions.UserError(u"File mark as gc. Was not able to connect (%s)" % e)
 
         new_key = '%s/checklist/%s' % (self.env.registry.db_name, fname)
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
         try:
             # Just create an empty file
             self._s3_bucket.put_object(bucket_name, new_key, StringIO(), 0)
@@ -235,7 +244,7 @@ class S3Attachment(models.Model):
 
         db_name = self.env.registry.db_name
         full_path = self._full_path('')
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
 
         try:
             if not self._s3_bucket:
@@ -280,7 +289,7 @@ class S3Attachment(models.Model):
         totals = {
             'lost_count': 0,
         }
-        bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
+        bucket_name = self._get_s3_bucket_name()
         for att in self:
             status = {'name': att.name, 'fname': att.store_fname, 's3_lost': False}
             s3_key = None
