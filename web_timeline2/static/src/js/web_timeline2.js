@@ -85,6 +85,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.readonly_field = attrs['readonly_field']
                 this.delegate_model_field = attrs['delegate_model_field']
                 this.min_height = attrs['min_height'] || 300
+                this.fullscreen = utils.toBoolElse(attrs['fullscreen'] || '', false);
+                this.lazy_group = utils.toBoolElse(attrs['lazy_group'] || '', false);
 
                 this.defaultColor = attrs.default_color_code; //Default value, same as colors="'#COLOR_CODE':True"
                 this.parse_colors(attrs.colors) //or a python expression '#COLOR_CODE1': expr;'#COLOR_CODE2':expr2; ...
@@ -302,12 +304,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 } else {
                     options.editable = false
                 }
-                if (this.snapTime) {
-                    options.snap = (date, scale, step) => {
-                        const hour = this.snapTime * 60 * 1000;
-                        return new moment(Math.round(date / hour) * hour).toDate();
-                    }
-                }
+
                 if (this.visibleFrameQweb) {
                     const template = 'Timeline2.DefaultItemTemplate';
                     options.visibleFrameTemplate = function (item, element, data) {
@@ -380,6 +377,14 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         ];
                     }
                 }
+                if (this.snapTime) {
+                    options.snap = (date, scale, step) => {
+                        const hour = this.snapTime * 60 * 1000;
+                        var res = new moment(Math.round(date / hour) * hour).toDate();
+                        // res = vis.moment(vis.timeline.DateUtil.snapAwayFromHidden(options.hiddenDates, res, +1, true));
+                        return res
+                    }
+                }
                 if (this.min_zoom) {
                     options.zoomMin = this.min_zoom * 60 * 1000;
                 }
@@ -395,15 +400,19 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this._compute_height()
             },
             _compute_height: function () {
+                if (!this.fullscreen){
+                    return;
+                }
                 let height = this.$el.parent().height();
                 height -= this.$el.find('.oe_timeline2_buttons').height();
-                height -= this.$el.find('#timeline2_drag_item').height()
                 height -= 10
                 if (height > this.min_height && this.$timeline.height() > height) {
+                    console.log('_compute_height setimeline', height)
                     this.timeline.setOptions({
                         height: height + "px"
                     });
                 }
+
             },
 
             init_timeline: function () {
@@ -428,45 +437,53 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (!this.dragData || !drag_data) {
                     this.current_drag_data = null;
                     $drag_item.empty().addClass('o_hidden');
-                    return false;
-                }
-                if (this.current_drag_data && this.current_drag_data.field === drag_data.field) {
-                    return true;
+                    return $.Deferred().resolve();
                 }
 
                 const field_def = this.fields[drag_data.field]
                 if (!field_def.relation) {
                     $drag_item.empty().addClass('o_hidden');
-                    return false;
+                    return $.Deferred().resolve();
                 }
                 this.current_drag_data = drag_data;
 
                 $drag_item.empty().removeClass('o_hidden');
-                const fieldsToRead = ['display_name', ...this.current_drag_data.other_fields || []]
-                if (this.current_drag_data.color_field) {
-                    fieldsToRead.push(this.current_drag_data.color_field)
-                }
-                new Model(field_def.relation)
+                const fieldsToRead = this.get_drag_needed_fields()
+                return new Model(field_def.relation)
                     .query(fieldsToRead)
                     .filter(this.current_drag_data.domain || field_def.domain || [])
                     .context(this.dataset.get_context())
                     .limit(this.current_drag_data.limit || 80)
+                    .order_by(this.current_drag_data.orderBy || [])
                     .all()
                     .then((records) => {
-
-                        for (const record of records) {
-                            const $div = $(document.createElement('div'))
-                            $div.addClass("badge timeline2_draggable");
-                            $div.css("background-color", record[this.current_drag_data.color_field]);
-                            $div.text(record.display_name);
-                            $div.attr('data-id', record.id);
-                            $div.attr('draggable', true);
-                            $div.on('dragstart', this.handleObjectItemDragStart.bind(this));
-                            $drag_item.append($div);
-                        }
+                        this.render_drag_data(this.current_drag_data, records, $drag_item)
+                        this._compute_height()
                     });
-                return true;
 
+            },
+            get_drag_needed_fields(){
+                const fieldsToRead = ['display_name', ...this.current_drag_data.other_fields || []]
+                if (this.current_drag_data.color_field) {
+                    fieldsToRead.push(this.current_drag_data.color_field)
+                }
+                if (this.current_drag_data.display_field) {
+                    fieldsToRead.push(this.current_drag_data.display_field)
+                }
+                return fieldsToRead
+            },
+
+            render_drag_data: function(current_drag_data, records, $drag_item){
+                for (const record of records) {
+                    const $div = $(document.createElement('div'))
+                    $div.addClass("badge timeline2_draggable");
+                    $div.css("background-color", record[this.current_drag_data.color_field]);
+                    $div.text(record[this.current_drag_data.display_field]);
+                    $div.attr('data-id', record.id);
+                    $div.attr('draggable', true);
+                    $div.on('dragstart', this.handleObjectItemDragStart.bind(this));
+                    $drag_item.append($div);
+                }
             },
 
             handleObjectItemDragStart: function (event) {
@@ -639,7 +656,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         ...this.current_search.context,
                         grouped_on: this.current_search.lastGroupBy,
                         group_by_no_leaf: true
-                    }).lazy(false).group_by(this.current_search.groupBys).then(result => {
+                    }).lazy(this.lazy_group).group_by(this.current_search.groupBys).then(result => {
                         this.visGroups.clear();
                         this.visGroups.add({
                             id: -1,
@@ -862,13 +879,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     }
                 }
                 // Show popup
-                const dialogOption = {
-                    res_model: this.dataset.model,
-                    res_id: null,
-                    context: context,
-                    view_id: parseInt(this.open_popup_action),
-                    disable_multiple_selection: true,
-                }
+                const dialogOption = this.on_add_dialog_option(item, context, auto_create)
                 if (this.delegate_model_field) {
                     const field_def = this.fields[this.delegate_model_field]
                     if (field_def.type !== 'many2one') return callback(null);
@@ -894,6 +905,16 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 return false;
             },
 
+            on_add_dialog_option: function (item, context, auto_create = false) {
+                return {
+                    res_model: this.dataset.model,
+                    res_id: null,
+                    context: context,
+                    view_id: parseInt(this.open_popup_action),
+                    disable_multiple_selection: true,
+                }
+            },
+
             _create: function (data, options = {}) {
                 return this.dataset.create(data, options)
                     .then(result => {
@@ -915,13 +936,20 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 ], {context: this.current_search.context})
                 if (auto_reload) {
                     deferred.then(result => {
-                        if (!result || !Array.isArray(result) || !result.length) return;
+                        if (!result) return;
                         this.visData.remove(result);
+                        console.log("auto_reload", result)
                         this._internal_do_search(
-                            [...this.current_search.domain, ['id', 'in', result]],
+                            [...this.current_search.domain, [this.delegate_model_field, '=', result]],
                             this.current_search.context,
                         )
                         return result;
+                    })
+                } else {
+                    deferred.then(result => {
+                        console.log("NO auto_reload", result)
+                        if (!result || !Array.isArray(result[1]) || !result[1].length) return;
+                        return result[0];
                     })
                 }
                 return deferred;
@@ -936,13 +964,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         return this.do_switch_view('form', {mode: "view"});
                     }
                 }
-                const dialogOption = {
-                    res_model: this.dataset.model,
-                    title: item.content,
-                    res_id: item.evt.id,
-                    context: this.dataset.get_context(),
-                    view_id: parseInt(this.open_popup_action),
-                }
+                const dialogOption = this.on_update_dialog_option(item, this.dataset.get_context())
                 if (this.delegate_model_field) {
                     const field_def = this.fields[this.delegate_model_field]
                     if (field_def.type !== 'many2one') return callback(null);
@@ -967,6 +989,16 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 })
                 dialog.open();
                 return false;
+            },
+
+            on_update_dialog_option: function (item, context) {
+                return {
+                    res_model: this.dataset.model,
+                    title: item.content,
+                    res_id: item.evt.id,
+                    context: context,
+                    view_id: parseInt(this.open_popup_action),
+                }
             },
 
             _write: function (id, data, options = {}, auto_reload = true) {
@@ -1122,26 +1154,10 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
             },
 
-            on_scale_day_clicked: function () {
-                this.scale_current_window('day');
-            },
-
-            on_scale_week_clicked: function () {
-                this.scale_current_window('week');
-            },
-
-            on_scale_month_clicked: function () {
-                this.scale_current_window('month');
-            },
-
-            on_scale_year_clicked: function () {
-                this.scale_current_window('year');
-            },
-
-            scale_current_window: function (factor) {
+            scale_current_window: function (factor, amount=1) {
                 if (this.timeline) {
                     this.current_window = this.timeline.getWindow();
-                    this.current_window.end = moment(this.current_window.start).add(1, factor);
+                    this.current_window.end = moment(this.current_window.start).add(amount, factor);
                     this.mode = factor;
                     this.timeline.setWindow(this.current_window);
                 }
@@ -1165,6 +1181,21 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     const end = new Date(current_window.end);
                     this.current_window.start = end;
                     this.current_window.end = new Date(end.valueOf() + (end - start));
+                    this.timeline.setWindow(this.current_window);
+                }
+            },
+
+            set_window: function (start, end=null) {
+                if (this.timeline) {
+                    let window_end = end;
+                    if (isNullOrUndef(end)){
+                        const current_window = this.timeline.getWindow();
+                        const w_end = new Date(current_window.end);
+                        const w_start = new Date(current_window.start);
+                        window_end = new Date(start.valueOf() + (w_end - w_start));
+                    }
+                    this.current_window.start = start;
+                    this.current_window.end = window_end;
                     this.timeline.setWindow(this.current_window);
                 }
             },
