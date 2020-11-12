@@ -44,10 +44,13 @@ odoo.define('web_action_top_button.Sidebar', function (require) {
                     for (var i = 0; i < items.length; i++) {
                         var action = items[i];
                         if (action.position === "top_button") {
+                            let classname;
+                            classname = 'btn btn-primary o_sidebar_buttons o_sidebar_btn text-light mr-5';
+
                             top_items.push({
                                 label: action.name,
                                 action: action,
-                                classname: 'btn btn-primary btn-sm o_sidebar_buttons o_sidebar_btn text-light'
+                                classname: classname
                             });
                         }
                         else {
