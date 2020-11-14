@@ -148,18 +148,16 @@ class ProductProductWebUiStockProduct(models.Model):
             if found_location:
                 found_location = self.env['stock.location'].browse(found_location)
 
-        return {
-            'id': self.id,
-            'name': self.display_name,
-            'short_name': self.name,
+        res = self.read(['name', 'default_code', 'tracking'])[0]
+        res['display_name'] = self.name_get()[0][1]
+        res.update({
             'location_id': found_location and found_location.id or '',
             'location_barcode': found_location and found_location.barcode or '',
-            'default_code': self.default_code or "-",
             'quantity': found_location and found_qty or 1,
             'lot_id': production_lot and production_lot.id or "",
             'lot_name': production_lot and production_lot.name or "-",
-            'tracking': self.tracking,
-        }
+        })
+        return res
 
     @api.multi
     def web_ui_get_product_info(self):
