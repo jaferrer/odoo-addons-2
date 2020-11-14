@@ -68,34 +68,37 @@ class StockPickingBatch(models.Model):
 
         return list_move_lines
 
-    @api.model
-    def get_batch_move_line(self, batch_id, move_line_id=None):
-        picking_batch = self.browse(batch_id)
-        batch_move_lines = picking_batch.mapped('picking_ids').mapped('pack_operation_product_ids').filtered(
-            lambda x: x.qty_done != x.product_qty).sorted(
-            lambda x: (x.location_id.barcode, x.product_id.name))
-
+    @api.multi
+    def get_batch_move_line(self, move_line_id=None):
+        query = """SELECT SPO.ID FROM stock_pack_operation SPO
+INNER JOIN STOCK_PICKING SP ON SP.ID = SPO.picking_id
+INNER JOIN stock_location SL ON SP.location_id = SL.id
+WHERE SP.WAVE_ID = %s AND SPO.qty_done != SPO.product_qty
+ORDER BY SL.barcode, SPO.product_id"""
+        self.env.cr.execute(query, (self.id,))
+        batch_move_lines = [r[0] for r in self.env.cr.fetchall()]
         if not batch_move_lines:
-            raise WebUiError(batch_id, u"Aucune move.line n'a été trouvée")
+            raise WebUiError(self.id, u"Aucune move.line n'a été trouvée")
 
         move_line = None
-        next_move_line = None
+        next_move_line_id = None
 
         if move_line_id:
             found = False
             for mv in batch_move_lines:
                 if found:
-                    next_move_line = mv
+                    next_move_line_id = mv
                     break
-                if mv.id == move_line_id:
+                if mv == move_line_id:
                     move_line = mv
                     found = True
-            if not next_move_line and len(batch_move_lines) > 1:
-                next_move_line = batch_move_lines[0]
+            if not next_move_line_id and len(batch_move_lines) > 1:
+                next_move_line_id = batch_move_lines[0]
         else:
             move_line = batch_move_lines[0]
-            next_move_line = len(batch_move_lines) > 1 and batch_move_lines[1] or None
+            next_move_line_id = len(batch_move_lines) > 1 and batch_move_lines[1] or None
 
+        move_line = self.env['stock.pack.operation'].browse(move_line)
         return {
             'id': move_line.id,
             'location': move_line.location_id.name,
@@ -105,7 +108,7 @@ class StockPickingBatch(models.Model):
             'qty_todo': move_line.product_qty,
             'product_uom': move_line.product_uom_id.name,
             'picking': move_line.picking_id.name,
-            'next_move_line_id': next_move_line and next_move_line.id or None
+            'next_move_line_id': next_move_line_id
         }
 
     @api.model
@@ -166,13 +169,13 @@ class StockPickingTypeScanBatch(models.Model):
         On peut rechercher un picking par son nom.
         """
         name = name.strip()
-        picking = self.env['stock.picking'].search([('name', '=ilike', name)])
-        if not picking:
-            raise WebUiError(name, u"Aucun transfert n'a été trouvé : %s" % ", ".join(picking.mapped('name')))
-        if len(picking) > 1:
-            raise WebUiError(name, u"Plusieurs transferts ont été trouvés : %s" % ", ".join(picking.mapped('name')))
+        res = self.env['stock.picking'].search_read([('name', '=', name)], ['name'])
+        if not res:
+            raise WebUiError(name, u"Aucun transfert n'a été trouvé : %s" % name)
+        if len(res) > 1:
+            raise WebUiError(name, u"Plusieurs transferts ont été trouvés : %s" % ", ".join([p['name'] for p in res]))
 
-        return picking.display_name
+        return res[0]['name']
 
 
 # On utilise le nom StockMoveLine pour parler des stock.pack.operation pour

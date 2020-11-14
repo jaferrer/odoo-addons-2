@@ -21,6 +21,7 @@ odoo.define('web_ui_stock_storage.StorageSelection', function (require) {
                 let pickingId = $(ev.currentTarget).attr('data-picking_id')
                 this.activity.init_fragment_storage_navigate(pickingId)
             });
+            this.$('#no-picking-btn').addClass('hidden')
             this.$('#no-picking-btn').click(ev => {
                 // todo rangement sans bon
             });

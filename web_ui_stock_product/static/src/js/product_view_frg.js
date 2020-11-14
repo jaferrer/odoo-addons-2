@@ -48,6 +48,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this.renderState();
         },
         registerValidation: function() {
+            $('#validate-activity').off('click')
             $('#validate-activity').click(ev => {
                 this.validate_scan()
             });
