@@ -81,4 +81,6 @@ class AccountInvoice(models.Model):
         for rec in self:
             if rec.allow_transmit_factor and rec.partner_non_eligible_factor:
                 rec.allow_transmit_factor = False
+            if rec.allow_transmit_factor and vals.get('state') == 'open':
+                rec.factor_needs_transmission = True
         return res
