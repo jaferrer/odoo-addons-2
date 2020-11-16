@@ -46,7 +46,7 @@ class AccountAccountForceReconcile(models.Model):
         vals_save = vals.copy()
         for rec in self:
             if vals.get('reconcile') and vals['reconcile'] == rec.reconcile:
-                del(vals_save['reconcile'])
+                del vals_save['reconcile']
                 return super(AccountAccountForceReconcile, rec).write(vals_save)
         return super(AccountAccountForceReconcile, self).write(vals)
 
