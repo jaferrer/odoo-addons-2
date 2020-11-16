@@ -72,7 +72,7 @@ class StockPickingBatch(models.Model):
     def get_batch_move_line(self, move_line_id=None):
         query = """SELECT SPO.ID FROM stock_pack_operation SPO
 INNER JOIN STOCK_PICKING SP ON SP.ID = SPO.picking_id
-INNER JOIN stock_location SL ON SP.location_id = SL.id
+INNER JOIN stock_location SL ON SPO.location_id = SL.id
 WHERE SP.WAVE_ID = %s AND SPO.qty_done != SPO.product_qty
 ORDER BY SL.barcode, SPO.product_id"""
         self.env.cr.execute(query, (self.id,))
