@@ -19,90 +19,35 @@
 
 import logging
 
-from odoo import models, fields, api, _
 from odoo.exceptions import AccessError
+
+from odoo import models, fields, _
 
 _logger = logging.getLogger(__name__)
 
 
 class S3ResConfig(models.TransientModel):
-    _inherit = 'base.config.settings'
+    _inherit = 'res.config.settings'
 
-    s3_host = fields.Char('S3 Host')
-    s3_access_key = fields.Char('S3 Access Key')
-    s3_secret_key = fields.Char('S3 Secret Key')
-    s3_region = fields.Char('S3 Region')
-    s3_bucket = fields.Char('Bucket Name')
-    s3_load = fields.Boolean('Load S3 with existing filestore?', help="If you check this option, when you apply")
+    module_odoo_s3 = fields.Boolean("Connect filestore to an extra S3 storage")
+    s3_host = fields.Char('S3 Host', config_parameter='odoo_s3.s3_host')
+    s3_access_key = fields.Char('S3 Access Key', config_parameter='odoo_s3.s3_access_key')
+    s3_secret_key = fields.Char('S3 Secret Key', config_parameter='odoo_s3.s3_secret_key')
+    s3_region = fields.Char('S3 Region', config_parameter='odoo_s3.s3_region')
+    s3_bucket = fields.Char('Bucket Name', config_parameter='odoo_s3.s3_bucket')
+    s3_load = fields.Boolean('Load S3 with existing filestore?', help="If you check this option, when you apply",
+                             config_parameter='odoo_s3.s3_load', inverse='_set_s3_load')
 
-    @api.model
-    def get_default_s3_host(self, fields):
-        return {
-            's3_host': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_host')
-        }
+    def _set_s3_load(self):
+        if not self.s3_load:
+            return
+        try:
+            self.env['ir.attachment']._connect_to_S3_bucket()
+            self.env['ir.attachment'].sudo()._copy_filestore_to_s3()
+        except Exception as e:
+            raise AccessError(
+                _('Error accessing the bucket \"%s\" : %s.') % (self.s3_bucket, e))
 
-    @api.multi
-    def set_s3_host(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_host', self.s3_host)
-
-    @api.model
-    def get_default_s3_access_key(self, fields):
-        return {
-            's3_access_key': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_access_key')
-        }
-
-    @api.multi
-    def set_s3_access_key(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_access_key', self.s3_access_key)
-
-    @api.model
-    def get_default_s3_secret_key(self, fields):
-        return {
-            's3_secret_key': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_secret_key')
-        }
-
-    @api.multi
-    def set_s3_secret_key(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_secret_key', self.s3_secret_key)
-
-    @api.model
-    def get_default_s3_region(self, fields):
-        return {
-            's3_region': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_region')
-        }
-
-    @api.multi
-    def set_s3_region(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_region', self.s3_region)
-
-    @api.model
-    def get_default_s3_bucket(self, fields):
-        return {
-            's3_bucket': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
-        }
-
-    @api.multi
-    def set_s3_bucket(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_bucket', self.s3_bucket)
-
-    @api.model
-    def get_default_s3_load(self, fields):
-        return {
-            's3_load': self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_load')
-        }
-
-    @api.multi
-    def set_s3_load(self):
-        self.env['ir.config_parameter'].sudo().set_param('odoo_s3.s3_load', self.s3_load)
-        if self.s3_load:
-            try:
-                self.env['ir.attachment']._connect_to_S3_bucket()
-                self.env['ir.attachment'].sudo()._copy_filestore_to_s3()
-            except Exception as e:
-                raise AccessError(
-                    _('Error accessing the bucket \"%s\" : %s.') % (self.s3_bucket, e))
-
-    @api.multi
     def test_move_filestore_to_s3(self):
         for wiz in self:
             try:

@@ -21,7 +21,7 @@
 import base64
 import logging
 import os
-from cStringIO import StringIO
+from io import StringIO
 
 from minio import Minio
 
@@ -254,7 +254,6 @@ class S3Attachment(models.Model):
                                                          groups=['base.group_system'])
         return True
 
-    @api.multi
     def check_s3_filestore(self):
         """This command is here for being trigger using odoo shell:
 
