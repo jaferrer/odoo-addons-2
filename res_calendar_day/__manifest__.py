@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base'],
     'description': "Useful to get a list of field in a M2O, O2M or M2M",
     'website': 'http://www.ndp-systemes.fr',
     'data': [
