@@ -21,12 +21,12 @@
 import base64
 import logging
 import os
-from io import StringIO
+from io import BytesIO
 
 from minio import Minio
+from odoo.conf import server_wide_modules
 
 from odoo import api, models, exceptions
-from odoo.conf import server_wide_modules
 
 _logger = logging.getLogger(__name__)
 
@@ -109,15 +109,14 @@ class S3Attachment(models.Model):
         except Exception as e:
             _logger.error('S3: _file_write was not able to connect (%s)', e)
             return super(S3Attachment, self)._file_write(value, checksum)
-
-        bin_value = value.decode('base64')
+        bin_value = base64.decodebytes(value)
         fname, _ = self._get_path(bin_value, checksum)
         bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
         key = '%s/%s' % (self.env.registry.db_name, fname)
         s3_key = None
 
         try:
-            self._s3_bucket.put_object(bucket_name, key, StringIO(bin_value), len(bin_value))
+            self._s3_bucket.put_object(bucket_name, key, BytesIO(bin_value), len(bin_value))
             _logger.debug('S3: _file_write %s:%s was successfully uploaded', bucket_name, key)
         except Exception as e:
             _logger.error('S3: _file_write was not able to write (%s): %s', key, e)
@@ -210,7 +209,7 @@ class S3Attachment(models.Model):
         bucket_name = self.env['ir.config_parameter'].sudo().get_param('odoo_s3.s3_bucket')
         try:
             # Just create an empty file
-            self._s3_bucket.put_object(bucket_name, new_key, StringIO(), 0)
+            self._s3_bucket.put_object(bucket_name, new_key, BytesIO(), 0)
             _logger.debug('S3: _mark_for_gc %s:%s marked for garbage collection', bucket_name, new_key)
         except Exception:
             _logger.error('S3: _mark_for_gc Was not able to save key:%s', new_key)
