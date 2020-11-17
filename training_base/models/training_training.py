@@ -23,7 +23,7 @@ from odoo import models, fields, api
 class TrainingTraining(models.Model):
     _name = 'training.training'
     _description = "Training"
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     def _get_default_user_id(self):
         return self.env.user

@@ -25,7 +25,7 @@ from odoo import models, fields, api, exceptions, _
 class TrainingSitting(models.Model):
     _name = 'training.sitting'
     _description = "Training sitting"
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     def _get_default_company_id(self):
         return self.env.user.company_id
