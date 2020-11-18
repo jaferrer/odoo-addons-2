@@ -88,3 +88,13 @@ class TrainingSession(models.Model):
             sittings = self.env['training.sitting'].search([('id', 'in', rec.sitting_ids.ids)], order='date')
             rec.first_sitting_date = sittings and sittings[0].date or False
             rec.last_sitting_date = sittings and sittings[-1].date or False
+
+    def send_certificate_to_all(self):
+        for rec in self:
+            for attendee in rec.attendee_ids:
+                context_wizard = attendee.with_context(session_id=rec.id).send_mail_certificate(
+                    return_action_wizard=False)
+                wizard = self.env['mail.compose.message'].with_context(context_wizard).create({})
+                wizard.write(wizard.onchange_template_id(context_wizard['default_template_id'],
+                                                         'comment', self._name, rec.id).get('value'))
+                wizard.action_send_mail()

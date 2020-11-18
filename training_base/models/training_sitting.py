@@ -63,7 +63,6 @@ class TrainingSitting(models.Model):
 
     def send_convocation_to_all(self):
         for rec in self:
-            print(rec)
             for attendee in rec.attendee_ids:
                 context_wizard = attendee.with_context(sitting_id=rec.id).send_mail_convocation(
                     return_action_wizard=False)
@@ -135,4 +134,26 @@ class TrainingSittingConvocationSent(models.Model):
                 'partner_id': partner_id,
                 'sitting_id': sitting_id,
                 'summons_id': summons.id
+            })
+
+
+class TrainingSessionCertificateSent(models.Model):
+    _name = 'training.session.certificate.sent'
+    _description = "Certificate sent for session"
+
+    partner_id = fields.Many2one('res.partner', string="Attendee", required=True, ondelete='cascade')
+    session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
+    certificate_id = fields.Many2one('ir.attachment', string="Certificate")
+
+    _sql_constraints = [
+        ('unique_attendee', 'unique (partner_id, session_id)', "Forbidden to define two lines for the same "
+                                                               "session and the same partner.")
+    ]
+
+    def create_line_if_needed(self, partner_id, session_id, certificate):
+        if not self.search([('partner_id', '=', partner_id), ('session_id', '=', session_id)]):
+            self.create({
+                'partner_id': partner_id,
+                'session_id': session_id,
+                'certificate_id': certificate.id
             })
