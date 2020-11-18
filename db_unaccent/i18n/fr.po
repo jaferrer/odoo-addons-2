@@ -45,16 +45,6 @@ msgstr ""
 "- Désinstaller ce module ne suffit pas pour désactiver les recherches non accentuées. Vous devez executer la commande\n"
 "\"DROP EXTENSION 'unaccent';\" manuellement sur la base de donnée.\n"
 
-
-
-
-
-
-#. module: db_unaccent
-#: field:db.unaccent,id:0
-msgid "ID"
-msgstr "ID"
-
 #. module: db_unaccent
 #: model:ir.model,name:db_unaccent.model_db_unaccent
 msgid "db.unaccent"
