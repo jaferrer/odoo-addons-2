@@ -44,7 +44,6 @@ class S3Attachment(models.Model):
             not get_param('odoo_s3.s3_secret_key') or \
             not get_param('odoo_s3.s3_region') or \
             not get_param('odoo_s3.s3_bucket')
-        print('at_least_one_s3_param_missing', at_least_one_s3_param_missing)
         if 'odoo_s3' not in server_wide_modules or at_least_one_s3_param_missing:
             return super(S3Attachment, self)._storage()
         return self.env.context.get('force_attachment_storage', 's3')
