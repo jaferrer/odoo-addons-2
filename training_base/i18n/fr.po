@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 13.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-10 06:59+0000\n"
-"PO-Revision-Date: 2020-10-10 09:11+0200\n"
+"POT-Creation-Date: 2020-11-18 10:18+0000\n"
+"PO-Revision-Date: 2020-11-18 11:24+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -18,6 +18,68 @@ msgstr ""
 "X-Generator: Poedit 2.4.1\n"
 
 #. module: training_base
+#: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
+msgid "${object.company_id.name} - Convocation"
+msgstr ""
+
+#. module: training_base
+#: model:mail.template,body_html:training_base.email_template_training_convocation_to_partner
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Hello,\n"
+"                        <br/><br/>\n"
+"                        Here is your convocation for training of "
+"${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Title: ${object.session_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Location: ${object.location_id.contact_address}.\n"
+"                        <br/>\n"
+"                        % if object.location_id.is_remote_training_location "
+"and object.remote_url:\n"
+"                        <br/>\n"
+"                        Please use <a href=\"${object.remote_url}\">this "
+"link</a>\n"
+"                        <br/>\n"
+"                        % endif\n"
+"                        <br/>\n"
+"                        Hour: from ${object.formatted_start_hour} to "
+"${object.formatted_end_hour}.\n"
+"                        <br/><br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Bonjour,\n"
+"                        <br/><br/>\n"
+"                        Voici votre convocation pour la formation du "
+"${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Titre : ${object.session_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Location: ${object.location_id.contact_address}.\n"
+"                        <br/>\n"
+"                        % if object.location_id.is_remote_training_location "
+"and object.remote_url:\n"
+"                        <br/>\n"
+"                        Veuillez utiliser <a href=\"${object."
+"remote_url}\">ce lien</a>\n"
+"                        <br/>\n"
+"                        % endif\n"
+"                        <br/>\n"
+"                        Horaires : de ${object.formatted_start_hour} à "
+"${object.formatted_end_hour}.\n"
+"                        <br/><br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_needaction
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_needaction
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_needaction
@@ -25,9 +87,51 @@ msgid "Action Needed"
 msgstr "Action nécessaire"
 
 #. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_ids
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_ids
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_ids
+msgid "Activities"
+msgstr "Activité"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_exception_decoration
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_exception_decoration
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_state
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_state
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_training__aimed_public
 msgid "Aimed Public"
 msgstr "Public visé"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_training_all_partners
+#: model:ir.ui.menu,name:training_base.menu_training_all_partners
+msgid "All partners"
+msgstr "Tous les contacts"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Are you sure ?"
+msgstr "Êtes-vous sûr ?"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Are you sure? Odoo will send the default text."
+msgstr "Êtes-vous sûr ? Odoo enverra le texte par défaut."
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_attachment_count
@@ -50,8 +154,13 @@ msgid "Attendance not known"
 msgstr "Absent"
 
 #. module: training_base
-#: model:ir.actions.act_window,name:training_base.act_window_attendees
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__partner_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__partner_id
+msgid "Attendee"
+msgstr "Participant"
+
+#. module: training_base
+#: model:ir.actions.act_window,name:training_base.act_window_attendees
 #: model:ir.model.fields,field_description:training_base.field_training_session__attendee_ids
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__attendee_ids
 #: model:ir.ui.menu,name:training_base.menu_attendees
@@ -62,39 +171,24 @@ msgid "Attendees"
 msgstr "Participants"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Send convocation"
-msgstr "Envoyer la convocation"
+#: model:ir.model.fields,field_description:training_base.field_res_partner__biography
+#: model:ir.model.fields,field_description:training_base.field_res_users__biography
+#: model_terms:ir.ui.view,arch_db:training_base.res_partner_form
+msgid "Biography"
+msgstr "Biographie"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Send convocation again"
-msgstr "Renvoyer la convocation"
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__cancel
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__cancel
+msgid "Cancelled"
+msgstr "Annulée"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Convocation not sent"
-msgstr "Convocation non envoyée"
-
-#. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Send convocations to all attendees"
-msgstr "Envoyer les convocations à tous les participants"
-
-#. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Are you sure? Odoo will send the default text."
-msgstr "Êtes-vous sûr ? Odoo enverra le texte par défaut."
-
-#. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "Are you sure?"
-msgstr "Êtes-vous sûr ?"
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_session__nb_attendees
-msgid "Number of attendees"
-msgstr "Nombre de participants"
+#: model:ir.model.fields,field_description:training_base.field_training_session__company_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__company_id
+#: model:ir.model.fields,field_description:training_base.field_training_training__company_id
+msgid "Company"
+msgstr "Société"
 
 #. module: training_base
 #: model:ir.model,name:training_base.model_res_partner
@@ -107,9 +201,53 @@ msgid "Contacts"
 msgstr "Contacts"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__training_content
+msgid "Content of training"
+msgstr "Contenu de la formation"
+
+#. module: training_base
+#: model:mail.template,report_name:training_base.email_template_training_convocation_to_partner
+msgid "Convocation"
+msgstr "Convocation"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__convocation_sent_ids
+#: model:ir.model.fields,field_description:training_base.field_res_users__convocation_sent_ids
+msgid "Convocation Sent"
+msgstr "Convocation envoyée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__summons_id
+#: model:ir.model.fields,field_description:training_base.field_res_users__summons_id
+msgid "Convocation file"
+msgstr "Fichier de convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Convocation not sent"
+msgstr "Convocation non envoyée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__convocation_sent
+#: model:ir.model.fields,field_description:training_base.field_res_users__convocation_sent
+msgid "Convocation sent"
+msgstr "Convocation envoyée"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_sitting_convocation_sent
+msgid "Convocation sent for sitting"
+msgstr "Convocation envoyée pour la séance"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__convocations_sent
+msgid "Convocations sent"
+msgstr "Convocations envoyées"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_session__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__create_uid
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_training__create_uid
 msgid "Created by"
 msgstr "Créé par"
@@ -118,12 +256,14 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_session__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__create_date
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_training__create_date
 msgid "Created on"
-msgstr "Créé le "
+msgstr "Créé le"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__date
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
 msgid "Date"
 msgstr "Date"
 
@@ -134,32 +274,25 @@ msgid "Description"
 msgstr "Description"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
-msgid "Training..."
-msgstr "Formation..."
-
-#. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
-msgid "Duration of a day"
-msgstr "Durée d'une journée"
-
-#. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
-msgid "hours"
-msgstr "heures"
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_training__training_content
-msgid "Content of training"
-msgstr "Contenu de la formation"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_session__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__display_name
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_training__display_name
 msgid "Display Name"
 msgstr "Nom affiché"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__done
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__done
+msgid "Done"
+msgstr "Clôturée"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__draft
+#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__draft
+msgid "Draft"
+msgstr "Brouillon"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_training__duration
@@ -167,9 +300,35 @@ msgid "Duration (days)"
 msgstr "Durée (en jours)"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Duration of a day"
+msgstr "Durée d'une journée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__duration_hour_day
+msgid "Duration of one day (in hours)"
+msgstr "Durée pour un jour (en heures)"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_mail_compose_message
+msgid "Email composition wizard"
+msgstr "Assistant de composition d'emails"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__end_hour
 msgid "End Hour"
 msgstr "Heure de fin"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__finished
+msgid "Finished"
+msgstr "Terminée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__first_sitting_date
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+msgid "Fist sitting date"
+msgstr "Date de première séance"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_follower_ids
@@ -198,8 +357,26 @@ msgid ""
 "Forbidden to define two attendances for the same sitting and the same "
 "partner."
 msgstr ""
-"Il est interdit de définir deux fois le même participant à la même "
-"session de formation. "
+"Il est interdit de définir deux fois le même participant à la même session "
+"de formation."
+
+#. module: training_base
+#: model:ir.model.constraint,message:training_base.constraint_training_sitting_convocation_sent_unique_attendee
+msgid ""
+"Forbidden to define two lines for the same sitting and the same partner."
+msgstr ""
+"Il est interdit de définir deux lignes qui ont la même séance et le même "
+"contact"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__formatted_end_hour
+msgid "Formated End Hour"
+msgstr "Horaire fin formaté"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__formatted_start_hour
+msgid "Formated Start Hour"
+msgstr "Horaire de début formaté"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_search
@@ -212,9 +389,24 @@ msgstr "Grouper par"
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__id
 #: model:ir.model.fields,field_description:training_base.field_training_session__id
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__id
 #: model:ir.model.fields,field_description:training_base.field_training_training__id
 msgid "ID"
 msgstr "ID"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_exception_icon
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_exception_icon
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_exception_icon
+msgid "Icon"
+msgstr "Icône"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__activity_exception_icon
+#: model:ir.model.fields,help:training_base.field_training_sitting__activity_exception_icon
+#: model:ir.model.fields,help:training_base.field_training_training__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icône pour indiquer une erreur d'activité"
 
 #. module: training_base
 #: model:ir.model.fields,help:training_base.field_training_session__message_needaction
@@ -234,11 +426,49 @@ msgid "If checked, some messages have a delivery error."
 msgstr ""
 
 #. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid "Impossible action with no sitting provided"
+msgstr "Action impossible si aucune séance n'est fournie"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid ""
+"Impossible to send a convocation for a remote training with no URL provided"
+msgstr ""
+"Impossible d'envoyer une convocation pour une formation en distanciel si "
+"aucune URL n'est renseignée"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid ""
+"Impossible to send a convocation with no sitting location address provided"
+msgstr ""
+"Impossible d'envoyer une convocation si l'adresse du lieu de formation "
+"n'est pas renseignée"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid "Impossible to send a convocation with no sitting location provided"
+msgstr ""
+"Impossible d'envoyer une convocation si aucun lieu de formation n'est "
+"renseigné"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid "Impossible to send a convocation with no sitting provided"
+msgstr "Impossible d'envoyer une convocation si aucune séance n'est fournie"
+
+#. module: training_base
 #: model:ir.actions.act_window,name:training_base.act_window_institutions
 #: model:ir.ui.menu,name:training_base.menu_institutions
 #: model_terms:ir.ui.view,arch_db:training_base.res_partner_search
 msgid "Institutions"
-msgstr ""
+msgstr "Institutions"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_is_follower
@@ -246,6 +476,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_is_follower
 msgid "Is Follower"
 msgstr "Est Suiveur"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__is_remote_training_location
+#: model:ir.model.fields,field_description:training_base.field_res_users__is_remote_training_location
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__is_remote_training_location
+msgid "Is a remote training location"
+msgstr "Distanciel"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_res_partner__is_trainer
@@ -260,12 +497,6 @@ msgid "Is a training location"
 msgstr "Est un lieu de formation"
 
 #. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_res_partner__is_remote_training_location
-#: model:ir.model.fields,field_description:training_base.field_res_users__is_remote_training_location
-msgid "Is a remote training location"
-msgstr "Distanciel"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_res_partner__is_attendee
 #: model:ir.model.fields,field_description:training_base.field_res_users__is_attendee
 msgid "Is an attendee"
@@ -278,14 +509,10 @@ msgid "Is an institution"
 msgstr "Est une institution"
 
 #. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_res_partner__convocation_sent
-msgid "Convocation sent"
-msgstr "Convocation envoyée"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_session____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_sitting____last_update
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_training____last_update
 msgid "Last Modified on"
 msgstr "Dernière modification le"
@@ -294,6 +521,7 @@ msgstr "Dernière modification le"
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_session__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__write_uid
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_training__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
@@ -302,9 +530,16 @@ msgstr "Dernière mise à jour par"
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_session__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__write_date
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_training__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__last_sitting_date
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+msgid "Last sitting date"
+msgstr "Date de dernière séance"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__location_id
@@ -319,40 +554,83 @@ msgstr "Lieu de formation"
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_main_attachment_id
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_main_attachment_id
 msgid "Main Attachment"
-msgstr ""
+msgstr "Pièce jointe principale"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_maxi
+#: model:ir.model.fields,field_description:training_base.field_training_training__nb_maxi
+msgid "Maximum number of attendees"
+msgstr "Nombre maximum de participants"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_has_error
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_has_error
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_has_error
 msgid "Message Delivery error"
-msgstr ""
+msgstr "Message délivré en erreur"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_ids
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_ids
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_ids
 msgid "Messages"
+msgstr "Messages"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_mini
+#: model:ir.model.fields,field_description:training_base.field_training_training__nb_mini
+msgid "Minimum number of attendees"
+msgstr "Nombre minimum de participants"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_date_deadline
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_date_deadline
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_date_deadline
+msgid "Next Activity Deadline"
 msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_summary
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_summary
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_type_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_type_id
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__next_session
+msgid "Next Session"
+msgstr "Prochaine session"
 
 #. module: training_base
 #: model:ir.model.fields.selection,name:training_base.selection__res_partner__attendance__blocked
 msgid "No attendance"
-msgstr ""
+msgstr "Pas d'inscrit"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_needaction_counter
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_needaction_counter
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_needaction_counter
 msgid "Number of Actions"
-msgstr ""
+msgstr "Nombre d'actions"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__nb_attendees
+msgid "Number of attendees"
+msgstr "Nombre de participants"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_has_error_counter
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_has_error_counter
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_has_error_counter
 msgid "Number of errors"
-msgstr ""
+msgstr "Nombre d'erreurs"
 
 #. module: training_base
 #: model:ir.model.fields,help:training_base.field_training_session__message_needaction_counter
@@ -376,16 +654,53 @@ msgid "Number of unread messages"
 msgstr "Nombre de messages non lus"
 
 #. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__offered
+msgid "Offered"
+msgstr "Proposée"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__price
 #: model:ir.model.fields,field_description:training_base.field_training_training__price
 msgid "Price"
 msgstr "Prix"
 
 #. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__ready
+msgid "Ready"
+msgstr "Prête"
+
+#. module: training_base
+#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__registrations
+msgid "Registrations"
+msgstr "Inscriptions"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_training__user_id
 #: model_terms:ir.ui.view,arch_db:training_base.training_training_search
 msgid "Responsible"
 msgstr "Responsable"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__activity_user_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__activity_user_id
+#: model:ir.model.fields,field_description:training_base.field_training_training__activity_user_id
+msgid "Responsible User"
+msgstr "Utilisateur responsable"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocation"
+msgstr "Envoyer la convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocation again"
+msgstr "Renvoyer la convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "Send convocations to all attendees"
+msgstr "Envoyer les convocations à tous les participants"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__session_id
@@ -417,12 +732,8 @@ msgid "Set no attendance"
 msgstr "Absent"
 
 #. module: training_base
-#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
-msgid "View convocation"
-msgstr "Voir la convocation"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__sitting_id
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__sitting_id
 msgid "Sitting"
 msgstr "Séance"
 
@@ -437,39 +748,53 @@ msgid "Sittings"
 msgstr "Séances"
 
 #. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_training__nb_mini
-#: model:ir.model.fields,field_description:training_base.field_training_session__nb_mini
-msgid "Minimum number of attendees"
-msgstr "Nombre minimum de participants"
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_training__nb_maxi
-#: model:ir.model.fields,field_description:training_base.field_training_session__nb_maxi
-msgid "Maximum number of attendees"
-msgstr "Nombre maximum de participants"
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_session__first_sitting_date
-#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
-msgid "Fist sitting date"
-msgstr "Date de première séance"
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_session__last_sitting_date
-#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
-msgid "Last sitting date"
-msgstr "Date de dernière séance"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__start_hour
 msgid "Start Hour"
 msgstr "Heure de début"
 
 #. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_session__name
+#: code:addons/training_base/models/training_sitting.py:0
+#, python-format
+msgid "Start and end hours are required"
+msgstr "L'heure de début et l'heure de fin sont obligatoires"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session__state
+#: model:ir.model.fields,field_description:training_base.field_training_training__state
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_search
+msgid "State"
+msgstr "Statut"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
+msgid "Status"
+msgstr "Statut"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__activity_state
+#: model:ir.model.fields,help:training_base.field_training_sitting__activity_state
+#: model:ir.model.fields,help:training_base.field_training_training__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__summons_id
+msgid "Summons"
+msgstr "Convocations"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_training__name
 msgid "Title"
 msgstr "Titre"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_training__total_duration
+msgid "Total duration (in hours)"
+msgstr "Durée totale (en heures)"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__trainer_id
@@ -506,12 +831,6 @@ msgid "Training Locations"
 msgstr "Lieu de formation"
 
 #. module: training_base
-#: model:ir.actions.act_window,name:training_base.act_window_training_all_partners
-#: model:ir.ui.menu,name:training_base.menu_training_all_partners
-msgid "All partners"
-msgstr "Tous les contacts"
-
-#. module: training_base
 #: model:res.groups,name:training_base.group_training_manager
 msgid "Training Manager"
 msgstr "Responsable de la formation"
@@ -529,13 +848,36 @@ msgstr "Session de formation"
 #. module: training_base
 #: model:ir.model,name:training_base.model_training_sitting
 msgid "Training sitting"
-msgstr ""
+msgstr "Séance de formation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "Training..."
+msgstr "Formation..."
 
 #. module: training_base
 #: model:ir.actions.act_window,name:training_base.act_window_training
 #: model:ir.ui.menu,name:training_base.menu_trainings
 msgid "Trainings"
 msgstr "Formations"
+
+#. module: training_base
+#: code:addons/training_base/models/training_sitting.py:0
+#, python-format
+msgid "Two sittings cannot happen simultaneously"
+msgstr "Deux séances ne peuvent pas se chevaucher"
+
+#. module: training_base
+#: model:ir.model.fields,help:training_base.field_training_session__activity_exception_decoration
+#: model:ir.model.fields,help:training_base.field_training_sitting__activity_exception_decoration
+#: model:ir.model.fields,help:training_base.field_training_training__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_sitting__remote_url
+msgid "URL"
+msgstr "URL"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__message_unread
@@ -549,21 +891,7 @@ msgstr "Messages non lus"
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__message_unread_counter
 #: model:ir.model.fields,field_description:training_base.field_training_training__message_unread_counter
 msgid "Unread Messages Counter"
-msgstr ""
-
-#. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_training__state
-#: model:ir.model.fields,field_description:training_base.field_training_session__state
-#: model_terms:ir.ui.view,arch_db:training_base.training_training_search
-#: model_terms:ir.ui.view,arch_db:training_base.training_session_search
-msgid "State"
-msgstr "Statut"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__draft
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__draft
-msgid "Draft"
-msgstr "Brouillon"
+msgstr "Compteur de messages non lus"
 
 #. module: training_base
 #: model:ir.model.fields.selection,name:training_base.selection__training_training__state__validated
@@ -571,147 +899,16 @@ msgid "Validated"
 msgstr "Validé"
 
 #. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__active
-msgid "Active"
-msgstr "Active"
+#: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
+msgid "View convocation"
+msgstr "Voir la convocation"
 
 #. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__cancel
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__cancel
-msgid "Cancelled"
-msgstr "Annulée"
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "hours"
+msgstr "heures"
 
 #. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_training__state__done
-msgid "Done"
-msgstr "Terminée"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__offered
-msgid "Offered"
-msgstr "Proposée"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__registrations
-msgid "Registrations"
-msgstr "Inscriptions"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__ready
-msgid "Ready"
-msgstr "Prête"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__convocations_sent
-msgid "Convocations sent"
-msgstr "Convocations envoyées"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__finished
-msgid "Finished"
-msgstr "Terminée"
-
-#. module: training_base
-#: model:ir.model.fields.selection,name:training_base.selection__training_session__state__done
-msgid "Done"
-msgstr "Clôturée"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:66
-#, python-format
-msgid "Impossible to define attendance if no sitting provided"
-msgstr "Impossible de renseigner une présence si aucune séance n'est fournie"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:98
-#, python-format
-msgid "Impossible to send a convocation with no sitting provided"
-msgstr "Impossible d'envoyer une convocation si aucune séance n'est fournie"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:101
-#, python-format
-msgid "Impossible to send a convocation with no sitting location provided"
-msgstr "Impossible d'envoyer une convocation si aucun lieu de formation n'est renseigné"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:101
-#, python-format
-msgid "Impossible to send a convocation for a remote training with no URL provided"
-msgstr "Impossible d'envoyer une convocation pour une formation en distanciel si aucune URL n'est renseignée"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:101
-#, python-format
-msgid "Impossible to send a convocation with no sitting location address provided"
-msgstr "Impossible d'envoyer une convocation si l'adresse du lieu de formation n'est pas renseignée"
-
-#. module: training_base
-#: code:addons/training_base/models/partner.py:141
-#, python-format
-msgid "Impossible action with no sitting provided"
-msgstr "Action impossible si aucune séance n'est fournie"
-
-#. module: training_base
-#: code:addons/training_base/models/training_sitting.py:76
-#, python-format
-msgid "Two sittings cannot happen simultaneously"
-msgstr "Deux séances ne peuvent pas se chevaucher"
-
-#. module: training_base
-#: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
-msgid "${object.company_id.name} - Convocation"
-msgstr ""
-
-#. module: training_base
-#: code:addons/training_base/models/training_sitting.py:87
-#, python-format
-msgid "Start and end hours are required"
-msgstr "L'heure de début et l'heure de fin sont obligatoires"
-
-#. module: training_base
-#: model:mail.template,body_html:training_base.email_template_training_convocation_to_partner
-msgid ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"                        Hello,\n"
-"                        <br/><br/>\n"
-"                        Here is your convocation for training of ${format_date(object.date)}.\n"
-"                        <br/><br/>\n"
-"                        Title: ${object.session_id.name}.\n"
-"                        <br/><br/>\n"
-"                        Location: ${object.location_id.contact_address}.\n"
-"                        <br/>\n"
-"                        % if object.location_id.is_remote_training_location and object.remote_url:\n"
-"                        <br/>\n"
-"                        Please use <a href=\"${object.remote_url}\">this link</a>\n"
-"                        <br/>\n"
-"                        % endif\n"
-"                        <br/>\n"
-"                        Hour: from ${object.formatted_start_hour} to ${object.formatted_end_hour}.\n"
-"                        <br/><br/>\n"
-"                    </p>\n"
-"                </div>\n"
-"            "
-msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"                        Bonjour,\n"
-"                        <br/><br/>\n"
-"                        Voici votre convocation pour la formation du ${format_date(object.date)}.\n"
-"                        <br/><br/>\n"
-"                        Titre : ${object.session_id.name}.\n"
-"                        <br/><br/>\n"
-"                        Location: ${object.location_id.contact_address}.\n"
-"                        <br/>\n"
-"                        % if object.location_id.is_remote_training_location and object.remote_url:\n"
-"                        <br/>\n"
-"                        Veuillez utiliser <a href=\"${object.remote_url}\">ce lien</a>\n"
-"                        <br/>\n"
-"                        % endif\n"
-"                        <br/>\n"
-"                        Horaires : de ${object.formatted_start_hour} à ${object.formatted_end_hour}.\n"
-"                        <br/><br/>\n"
-"                    </p>\n"
-"                </div>\n"
-"            "
+#: model_terms:ir.ui.view,arch_db:training_base.training_training_form
+msgid "i.e."
+msgstr "c.-à-d."
