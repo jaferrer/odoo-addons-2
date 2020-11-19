@@ -88,3 +88,35 @@ class TrainingSession(models.Model):
             sittings = self.env['training.sitting'].search([('id', 'in', rec.sitting_ids.ids)], order='date')
             rec.first_sitting_date = sittings and sittings[0].date or False
             rec.last_sitting_date = sittings and sittings[-1].date or False
+
+    def send_certificate_to_all(self):
+        for rec in self:
+            for attendee in rec.attendee_ids:
+                context_wizard = attendee.with_context(session_id=rec.id).send_mail_certificate(
+                    return_action_wizard=False)
+                wizard = self.env['mail.compose.message'].with_context(context_wizard).create({})
+                wizard.write(wizard.onchange_template_id(context_wizard['default_template_id'],
+                                                         'comment', self._name, rec.id).get('value'))
+                wizard.action_send_mail()
+
+
+class TrainingSessionCertificateSent(models.Model):
+    _name = 'training.session.certificate.sent'
+    _description = "Certificate sent for session"
+
+    partner_id = fields.Many2one('res.partner', string="Attendee", required=True, ondelete='cascade')
+    session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
+    certificate_id = fields.Many2one('ir.attachment', string="Certificate")
+
+    _sql_constraints = [
+        ('unique_attendee', 'unique (partner_id, session_id)', "Forbidden to define two lines for the same "
+                                                               "session and the same partner.")
+    ]
+
+    def create_line_if_needed(self, partner_id, session_id, certificate):
+        if not self.search([('partner_id', '=', partner_id), ('session_id', '=', session_id)]):
+            self.create({
+                'partner_id': partner_id,
+                'session_id': session_id,
+                'certificate_id': certificate.id
+            })

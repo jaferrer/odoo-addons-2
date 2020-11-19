@@ -63,7 +63,6 @@ class TrainingSitting(models.Model):
 
     def send_convocation_to_all(self):
         for rec in self:
-            print(rec)
             for attendee in rec.attendee_ids:
                 context_wizard = attendee.with_context(sitting_id=rec.id).send_mail_convocation(
                     return_action_wizard=False)
