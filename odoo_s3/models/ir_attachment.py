@@ -38,7 +38,13 @@ class S3Attachment(models.Model):
     _s3_bucket = False
 
     def _storage(self):
-        if 'odoo_s3' not in server_wide_modules:
+        get_param = self.env['ir.config_parameter'].sudo().get_param
+        at_least_one_s3_param_missing = not get_param('odoo_s3.s3_host') or \
+            not get_param('odoo_s3.s3_access_key') or \
+            not get_param('odoo_s3.s3_secret_key') or \
+            not get_param('odoo_s3.s3_region') or \
+            not get_param('odoo_s3.s3_bucket')
+        if 'odoo_s3' not in server_wide_modules or at_least_one_s3_param_missing:
             return super(S3Attachment, self)._storage()
         return self.env.context.get('force_attachment_storage', 's3')
 
