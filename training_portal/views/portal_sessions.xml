@@ -17,7 +17,7 @@
                 </thead>
                 <tbody>
                     <tr t-foreach="sessions" t-as="session">
-                        <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.name"/></a></td>
+                        <td><a t-attf-href="/session/#{slug(session)}?{{ keep_query() }}"><span t-field="session.display_name"/></a></td>
                         <td><span t-field="session.administrative_contact"/></td>
                     </tr>
                 </tbody>
@@ -30,7 +30,7 @@
     <template id="portal_session">
         <t t-call="portal.portal_layout">
             <h5 class="mt-3 mb-3">
-                <small class="text-muted"></small><span t-field="session.name"/>
+                <small class="text-muted"></small><span t-field="session.display_name"/>
                 <span class="float-right"></span>
             </h5>
 
