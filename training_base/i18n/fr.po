@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 13.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-18 10:18+0000\n"
-"PO-Revision-Date: 2020-11-18 11:24+0100\n"
+"POT-Creation-Date: 2020-11-20 16:24+0000\n"
+"PO-Revision-Date: 2020-11-20 17:29+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -18,9 +18,49 @@ msgstr ""
 "X-Generator: Poedit 2.4.1\n"
 
 #. module: training_base
+#: model:mail.template,subject:training_base.email_template_training_certificate_to_partner
+msgid "${object.company_id.name} - Certificat"
+msgstr "${object.company_id.name} - Certificat"
+
+#. module: training_base
 #: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
 msgid "${object.company_id.name} - Convocation"
+msgstr "${object.company_id.name} - Certificat"
+
+#. module: training_base
+#: model:mail.template,body_html:training_base.email_template_training_certificate_to_partner
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Hello,\n"
+"                        <br/><br/>\n"
+"                        Here is your certificate for training of "
+"${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Title: ${object.training_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Location: ${object.location_id.contact_address}.\n"
+"                        <br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Bonjour,\n"
+"                        <br/><br/>\n"
+"                        Veuillez retrouver ci-joint votre attestation pour "
+"la formation : ${format_date(object.date)}.\n"
+"                        <br/><br/>\n"
+"                        Titre: ${object.training_id.name}.\n"
+"                        <br/><br/>\n"
+"                        Lieu: ${object.location_id.contact_address}.\n"
+"                        <br/>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
 
 #. module: training_base
 #: model:mail.template,body_html:training_base.email_template_training_convocation_to_partner
@@ -62,7 +102,7 @@ msgstr ""
 "                        <br/><br/>\n"
 "                        Titre : ${object.session_id.name}.\n"
 "                        <br/><br/>\n"
-"                        Location: ${object.location_id.contact_address}.\n"
+"                        Lieu: ${object.location_id.contact_address}.\n"
 "                        <br/>\n"
 "                        % if object.location_id.is_remote_training_location "
 "and object.remote_url:\n"
@@ -124,11 +164,13 @@ msgid "All partners"
 msgstr "Tous les contacts"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
 msgid "Are you sure? Odoo will send the default text."
 msgstr "Êtes-vous sûr ? Odoo enverra le texte par défaut."
@@ -155,6 +197,7 @@ msgstr "Absent"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__partner_id
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__partner_id
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__partner_id
 msgid "Attendee"
 msgstr "Participant"
@@ -171,6 +214,11 @@ msgid "Attendees"
 msgstr "Participants"
 
 #. module: training_base
+#: model:mail.template,report_name:training_base.email_template_training_certificate_to_partner
+msgid "Attestation de formation"
+msgstr "Attestation de formation"
+
+#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_res_partner__biography
 #: model:ir.model.fields,field_description:training_base.field_res_users__biography
 #: model_terms:ir.ui.view,arch_db:training_base.res_partner_form
@@ -182,6 +230,34 @@ msgstr "Biographie"
 #: model:ir.model.fields.selection,name:training_base.selection__training_training__state__cancel
 msgid "Cancelled"
 msgstr "Annulée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__certificate_id
+msgid "Certificate"
+msgstr "Attestation"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__certificate_sent_ids
+#: model:ir.model.fields,field_description:training_base.field_res_users__certificate_sent_ids
+msgid "Certificate Sent"
+msgstr "Attestation envoyée"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__certificate_id
+#: model:ir.model.fields,field_description:training_base.field_res_users__certificate_id
+msgid "Certificate file"
+msgstr "Attestation fichier"
+
+#. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_res_partner__certificate_sent
+#: model:ir.model.fields,field_description:training_base.field_res_users__certificate_sent
+msgid "Certificate sent"
+msgstr "Attestation envoyée"
+
+#. module: training_base
+#: model:ir.model,name:training_base.model_training_session_certificate_sent
+msgid "Certificate sent for session"
+msgstr "Attestation envoyée pour la session"
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_session__company_id
@@ -246,6 +322,7 @@ msgstr "Convocations envoyées"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_session__create_uid
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__create_uid
 #: model:ir.model.fields,field_description:training_base.field_training_training__create_uid
@@ -255,11 +332,12 @@ msgstr "Créé par"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_session__create_date
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__create_date
 #: model:ir.model.fields,field_description:training_base.field_training_training__create_date
 msgid "Created on"
-msgstr "Créé le"
+msgstr "Créé le "
 
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__date
@@ -276,6 +354,7 @@ msgstr "Description"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_session__display_name
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__display_name
 #: model:ir.model.fields,field_description:training_base.field_training_training__display_name
@@ -358,7 +437,15 @@ msgid ""
 "partner."
 msgstr ""
 "Il est interdit de définir deux fois le même participant à la même session "
-"de formation."
+"de formation. "
+
+#. module: training_base
+#: model:ir.model.constraint,message:training_base.constraint_training_session_certificate_sent_unique_attendee
+msgid ""
+"Forbidden to define two lines for the same session and the same partner."
+msgstr ""
+"Il est interdit de définir deux lignes pour la même session et le même "
+"partenaire"
 
 #. module: training_base
 #: model:ir.model.constraint,message:training_base.constraint_training_sitting_convocation_sent_unique_attendee
@@ -388,6 +475,7 @@ msgstr "Grouper par"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__id
 #: model:ir.model.fields,field_description:training_base.field_training_session__id
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__id
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__id
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__id
 #: model:ir.model.fields,field_description:training_base.field_training_training__id
@@ -428,8 +516,20 @@ msgstr ""
 #. module: training_base
 #: code:addons/training_base/models/partner.py:0
 #, python-format
+msgid "Impossible action with no session provided"
+msgstr ""
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
 msgid "Impossible action with no sitting provided"
 msgstr "Action impossible si aucune séance n'est fournie"
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
+msgid "Impossible to send a certificate with no session provided"
+msgstr "Impossible d'envoyer une attestation sans session."
 
 #. module: training_base
 #: code:addons/training_base/models/partner.py:0
@@ -511,6 +611,7 @@ msgstr "Est une institution"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_session____last_update
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_sitting____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent____last_update
 #: model:ir.model.fields,field_description:training_base.field_training_training____last_update
@@ -520,6 +621,7 @@ msgstr "Dernière modification le"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_session__write_uid
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__write_uid
 #: model:ir.model.fields,field_description:training_base.field_training_training__write_uid
@@ -529,6 +631,7 @@ msgstr "Dernière mise à jour par"
 #. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_session__write_date
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_sitting_convocation_sent__write_date
 #: model:ir.model.fields,field_description:training_base.field_training_training__write_date
@@ -688,6 +791,21 @@ msgid "Responsible User"
 msgstr "Utilisateur responsable"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+msgid "Send certificate"
+msgstr "Attestation envoyée"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+msgid "Send certificate again"
+msgstr "Envoyer l'attestation de nouveau"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+msgid "Send certificates to all attendees"
+msgstr "Envoyer les attestations pour tous les participants"
+
+#. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
 msgid "Send convocation"
 msgstr "Envoyer la convocation"
@@ -703,6 +821,7 @@ msgid "Send convocations to all attendees"
 msgstr "Envoyer les convocations à tous les participants"
 
 #. module: training_base
+#: model:ir.model.fields,field_description:training_base.field_training_session_certificate_sent__session_id
 #: model:ir.model.fields,field_description:training_base.field_training_sitting__session_id
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_search
 msgid "Session"
@@ -899,9 +1018,19 @@ msgid "Validated"
 msgstr "Validé"
 
 #. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+msgid "View certificate"
+msgstr "Visualiser l'attestation"
+
+#. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
 msgid "View convocation"
 msgstr "Voir la convocation"
+
+#. module: training_base
+#: model_terms:ir.ui.view,arch_db:training_base.training_session_form
+msgid "certificate not sent"
+msgstr "Attestation non envoyée"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_training_form
