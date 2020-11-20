@@ -6,7 +6,7 @@
             <t t-call="portal.portal_record_layout">
                 <t t-set="card_header">
                     <h5 class="mb-0">
-                        <span t-field="sitting.session_id.name"/>
+                        <span t-field="sitting.session_id.display_name"/>
                         <span class="float-right"></span>
                     </h5>
                 </t>
