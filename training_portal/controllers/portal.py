@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.http import request
 
@@ -12,7 +11,6 @@ class TrainingPortal(CustomerPortal):
         # sitting not started
         values['session_count'] = request.env['training.session'].search_count([
             ('sitting_ids.attendee_ids', 'in', request.env.user.partner_id.id),
-            ('sitting_ids.date', '>=', datetime.today()),
         ])
 
         # participated session

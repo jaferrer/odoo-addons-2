@@ -20,12 +20,12 @@ msgstr ""
 #. module: training_base
 #: model:mail.template,subject:training_base.email_template_training_certificate_to_partner
 msgid "${object.company_id.name} - Certificat"
-msgstr "${object.company_id.name} - Certificat"
+msgstr "${object.company_id.name} - Attestation de formation"
 
 #. module: training_base
 #: model:mail.template,subject:training_base.email_template_training_convocation_to_partner
 msgid "${object.company_id.name} - Convocation"
-msgstr "${object.company_id.name} - Certificat"
+msgstr "${object.company_id.name} - Convocation"
 
 #. module: training_base
 #: model:mail.template,body_html:training_base.email_template_training_certificate_to_partner
@@ -35,12 +35,11 @@ msgid ""
 "\">\n"
 "                        Hello,\n"
 "                        <br/><br/>\n"
-"                        Here is your certificate for training of "
-"${format_date(object.date)}.\n"
+"                        Here is your certificate.\n"
 "                        <br/><br/>\n"
 "                        Title: ${object.training_id.name}.\n"
 "                        <br/><br/>\n"
-"                        Location: ${object.location_id.contact_address}.\n"
+"                        Best regards,\n"
 "                        <br/>\n"
 "                    </p>\n"
 "                </div>\n"
@@ -51,12 +50,11 @@ msgstr ""
 "\">\n"
 "                        Bonjour,\n"
 "                        <br/><br/>\n"
-"                        Veuillez retrouver ci-joint votre attestation pour "
-"la formation : ${format_date(object.date)}.\n"
+"                        Veuillez retrouver ci-joint votre attestation de formation.\n"
 "                        <br/><br/>\n"
 "                        Titre: ${object.training_id.name}.\n"
 "                        <br/><br/>\n"
-"                        Lieu: ${object.location_id.contact_address}.\n"
+"                        Cordialement,\n"
 "                        <br/>\n"
 "                    </p>\n"
 "                </div>\n"
@@ -522,6 +520,12 @@ msgstr ""
 #. module: training_base
 #: code:addons/training_base/models/partner.py:0
 #, python-format
+msgid "Impossible action with no session provided"
+msgstr ""
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
 msgid "Impossible action with no sitting provided"
 msgstr "Action impossible si aucune séance n'est fournie"
 
@@ -793,17 +797,17 @@ msgstr "Utilisateur responsable"
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 msgid "Send certificate"
-msgstr "Attestation envoyée"
+msgstr "Envoyer l'attestation de formation"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 msgid "Send certificate again"
-msgstr "Envoyer l'attestation de nouveau"
+msgstr "Renvoyer l'attestation de formation"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 msgid "Send certificates to all attendees"
-msgstr "Envoyer les attestations pour tous les participants"
+msgstr "Envoyer toutes les attestations de formation"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
@@ -1020,7 +1024,7 @@ msgstr "Validé"
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_form
 msgid "View certificate"
-msgstr "Visualiser l'attestation"
+msgstr "Visualiser l'attestation de formation"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_sitting_form
@@ -1029,7 +1033,7 @@ msgstr "Voir la convocation"
 
 #. module: training_base
 #: model_terms:ir.ui.view,arch_db:training_base.training_session_form
-msgid "certificate not sent"
+msgid "Certificate not sent"
 msgstr "Attestation non envoyée"
 
 #. module: training_base

@@ -45,11 +45,11 @@
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
                         Hello,
                         <br/><br/>
-                        Here is your certificate for training of ${format_date(object.date)}.
+                        Here is your certificate.
                         <br/><br/>
                         Title: ${object.training_id.name}.
                         <br/><br/>
-                        Location: ${object.location_id.contact_address}.
+                        Best regards,
                         <br/>
                     </p>
                 </div>
