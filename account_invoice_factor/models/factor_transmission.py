@@ -164,7 +164,7 @@ class FactorTransmission(models.Model):
             country_code=partner.country_id.code,
             phone=partner.phone,
             partner_number=partner.number,
-            vat_number=invoice.num_vat_id and invoice.num_vat_id.vat or "",
+            vat_number=invoice.partner_num_vat_id and invoice.partner_num_vat_id.vat or "",
         )
 
     @api.multi
