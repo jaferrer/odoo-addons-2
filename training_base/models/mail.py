@@ -26,10 +26,14 @@ class MailComposer(models.TransientModel):
     def action_send_mail(self):
         if 'send_mail_convocation' in self.env.context:
             (partner_id, sitting_id) = self.env.context['send_mail_convocation']
-            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id,
-                                                                                self.attachment_ids[0])
+            attachment = self.attachment_ids[0]
+            attachment.write({'res_model': 'res.partner',
+                              'res_id': partner_id})
+            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id, attachment)
         if 'send_mail_certificate' in self.env.context:
             (partner_id, session_id) = self.env.context['send_mail_certificate']
-            self.env['training.session.certificate.sent'].create_line_if_needed(partner_id, session_id,
-                                                                                self.attachment_ids[0])
+            attachment = self.attachment_ids[0]
+            attachment.write({'res_model': 'res.partner',
+                              'res_id': partner_id})
+            self.env['training.session.certificate.sent'].create_line_if_needed(partner_id, session_id, attachment)
         return super(MailComposer, self).action_send_mail()
