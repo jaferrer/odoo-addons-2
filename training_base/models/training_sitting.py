@@ -64,8 +64,8 @@ class TrainingSitting(models.Model):
     def send_convocation_to_all(self):
         for rec in self:
             for attendee in rec.attendee_ids:
-                context_wizard = attendee.with_context(sitting_id=rec.id).send_mail_convocation(
-                    return_action_wizard=False)
+                context_wizard = attendee.with_context(sitting_id=rec.id). \
+                    send_mail_convocation(return_action_wizard=False)
                 wizard = self.env['mail.compose.message'].with_context(context_wizard).create({})
                 wizard.write(wizard.onchange_template_id(context_wizard['default_template_id'],
                                                          'comment', self._name, rec.id).get('value'))
