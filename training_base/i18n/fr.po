@@ -520,6 +520,12 @@ msgstr ""
 #. module: training_base
 #: code:addons/training_base/models/partner.py:0
 #, python-format
+msgid "Impossible action with no session provided"
+msgstr ""
+
+#. module: training_base
+#: code:addons/training_base/models/partner.py:0
+#, python-format
 msgid "Impossible action with no sitting provided"
 msgstr "Action impossible si aucune séance n'est fournie"
 
