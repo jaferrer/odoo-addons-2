@@ -76,7 +76,7 @@
                                         <field name="certificate_sent_ids" widget="many2many_tags" invisible="1"/>
                                         <button name="send_mail_certificate" type="object" string="Send certificate" class="btn-primary" attrs="{'invisible': [('certificate_sent', '=', True)]}" groups="training_base.group_training_manager"/>
                                         <button name="send_mail_certificate" type="object" string="Send certificate again" attrs="{'invisible': [('certificate_sent', '=', False)]}" groups="training_base.group_training_manager"/>
-                                        <button name="mark_certificate_as_not_sent" type="object" string="certificate not sent" confirm="Are you sure ?" attrs="{'invisible': [('certificate_sent', '=', False)]}" groups="training_base.group_training_manager"/>
+                                        <button name="mark_certificate_as_not_sent" type="object" string="Certificate not sent" confirm="Are you sure ?" attrs="{'invisible': [('certificate_sent', '=', False)]}" groups="training_base.group_training_manager"/>
                                         <button name="view_certificate" type="object" string="View certificate" icon="fa-search" attrs="{'invisible': [('certificate_id', '=', False)]}" groups="training_base.group_training_trainer"/>
                                     </tree>
                                 </field>
