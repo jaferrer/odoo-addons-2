@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="assets_calendar_monday_as_first_day_of_the_week" name="set monday as fdotw" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/calendar_monday_as_first_day_of_the_week/static/src/js/calendar_monday_as_first_day_of_the_week.js" />
+            </xpath>
+        </template>
+    </data>
+</openerp>
