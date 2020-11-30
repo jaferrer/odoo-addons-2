@@ -101,6 +101,9 @@ WHERE table_name = %s""", (rec.name,))
             data = self.env.cr.dictfetchall()[0]
             query = """SELECT count(*) from %s""" % rec.name
             self.env.cr.execute(query)
+            res = self.env.cr.fetchall()
+            if not (res and res[0]):
+                return  # silently fails when table is empty
             cardinality = self.env.cr.fetchall()[0][0]
             # We convert Bytes to GigaBytes
             existing_line = self.env['odoo.monitoring.disk.usage.by.table'].search([('table_id', '=', rec.id),
