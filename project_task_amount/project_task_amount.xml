@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="project_task_amount_form">
+            <field name="name">project.task.form.amount</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="planned_hours" position="before">
+                    <field name="planned_days"/>
+                </field>
+                <field name="timesheet_ids" position="before">
+                    <button name="add_line_timesheet" type="object" string="Ajouter"/>
+                </field>
+                <xpath expr="//field[@name='timesheet_ids']/tree" position="attributes">
+                    <attribute name="create">false</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_amount_tree">
+            <field name="name">project.task.form.amount</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="hr_timesheet.view_task_tree2_inherited"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="progress" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="task_timesheet_amount_form">
+            <field name="name">task_timesheet_amount_form</field>
+            <field name="model">task.timesheet.amount</field>
+            <field name="arch" type="xml">
+                <form string="Time sheet">
+                    <group>
+                        <field name="date"/>
+                        <field name="comment"/>
+                        <field name="lissage"/>
+                        <field name="amount_days"/>
+                        <field name="amount_hours" widget="float_time"/>
+                    </group>
+                    <footer>
+                        <button name="create_line" string="Create" type="object" class="btn-primary"/>
+                        <button name="act_cancel" special="cancel" string="Cancel" type="object" class="btn-default"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+
+
+
+    </data>
+</openerp>

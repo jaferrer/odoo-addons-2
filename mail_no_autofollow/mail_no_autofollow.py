@@ -16,34 +16,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from odoo.addons.mail.models.mail_thread import MailThread
+from odoo.tools import config
 from odoo import models, api
 
 
-class BaseModelExtend(models.AbstractModel):
-    _name = 'mail_thread.extend'
+class MailThreadExtended(models.AbstractModel):
+    _inherit = 'mail.thread'
 
-    message_subscribe_origin = MailThread.message_subscribe
-
-    @api.model_cr
-    def _register_hook(self):
-
-        @api.multi
-        def ugly_override_message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
-            if partner_ids:
-                users = self.env['res.users'].search([('partner_id', 'in', partner_ids)])
-                partner_ids = [u.partner_id.id for u in users]
-            return BaseModelExtend.message_subscribe_origin(self,
-                                                            partner_ids=partner_ids,
-                                                            channel_ids=channel_ids,
-                                                            subtype_ids=subtype_ids,
-                                                            force=force)
-
-        MailThread.message_subscribe = ugly_override_message_subscribe
-        return super(BaseModelExtend, self)._register_hook()
-
-    @api.model
-    def _unregister_hook(self):
-        """Unregister the message modification (used for tests)"""
-        MailThread.message_subscribe = self.message_subscribe_origin
+    @api.multi
+    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
+        if partner_ids and not config["test_enable"]:
+            users = self.env['res.users'].sudo().search([('partner_id', 'in', partner_ids)])
+            partner_ids = [user.partner_id.id for user in users]
+        return super(MailThreadExtended, self).message_subscribe(partner_ids=partner_ids,
+                                                                 channel_ids=channel_ids,
+                                                                 subtype_ids=subtype_ids,
+                                                                 force=force)

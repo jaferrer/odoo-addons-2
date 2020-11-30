@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="config_address_provider_wizard_view" model="ir.ui.view">
+        <field name="model">base.config.settings</field>
+        <field name="inherit_id" ref="base_setup.view_general_configuration" />
+        <field name="arch" type="xml">
+            <group name="google" position="before">
+            <group name="address_provider" string="Paramètres de Géocoding">
+                <field name="url_address_provider"/>
+                <field name="apikey_address_provider"/>
+                <field name="country_address_provider"/>
+            </group>
+        </group>
+        </field>
+    </record>
+</odoo>

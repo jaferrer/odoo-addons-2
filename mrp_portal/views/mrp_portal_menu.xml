@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_mrp_portal_mrp_main"
+              name="Fabrication"
+              sequence="2"
+              groups="base.group_portal"
+              web_icon="mrp_portal,static/description/icon.png"
+    />
+
+    <menuitem id="menu_mrp_portal_ope_submenu"
+              name="Opérations"
+              sequence="1"
+              groups="base.group_portal"
+              parent="menu_mrp_portal_mrp_main"
+    />
+
+    <record id="act_window_mrp_portal_production" model="ir.actions.act_window">
+        <field name="name">Ordres de fabrication</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.production</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="view_id" eval="False"/>
+        <field name="context">{'search_default_todo': True, 'form_view_ref': 'mrp_portal.view_mrp_portal_mrp_production_form'}</field>
+    </record>
+
+    <menuitem id="menu_mrp_portal_production"
+              name="Ordres de fabrication"
+              sequence="1"
+              groups="base.group_portal"
+              action="act_window_mrp_portal_production"
+              parent="menu_mrp_portal_ope_submenu"
+    />
+
+</odoo>

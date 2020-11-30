@@ -35,8 +35,8 @@
                     <field name="name"/>
                     <field name="project_id"/>
                     <group expand="0" string="Group By...">
-                        <filter string="Project" icon="terp-stock_align_left_24" domain="[]"
-                                context="{'group_by':'project_id'}"/>
+                        <filter string="Project" context="{'group_by':'project_id'}"/>
+                        <filter string="Parent" context="{'group_by':'parent_id'}"/>
                     </group>
                 </search>
             </field>
@@ -52,7 +52,7 @@
                         <div class="oe_button_box" name="button_box">
                             <button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button"
                                     icon="fa-tasks">
-                                <field name="active"/>
+                                <field name="active" sting="Active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                             </button>
                         </div>
                         <label for="name" class="oe_edit_only"/>
@@ -60,7 +60,12 @@
                             <field name="name" class="oe_inline"/>
                         </h1>
                         <group>
+                            <field name="parent_id"/>
                             <field name="project_id"/>
+                            <label for="child_ids"/>
+                            <field name="child_ids" nolabel="1" context="{'default_parent_id':active_id, 'default_project_id':project_id}">
+                                <field name="name"/>
+                            </field>
                         </group>
                     </sheet>
                 </form>

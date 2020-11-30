@@ -17,6 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
+from dateutil.relativedelta import relativedelta
+
 from odoo import fields, models, api, _, osv
 
 
@@ -34,6 +36,7 @@ class AccountInvoiceRelanceConfig(models.Model):
     mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
                                        required=True)
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
+    delay = fields.Integer(u"Delay before next dunning", help=u"Number of days before next dunning")
 
     @api.multi
     def _get_dunning_name(self):
@@ -88,6 +91,10 @@ class AccountInvoiceRelance(models.Model):
 
     @api.multi
     def action_done(self):
+        # Met à jour la date de prochaine Relance à la validation de la Relance
+        if self.dunning_type_id.delay:
+            date_next = fields.Date.to_string(datetime.date.today() + relativedelta(days=self.dunning_type_id.delay))
+            self.invoice_ids.write({'date_next_dunning': date_next})
         self.write({'state': 'done'})
 
     @api.multi
@@ -106,10 +113,10 @@ class AccountInvoiceRelance(models.Model):
     def action_print_dunning(self):
         self.ensure_one()
         res = self.env['report'].with_context(active_ids=self.ids).get_action(self, self.report_id.report_name)
-        self.write({
-            'state': 'send',
-            'date_done': fields.Date.today(),
-        })
+        vals = {'state': 'send'}
+        if not self.date_done:
+            vals['date_done'] = fields.Date.today()
+        self.write(vals)
         return res
 
     @api.multi
@@ -172,12 +179,25 @@ class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
     invoice_dunning_ids = fields.Many2many('account.invoice.dunning', string=u"Dunnings")
-    dunning_number = fields.Integer(u"Nomber of Dunning send", compute='_compute_dunning_number')
+    dunning_number = fields.Integer(u"Number of Dunning send", compute='_compute_dunning_number')
+    date_next_dunning = fields.Date(u"Date next dunning")
 
     @api.multi
+    @api.depends('invoice_dunning_ids', 'invoice_dunning_ids.state')
     def _compute_dunning_number(self):
         for rec in self:
             rec.dunning_number = len(rec.invoice_dunning_ids.filtered(lambda it: it.state in ['send', 'done']))
+
+    @api.model
+    def create(self, vals):
+        """
+        Si aucune date de prochaine relance n'est renseignée dans la facture, on la crée à partir de la date de validité
+        standard des Relances de la société.
+        """
+        if not vals.get('date_next_dunning'):
+            days = self.env.user.company_id.sending_validity_duration
+            vals['date_next_dunning'] = fields.Date.to_string(datetime.datetime.now() + datetime.timedelta(days=days))
+        return super(AccountInvoice, self).create(vals)
 
     @api.multi
     def action_create_dunning(self):
@@ -198,19 +218,21 @@ class AccountInvoice(models.Model):
     def _get_next_dunning_type(self):
         dunning_type_ids = self.invoice_dunning_ids.filtered(lambda it: it.state == 'send').mapped('dunning_type_id')
         return self.env['account.invoice.dunning.type'].search(
-            [('id', 'not in', dunning_type_ids.ids), ('company_id', '=', self.company_id.id)],
+            [('id', 'not in', dunning_type_ids.ids),
+             '|', ('company_id', '=', self.company_id.id),
+             ('company_id', '=', False)],
             order='number asc', limit=1)
 
     @api.multi
-    def _prepare_invoice_dunning(self, dunning_type_id):
+    def _prepare_invoice_dunning(self, dunning_type):
         self.ensure_one()
         return {
-            'dunning_type_id': dunning_type_id.id,
+            'dunning_type_id': dunning_type.id,
             'invoice_ids': [(4, self.id, {})],
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
             'user_id': self.user_id.id,
-            'name': dunning_type_id._get_dunning_name()
+            'name': dunning_type._get_dunning_name()
         }
 
     @api.multi
@@ -242,16 +264,19 @@ class AccountInvoice(models.Model):
 
     @api.model
     def compute_dunning_invoice(self):
-
-        days = self.env.user.company_id.sending_validity_duration
-
-        limite_validate_of_sent = datetime.datetime.now() - datetime.timedelta(days=days)
-
-        invoices_with_send_dunning = self.env['account.invoice.dunning'].search(
-            [('state', '=', 'send'), ('date_done', '>=', limite_validate_of_sent)]).mapped('invoice_ids')
-        invoices_dunning_to_create = self.search(
-            [('type', '=', 'out_invoice'), ('state', '=', 'open'), ('date_due', '<', fields.Datetime.now()),
-             ('id', 'not in', invoices_with_send_dunning.ids)])
+        """
+        Cron pour créer des Relances sur les Factures dont la date de prochaine relance a été dépassée et qui n'ont
+        pas de Relance en cours.
+        """
+        need_dunning_invoices = self.env['account.invoice'].search([
+            ('state', '=', 'open'),
+            ('date_next_dunning', '!=', False),
+            ('date_next_dunning', '<=', fields.Date.today())
+        ])
+        invoices_dunning_to_create = self.env['account.invoice']
+        for invoice in need_dunning_invoices:
+            if not invoice.invoice_dunning_ids.filtered(lambda x: x.state not in ('cancel', 'done')):
+                invoices_dunning_to_create |= invoice
 
         invoices_dunning_to_create._create_dunning()
 
@@ -265,8 +290,9 @@ class MailComposeMessage(models.TransientModel):
         if context.get('default_model') == 'account.invoice.dunning' \
                 and context.get('default_res_id', -1) > 0 \
                 and context.get('final_dunning_state'):
-            self.env['account.invoice.dunning'].browse(context['default_res_id']).write({
-                'state': context.get('final_dunning_state'),
-                'date_done': fields.Date.today(),
-            })
+            dunning = self.env['account.invoice.dunning'].browse(context['default_res_id'])
+            vals = {'state': context.get('final_dunning_state')}
+            if not dunning.date_done:
+                vals['date_done'] = fields.Date.today()
+            dunning.write(vals)
         return super(MailComposeMessage, self).send_mail(auto_commit=auto_commit)

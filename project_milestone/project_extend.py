@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api, exceptions, _
+from odoo import fields, models, api, _
+from odoo.exceptions import ValidationError
 
 
 class ProjectMilestone(models.Model):
@@ -28,65 +29,39 @@ class ProjectMilestone(models.Model):
     active = fields.Boolean(u"Active", default=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
     task_ids = fields.One2many('project.task', 'milestone_id', u"Task")
-    nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
-    nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
-    start_date = fields.Date(u"Start date", required=True)
+    start_date = fields.Date(u"Start date", required=True, default=fields.Date.context_today)
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
     should_be_closed_at = fields.Date(u"Should be in Prod at")
-    should_be_test_before = fields.Date(u"Should be tested before")
-    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
-    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
-    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
-    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
-    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
-    closed_at = fields.Date(u"Closed at", readonly=True)
-    state = fields.Selection([
-        ('open', u"Open"),
-        ('in_qualif', u"In Test"),
-        ('in_prod', u"In Production"),
-        ('closed', u"Closed")
-    ], default='open', readonly=True, required=True)
+    referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
+
+    nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
+    nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
+    nb_tasks_done = fields.Integer(u"Nb Tasks done", compute='_compute_nb_related')
+
+    @api.multi
+    def unlink(self):
+        if self.task_ids:
+            raise ValidationError(u"Impossible de supprimer cette milestone tant que des tâches lui sont associées")
+        return super(ProjectMilestone, self).unlink()
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, u"%s (%s)" % (rec.name, rec.project_id.name)) for rec in self]
 
     @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
     def check_dates_coherence(self):
-        if self.start_date > self.qualif_should_be_livred_at:
-            raise exceptions.ValidationError(_(u"Start date must be before test date."))
-        if self.should_be_closed_at and self.qualif_should_be_livred_at > self.should_be_closed_at:
-            raise exceptions.ValidationError(_(u"Test date must be before prod date."))
+        for rec in self:
+            if rec.start_date > rec.qualif_should_be_livred_at:
+                raise ValidationError(_(u"Start date must be before test date."))
+            if rec.should_be_closed_at and rec.qualif_should_be_livred_at > rec.should_be_closed_at:
+                raise ValidationError(_(u"Test date must be before prod date."))
 
     @api.multi
     def _compute_nb_related(self):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
             rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
-
-    @api.multi
-    def set_to_livred_in_prod(self):
-        self.ensure_one().write({
-            'livred_in_prod_at': fields.Datetime.now(),
-            'livred_in_prod_by': self.env.user.id,
-            'state': 'in_prod',
-        })
-
-    @api.multi
-    def set_to_livred_in_qualif(self):
-        self.ensure_one().write({
-            'livred_in_qualif_at': fields.Datetime.now(),
-            'livred_in_qualif_by': self.env.user.id,
-            'state': 'in_qualif',
-        })
-
-    @api.multi
-    def close_milestone(self):
-        self.ensure_one().write({
-            'closed_at': fields.Datetime.now(),
-            'closed_by': self.env.user.id,
-            'state': 'closed',
-        })
-
-    @api.multi
-    def reopen(self):
-        self.ensure_one().write({'state': 'open'})
+            rec.nb_tasks_done = len([task for task in rec.task_ids if task.stage_id.type == 'done'])
 
     @api.multi
     def see_tasks(self):
@@ -109,11 +84,12 @@ class ProjectProjectMilestone(models.Model):
 
     milestone_ids = fields.One2many('project.milestone', 'project_id', u"Milestones")
     nb_milestones = fields.Integer(string=u"Number of milestones", compute='_compute_nb_milestones')
+    has_functional_description = fields.Boolean(u"Activer la communication des tâches", default=False)
 
     @api.multi
     def _compute_nb_milestones(self):
         for rec in self:
-            rec.nb_milestones = len([milestone for milestone in rec.milestone_ids if milestone.state != 'closed'])
+            rec.nb_milestones = len(rec.milestone_ids.ids)
 
     @api.multi
     def milestone_tree_view(self):
@@ -126,7 +102,7 @@ class ProjectProjectMilestone(models.Model):
             'name': _(u"Milestones for project %s") % self.display_name,
             'res_model': 'project.milestone',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree,form',
+            'view_mode': 'kanban,timeline2,tree,form',
             'view_type': 'form',
             'context': ctx,
         }
@@ -139,7 +115,6 @@ class ProjectTaskMilestone(models.Model):
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at",
                                              related="milestone_id.qualif_should_be_livred_at",
                                              readonly=True, store=True)
-    should_be_closed_at = fields.Date(u"Should be in Prod at", related="milestone_id.should_be_closed_at",
-                                      readonly=True, store=True)
-    should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
-                                        readonly=True, store=True)
+    functional_description = fields.Html(u"Description fonctionnelle", translate=True)
+    technical_description = fields.Text(u"Description technique")
+    has_functional_description = fields.Boolean(related='project_id.has_functional_description', readonly=True)

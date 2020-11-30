@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'account_accountant', 'l10n_fr'],
+    'depends': ['project', 'project_task_amount', 'web_timeline2'],
     'description': """
 Milestone, Jalon dans les projets
 =================================
@@ -31,6 +31,7 @@ Milestone, Jalon dans les projets
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'project_milestones.xml',
     ],
     'demo': [],

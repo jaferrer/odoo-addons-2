@@ -1,0 +1,353 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* project_task_invoice
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-09-10 12:21+0000\n"
+"PO-Revision-Date: 2020-09-10 12:21+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "<i class=\"fa fa-arrow-left\"/>\n"
+"                                    <span>Cancel Delivery Date</span>"
+msgstr "<i class=\"fa fa-arrow-left\"/>\n"
+"                                    <span>Annuler la date de livraison</span>"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "<i class=\"fa fa-arrow-right\"/>\n"
+"                                    <span>Mark as delivered</span>"
+msgstr "<i class=\"fa fa-arrow-right\"/>\n"
+"                                    <span>Marquer comme livrée</span>"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_active
+msgid "Active"
+msgstr "Actif"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_line_initial_tasks_amount
+msgid "Amount Task"
+msgstr "Nombre de Jours"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_date_invoiced
+msgid "Billing Date"
+msgstr "Date de facturation"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: project_task_invoice
+#: model:ir.actions.server,name:project_task_invoice.action_cancel_task_delivery
+msgid "Cancel delivery"
+msgstr "Annuler la livraison"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_line_wrong_task_qty
+#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_wrong_line_tasks_qty
+msgid "Check Qty"
+msgstr "Contrôle des quantités"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_coefficient
+msgid "Coefficient"
+msgstr "Coefficient"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_free_comment
+msgid "Comment about time free"
+msgstr "Commentaire sur le temps offert"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_create_uid
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_create_date
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_date_delivered
+msgid "Date delivered"
+msgstr "Date de livraison"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_project_costing_type
+msgid "Default costing type"
+msgstr "Type de chiffrage par défaut"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_display_name
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_estimated_time_customer
+msgid "Duration"
+msgstr "Durée"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_invoice_time
+msgid "Duration To Invoice"
+msgstr "Temps à facturer (réalisation)"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_project_coefficient_ids
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_ids
+msgid "Factor"
+msgstr "Coeff"
+
+#. module: project_task_invoice
+#: selection:project.task,costing_type:0
+msgid "Free"
+msgstr "Offert"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_id
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_id
+msgid "ID"
+msgstr "ID"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Invoicing"
+msgstr "Facturation"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_date_invoiced
+#: model:ir.ui.view,arch_db:project_task_invoice.task_invoice_search
+msgid "Invoice Date"
+msgstr "Date de facturation"
+
+#. module: project_task_invoice
+#: model:ir.actions.act_window,name:project_task_invoice.project_task_dashboard_invoice_action
+#: model:ir.ui.menu,name:project_task_invoice.menu_project_task_dashboard_invoice
+msgid "Invoicing Tasks"
+msgstr "Facturation des tâches"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_stage_is_delivered
+msgid "Is Delivered"
+msgstr "Considérée comme livrée au client"
+
+#. module: project_task_invoice
+#: selection:project.task,costing_type:0
+msgid "Is planned Days"
+msgstr "Temps prévu"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.sale_order_task_invoice_form
+msgid "The amount of the sale lines isn't equal to the planned days's sum of the linked task"
+msgstr "La quantité d'une ligne de vente n'est pas égale à la somme des quantités vendues des tâches liées"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard___last_update
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_write_uid
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_write_date
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: project_task_invoice
+#: selection:project.project,costing_type:0
+#: selection:project.task,costing_type:0
+msgid "Manual"
+msgstr "Manuel"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_open
+msgid "Manuel Supplement"
+msgstr "Supplement manuel"
+
+#. module: project_task_invoice
+#: model:ir.actions.server,name:project_task_invoice.action_mark_task_as_delivered
+msgid "Mark as delivered"
+msgstr "Marquer comme livrée au client"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: project_task_invoice
+#: model:product.product,name:project_task_invoice.ndp_product_product_other
+#: model:product.template,name:project_task_invoice.ndp_product_product_other_product_template
+msgid "Other"
+msgstr "Autres"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_has_new_date
+msgid "Overwrite Billing Date in Tasks"
+msgstr "Remplacer la date de facturation dans les tâches"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_category_product_to_invoice_id
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_product_to_invoice_id
+msgid "Product To Invoice"
+msgstr "Article facturé"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_project_project
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_coefficient_project_id
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Sale"
+msgstr "Ventes"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Sale Order"
+msgstr "Devis"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Sale Order Line"
+msgstr "Ligne de vente"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_sale_order
+msgid "Sales Order"
+msgstr "Bon de commande"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_sale_order_line
+msgid "Sales Order Line"
+msgstr "Ligne de bons de commande"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Costing"
+msgstr "Chiffrage"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_coefficient_edit_project
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Costing / Invoicing"
+msgstr "Chiffrage / Facturation"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_costing_type
+msgid "Costing Type"
+msgstr "Type de chiffrage"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_mark_task_as_delivered
+msgid "Set Task as delivered"
+msgstr "Les mettre comme livrée"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_project_task
+msgid "Task"
+msgstr "Tâche"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_project_task_type
+msgid "Task Stage"
+msgstr "Étape de la tâche"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_task_ids
+msgid "Tasks to Invoice"
+msgstr "Tâches à facturer"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_free
+msgid "Time free"
+msgstr "Temps offert"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_spent
+msgid "Time sold"
+msgstr "Temps vendu"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_with_coefficient
+msgid "Time with coefficient"
+msgstr "Temps avec coeff"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_with_coefficient_rounded
+msgid "Time with coefficient rounded"
+msgstr "Temps avec coeff (arrondi)"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+#: model:ir.ui.view,arch_db:project_task_invoice.task_invoice_search
+msgid "To Invoice"
+msgstr "À facturer"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+msgid "To Invoice Tasks"
+msgstr "Facturer des tâches"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.task_invoice_search
+msgid "To Mark as delivered"
+msgstr "À marquer comme livrée"
+
+#. module: project_task_invoice
+#: model:ir.actions.server,name:project_task_invoice.action_invoice_project_task
+msgid "To invoice those lines"
+msgstr "Facturer ces lignes"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.task_invoice_tree
+msgid "Total"
+msgstr "Total"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_tree
+msgid "Total temps vendu"
+msgstr "Total temps vendu"
+
+#. module: project_task_invoice
+#: selection:project.project,costing_type:0
+#: selection:project.task,costing_type:0
+msgid "With Factor"
+msgstr "Avec coeff"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_invoice_project_task_wizard
+msgid "invoice.project.task.wizard"
+msgstr "invoice.project.task.wizard"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_project_task_category
+msgid "project.task.category"
+msgstr "project.task.category"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_project_task_coefficient
+msgid "project.task.coefficient"
+msgstr "project.task.coefficient"

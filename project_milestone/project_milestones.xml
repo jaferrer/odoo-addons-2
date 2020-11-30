@@ -31,7 +31,7 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
-                    <field name="milestone_id" domain="[('project_id', '=', project_id), ('state', '!=', 'closed')]"
+                    <field name="milestone_id" domain="[('project_id', '=', project_id)]"
                            context="{'default_project_id': project_id}"/>
                 </field>
             </field>
@@ -74,9 +74,9 @@
                     <field name="name"/>
                     <field name="project_id"/>
                     <field name="should_be_closed_at"/>
-                    <filter name="open" string="Open" domain="[('state', '!=', 'closed')]"/>
+                    <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By...">
-                        <filter string="Project" icon="terp-stock_align_left_24" domain="[]"
+                        <filter name="grp_project_id" string="Project" icon="terp-stock_align_left_24" domain="[]"
                                 context="{'group_by':'project_id'}"/>
                     </group>
                 </search>
@@ -89,71 +89,128 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form string="Milestone">
-                    <header>
-                        <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'open')]}"/>
-                        <button name="set_to_livred_in_prod" type="object" string="Is in Production"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
-                        <button name="close_milestone" type="object" string="Close"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
-                        <button name="reopen" type="object" string="Re-open"
-                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
-                        <field name="state" widget="statusbar" readonly="1"/>
-                    </header>
                     <sheet string="Milestone">
                         <div class="oe_button_box" name="button_box">
                             <button name="see_tasks" type="object" groups="base.group_user" class="oe_stat_button"
-                                    icon="fa-tasks">
+                                    icon="fa-tasks" string="Tasks">
                                 <field name="nb_tasks"/>
+                            </button>
+                            <button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button"
+                                    icon="fa-archive">
+                                <field name="active" sting="Active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                             </button>
                         </div>
                         <label for="name" class="oe_edit_only"/>
                         <h1>
                             <field name="name" class="oe_inline"/>
                         </h1>
-                        <group>
-                            <field name="project_id"/>
-                        </group>
-                        <group>
+                        <group col="2" class="label_30">
+                            <group>
+                                <field name="referent_id"/>
+                                <field name="project_id"/>
+                            </group>
                             <group>
                                 <field name="start_date"/>
                                 <field name="qualif_should_be_livred_at"/>
-                                <field name="should_be_test_before"/>
                                 <field name="should_be_closed_at"/>
                             </group>
                         </group>
-                        <group>
-                            <group>
-                                <field name="livred_in_qualif_at"/>
-                                <field name="livred_in_prod_at"/>
-                            </group>
-                            <group>
-                                <field name="livred_in_qualif_by"/>
-                                <field name="livred_in_prod_by"/>
-                            </group>
-                        </group>
-                        <group>
-                            <group>
-                                <field name="closed_at"/>
-                            </group>
-                            <group>
-                                <field name="closed_by"/>
-                            </group>
-                        </group>
-                        <group string="Tâches" name="task_group">
-                            <field name="task_ids" nolabel="1">
-                                <tree nolabel="1" create="false" delete="false">
-                                    <field name="name"/>
-                                    <field name="user_id"/>
-                                    <field name="planned_hours"/>
-                                    <field name="priority" widget="priority"/>
-                                    <field name="stage_id"/>
-                                    <field name="tag_ids"/>
-                                </tree>
-                            </field>
-                        </group>
+                        <notebook>
+                            <page string="Tâches" name="task_page">
+                                <field name="task_ids" nolabel="1"
+                                       context="{'default_project_id': project_id, 'default_milestone_id': active_id}">
+                                    <tree nolabel="1" create="false" delete="false">
+                                        <field name="number"/>
+                                        <field name="name"/>
+                                        <field name="user_id"/>
+                                        <field name="planned_days" sum="Total"/>
+                                        <field name="category_id"/>
+                                        <field name="stage_id"/>
+                                        <field name="tag_ids"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <record id="project_milestone_timeline" model="ir.ui.view">
+            <field name="name">project.milestone.timeline</field>
+            <field name="model">project.milestone</field>
+            <field name="type">timeline2</field>
+            <field name="arch" type="xml">
+                <timeline2 date_start="start_date"
+                           date_stop="qualif_should_be_livred_at"
+                           default_group_by="project_id"
+                           colors="#ec7063: project_id == False;"/>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_milestone_kanban">
+            <field name="name">project.milestone.kanban</field>
+            <field name="model">project.milestone</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="project_id"/>
+                    <field name="start_date"/>
+                    <field name="should_be_closed_at"/>
+                    <field name="qualif_should_be_livred_at"/>
+                    <field name="nb_tasks"/>
+                    <field name="nb_tasks_done"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_details">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="pull-right">
+                                                <field name="project_id" widget="kanban_label_selection"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h3>
+                                        <field name="name"/>
+                                    </h3>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Start:</strong>
+                                                    <field name="start_date"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Qualif:</strong>
+                                                    <field name="qualif_should_be_livred_at"/>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <strong>Prod:</strong>
+                                                    <field name="should_be_closed_at"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" name="gauge_row">
+                                        <div class="col-sm-6" name="gauge_task">
+                                            <a name="see_tasks" type="object">
+                                                <field name="nb_tasks_done" widget="gauge"
+                                                       style="width:120px;height:90;cursor:pointer;"
+                                                       options="{'max_field':'nb_tasks'}">Tâches faites
+                                                </field>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
             </field>
         </record>
 
@@ -161,8 +218,8 @@
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_open': True}</field>
+            <field name="view_mode">kanban,tree,form,timeline2</field>
+            <field name="context">{'default_default_grp_project_id': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click to add a new Milestone.
@@ -170,8 +227,9 @@
             </field>
         </record>
 
-        <menuitem action="project_milestone_action" id="menu_project_milestone" parent="project.menu_project_management"
-                  groups="project.group_project_user"/>
+        <menuitem action="project_milestone_action" id="menu_project_milestone"
+                  parent="project.menu_project_management"
+                  groups="project.group_project_user" sequence="10"/>
 
     </data>
 </openerp>

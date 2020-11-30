@@ -25,7 +25,7 @@
     'category': 'Technical Settings',
     'depends': [
         'project',
-        'web_kanban_state_selection'
+        'web_kanban_state_selection',
     ],
     'description': u"""
 Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
@@ -34,6 +34,8 @@ Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
     'data': [
         'views/rida.xml',
         'security/ir.model.access.csv',
+        'data/sequence.xml',
+        'security/rida_security.xml',
     ],
     'demo': [],
     'test': [],

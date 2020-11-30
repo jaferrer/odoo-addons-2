@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <field name="user_id" position="after">
+                <field name="sequence" position="before">
                     <field name="use_delivery"/>
                 </field>
             </field>
@@ -82,7 +82,7 @@
             <field name="arch" type="xml">
                 <form string="Delivery">
                     <header>
-                        <button name="action_delivery" type="object" string="Deliver" attrs="{'invisible':[('state', '=', 'done')]}"/>
+                        <button name="action_delivery" type="object" string="Done" attrs="{'invisible':[('state', '=', 'done')]}"/>
                         <field name="state" widget="statusbar" readonly="1"/>
                     </header>
                     <sheet string="Delivery" attrs="{'readonly':[('state', '=', 'done')]}">
@@ -94,26 +94,31 @@
                             <field name="project_id"/>
                             <field name="assignee_id"/>
                         </group>
-                        <group  attrs="{'invisible':[('project_id', '=', False)]}" >
-                            <field name="type_id" context="{'default_project_id':project_id}"/>
-                            <field name="effective_date"/>
+                        <group attrs="{'invisible':[('project_id', '=', False)]}" >
+                            <group >
+                                <field name="set_task_stage_id" domain="['|', ('project_id', '=', project_id)]" options="{'no_create': True}"/>
+                                <field name="set_task_tags_ids" domain="['|', ('project_id', '=', project_id), ('project_id', '=', False)]" options="{'no_create': True}" widget="many2many_tags"/>
+                                <field name="type_id" context="{'default_project_id':project_id}" domain="['|', ('project_id', '=', project_id), ('project_id', '=', False)]"/>
+                                <field name="effective_date"/>
+                            </group>
+                            <group attrs="{'invisible':[('state', '!=', 'done')]}">
+                                <field name="done_by_id"/>
+                                <field name="done_effective_date"/>
+                            </group>
                         </group>
-                        <group  attrs="{'invisible':[('state', '!=', 'done')]}" >
-                            <field name="done_by_id"/>
-                            <field name="done_effective_date"/>
-                        </group>
-                        <group string="Tâches" name="task_group">
-                            <field name="task_ids" nolabel="1" attrs="{'invisible':[('project_id', '=', False)]}"
-                                   domain="[('project_id', '=', project_id)]">
-                                <tree nolabel="1">
-                                    <field name="name"/>
-                                    <field name="user_id"/>
-                                    <field name="priority" widget="priority"/>
-                                    <field name="stage_id"/>
-                                    <field name="tag_ids"/>
-                                </tree>
-                            </field>
-                        </group>
+                        <notebook>
+                            <page string="Tâches" name="task_page" attrs="{'invisible':[('project_id', '=', False)]}">
+                                <field name="task_ids" nolabel="1" domain="[('project_id', '=', project_id)]">
+                                    <tree nolabel="1">
+                                        <field name="display_name"/>
+                                        <field name="user_id"/>
+                                        <field name="priority" widget="priority"/>
+                                        <field name="stage_id"/>
+                                        <field name="tag_ids"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
@@ -130,7 +135,7 @@
                 </p>
             </field>
         </record>
-        <menuitem action="project_delivery_action" id="menu_project_delivery" parent="project.menu_project_config"
+        <menuitem action="project_delivery_action" id="menu_project_delivery" parent="project.menu_project_management"
                   groups="project.group_project_user"/>
     </data>
 </openerp>

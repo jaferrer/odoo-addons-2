@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="procurement_order_form_reschedule">
+        <field name="name">procurement.order.form.reschedule</field>
+        <field name="model">procurement.order</field>
+        <field name="inherit_id" ref="procurement.procurement_form_view"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <data>
+                <button name="check" position="after">
+                    <button name="action_reschedule" type="object" string="Reschedule Procurement"
+                            states="running"/>
+                </button>
+            </data>
+        </field>
+    </record>
+</odoo>

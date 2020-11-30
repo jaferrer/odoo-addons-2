@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="sale_order_line_form_view" model="ir.ui.view">
+        <field name="name">sale_order_line_form_view</field>
+        <field name="model">sale.order.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="order_id"/>
+                        <field name="product_id"/>
+                        <field name="product_uom"/>
+                        <field name="product_uom_qty"/>
+                        <field name="qty_invoiced"/>
+                        <field name="qty_delivered"/>
+                    </group>
+                    <label for="initial_task_ids"/>
+                    <field name="initial_task_ids">
+                        <tree>
+                            <field name="display_name"/>
+                            <field name="stage_id"/>
+                            <field name="invoice_time"/>
+                            <field name="date_delivered"/>
+                            <field name="date_invoiced"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

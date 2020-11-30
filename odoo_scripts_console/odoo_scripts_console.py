@@ -17,8 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from opcode import opmap
+
+from odoo.tools.safe_eval import safe_eval, _SAFE_OPCODES as NEW_SAFE_OPCODES
+
+import odoo
 from odoo import models, fields, api, exceptions
-from odoo.tools.safe_eval import safe_eval
+
+# Monkey patch to be able to print inside odoo console
+NEW_SAFE_OPCODES = NEW_SAFE_OPCODES.union(set(opmap[x] for x in ['PRINT_ITEM', 'PRINT_NEWLINE']))
+
+odoo.tools.safe_eval._SAFE_OPCODES = NEW_SAFE_OPCODES
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 

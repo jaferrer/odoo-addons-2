@@ -1,0 +1,312 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* sale_order_dunning
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 11.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-29 13:22+0000\n"
+"PO-Revision-Date: 2019-08-29 13:22+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: sale_order_dunning
+#: model:ir.actions.server,name:sale_order_dunning.dunning_automatic_calculation_for_sale_order_ir_actions_server
+#: model:ir.cron,cron_name:sale_order_dunning.dunning_automatic_calculation_for_sale_order
+#: model:ir.cron,name:sale_order_dunning.dunning_automatic_calculation_for_sale_order
+msgid "Automatic calculation of sale order dunning"
+msgstr "Calcul automatique des relances des ordres de vente"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+#: selection:sale.order.dunning,state:0
+msgid "Cancel"
+msgstr "Annulé"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_form_view
+msgid "Cancel Dunning"
+msgstr "Annuler la relance"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_company_id
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_company_id
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "Company"
+msgstr "Société"
+
+#. module: sale_order_dunning
+#: model:ir.actions.server,name:sale_order_dunning.ir_actions_server_report_relance_for_sale_order
+msgid "Create Dunning"
+msgstr "Relancer"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_create_uid
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_create_uid
+msgid "Created by"
+msgstr "Créée par"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_create_date
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_create_date
+msgid "Created on"
+msgstr "Créée le"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_display_name
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_display_name
+msgid "Display Name"
+msgstr "Nom"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+#: selection:sale.order.dunning,state:0
+msgid "Done"
+msgstr "Terminé"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+#: selection:sale.order.dunning,state:0
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: sale_order_dunning
+#: code:addons/sale_order_dunning/models/dunning.py:148
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_form_dunning_link
+#: model:ir.ui.view,arch_db:sale_order_dunning.view_sale_order_dunning_config
+#, python-format
+msgid "Dunning"
+msgstr "Relance"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_tree_view
+msgid "Dunning Tree"
+msgstr "Liste des relances"
+
+#. module: sale_order_dunning
+#: model:ir.actions.act_window,name:sale_order_dunning.relance_config_action
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_dunning_type_id
+#: model:ir.ui.menu,name:sale_order_dunning.menu_relance_config
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "Dunning Type"
+msgstr "Type de relance"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_type_tree_view
+msgid "Dunning Type Tree"
+msgstr "Liste des types de relance"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_date_done
+msgid "Dunning date done"
+msgstr "Relance traitée le"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_number
+msgid "Dunning number"
+msgstr "Nombre de relance"
+
+#. module: sale_order_dunning
+#: model:ir.actions.act_window,name:sale_order_dunning.dunning_view_action
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_sale_order_dunning_ids
+#: model:ir.ui.menu,name:sale_order_dunning.menu_sale_order_dunning
+#: model:ir.ui.menu,name:sale_order_dunning.menu_sale_order_dunning_action
+msgid "Dunnings"
+msgstr "Relances"
+
+#. module: sale_order_dunning
+#: model:ir.model,name:sale_order_dunning.model_mail_compose_message
+msgid "Email composition wizard"
+msgstr "Rédaction de courriel"
+
+#. module: sale_order_dunning
+#: code:addons/sale_order_dunning/models/dunning.py:188
+#: code:addons/sale_order_dunning/models/dunning.py:193
+#, python-format
+msgid "Error !"
+msgstr "Erreur !"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "Group by..."
+msgstr "Groupé par ..."
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_id
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_id
+msgid "ID"
+msgstr "ID"
+
+#. module: sale_order_dunning
+#: model:ir.model,name:sale_order_dunning.model_account_invoice
+msgid "Invoice"
+msgstr ""
+
+#. module: sale_order_dunning
+#: model:ir.model,name:sale_order_dunning.model_sale_order_dunning
+msgid "Invoice Dunning"
+msgstr ""
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning___last_update
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type___last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_write_uid
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_write_date
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_write_date
+msgid "Last Updated on"
+msgstr "Dernière modification le"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_mail_template_id
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_mail_template_id
+msgid "Mail Template"
+msgstr "Modèle de courriel"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_name
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: sale_order_dunning
+#: code:addons/sale_order_dunning/models/dunning.py:188
+#, python-format
+msgid "No next Dunning Type for the sale order %s"
+msgstr "Pas de type de relance suivant pour l'ordre d'achat %s"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_note
+msgid "Notes"
+msgstr "Notes"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_number
+msgid "Number of Dunning send"
+msgstr "Nombre de relances envoyées"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_partner_id
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "Partner"
+msgstr "Client"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_form_view
+msgid "Print Dunning"
+msgstr "Imprimer la relance"
+
+#. module: sale_order_dunning
+#: model:ir.model,name:sale_order_dunning.model_sale_order
+msgid "Quotation"
+msgstr "Devis"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_report_id
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_report_id
+msgid "Report"
+msgstr "Rapport"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_user_id
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "Responsible"
+msgstr "Responsable"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_order_ids
+msgid "Sale Orders"
+msgstr "Ordres de vente"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_form_view
+msgid "Send Dunning"
+msgstr "Envoyer la relance"
+
+#. module: sale_order_dunning
+#: code:addons/sale_order_dunning/models/dunning.py:127
+#, python-format
+msgid "Send a message"
+msgstr "Envoyer un message"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+#: selection:sale.order.dunning,state:0
+msgid "Sent"
+msgstr "Envoyé"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_sequence_id
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_sequence_id
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_state
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_search_view
+msgid "State"
+msgstr "État"
+
+#. module: sale_order_dunning
+#: sql_constraint:sale.order.dunning.type:0
+msgid "The Dunning number must be unique per company !"
+msgstr "Le nombre de relance doit être unique par société !"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_amount_total_signed
+msgid "Total"
+msgstr "Total"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_dunning_form_view
+msgid "Validate Dunning"
+msgstr "Valider la relance"
+
+#. module: sale_order_dunning
+#: code:addons/sale_order_dunning/models/dunning.py:193
+#, python-format
+msgid "You can't create a Dunning on a sale order which is not sent"
+msgstr "Vous ne pouvez pas créer une relance sur un devis qui n'est pas en état Envoyé"
+
+#. module: sale_order_dunning
+#: model:ir.model,name:sale_order_dunning.model_sale_order_dunning_type
+msgid "sale.order.dunning.type"
+msgstr "type de relance pour les ordres de vente"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.view_sale_order_dunning_config
+msgid "Dunning are sent from orders' validity date minus this duration expressed in days."
+msgstr "Les relances sont envoyées à partir de la fin de la date de validité des devis, moins cette durée (en jours)"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_view_search_inherit_quotation_dunning_filter
+msgid "Dunning 15 days before"
+msgstr "Relance à 15 jours"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_view_search_inherit_quotation_dunning_filter
+msgid "Dunning 30 days before"
+msgstr "Relance à 30 jours"
+
+#. module: sale_order_dunning
+#: model:ir.ui.view,arch_db:sale_order_dunning.sale_order_view_search_inherit_quotation_dunning_filter
+msgid "Dunning 7 days before"
+msgstr "Relance à 7 jours"
+
+#. module: sale_order_dunning
+#: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_delay_next_dunning_date
+msgid "Delay before next dunning"
+msgstr "Délai avant la prochaine relance"

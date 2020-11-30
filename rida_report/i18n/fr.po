@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-10 08:40+0000\n"
-"PO-Revision-Date: 2019-01-10 08:40+0000\n"
+"POT-Creation-Date: 2019-10-24 13:33+0000\n"
+"PO-Revision-Date: 2019-10-24 13:33+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -21,19 +21,85 @@ msgid "Action"
 msgstr "Action"
 
 #. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_reference
+msgid "Action reference"
+msgstr "Référence"
+
+#. module: rida_report
+#: model:ir.ui.view,arch_db:rida_report.rida_line_search
+msgid "Actions done"
+msgstr "Actione terminées"
+
+#. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "Actions only"
 msgstr "Actions seulement"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
-msgid "All actions done"
-msgstr "Toutes les actions terminées"
+msgid "Actions to do"
+msgstr "Actions à faire"
 
 #. module: rida_report
-#: model:ir.ui.view,arch_db:rida_report.rida_line_search
-msgid "All actions to do"
-msgstr "Toutes les actions à faire"
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_active
+msgid "Active"
+msgstr "Actif"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_active_line_ids
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Active lines"
+msgstr "Lignes actives"
+
+#. module: rida_report
+#: selection:rida.report,state:0
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: rida_report
+#: model:ir.ui.view,arch_db:rida_report.rida_report_search
+msgid "Archived projects only"
+msgstr "Projets archivés seulement"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_attachment_ids
+msgid "Attachments"
+msgstr "Pièces jointes"
+
+#. module: rida_report
+#: selection:rida.line,state:0
+msgid "Cancelled"
+msgstr "Annulée"
+
+#. module: rida_report
+#: selection:rida.line,state:0
+msgid "Closed"
+msgstr "Fermée"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_code
+msgid "Code"
+msgstr "Code"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_comment
+msgid "Comment"
+msgstr "Suivi/Commentaire"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_date_done
+msgid "Completion date"
+msgstr "Date de réalisation"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_context
+msgid "Context"
+msgstr "Contexte"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_contributor_ids
+msgid "Contributors"
+msgstr "Contributeurs"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_create_uid
@@ -45,7 +111,7 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_create_date
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_create_date
 msgid "Created on"
-msgstr "Créé le"
+msgstr "Date de création"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_creation_date
@@ -68,6 +134,12 @@ msgid "Description"
 msgstr "Description"
 
 #. module: rida_report
+#: model:ir.ui.view,arch_db:rida_report.rida_line_tree
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Details"
+msgstr "Détails"
+
+#. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_display_name
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_display_name
 msgid "Display Name"
@@ -76,12 +148,17 @@ msgstr "Nom affiché"
 #. module: rida_report
 #: selection:rida.line,state:0
 msgid "Done"
-msgstr "Terminé"
+msgstr "Réalisée"
+
+#. module: rida_report
+#: selection:rida.line,state:0
+msgid "Duplicate"
+msgstr "Doublon"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_date
 msgid "Expected date"
-msgstr "Echéance"
+msgstr "Echéance initiale"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
@@ -95,6 +172,12 @@ msgid "ID"
 msgstr "ID"
 
 #. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_inactive_line_ids
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Inactive lines"
+msgstr "Lignes inactives"
+
+#. module: rida_report
 #: selection:rida.line,type:0
 msgid "Information"
 msgstr "Information"
@@ -103,6 +186,11 @@ msgstr "Information"
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "Informations only"
 msgstr "Informations seulement"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_name
+msgid "Label"
+msgstr "Libellé du RIDA"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line___last_update
@@ -119,8 +207,24 @@ msgstr "Dernière mise à jour par"
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_write_date
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_write_date
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_last_modif_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
+
+#. module: rida_report
+#: selection:rida.report,auth_mode:0
+msgid "Les utilisateurs invités"
+msgstr "Les utilisateurs invités"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_level
+msgid "Level"
+msgstr "Niveau"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_line_cpt
+msgid "Line cpt"
+msgstr "Nombre de lignes"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_state
@@ -131,34 +235,56 @@ msgstr "État de la ligne"
 #: model:ir.actions.act_window,name:rida_report.rida_line_action
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_line_ids
 #: model:ir.ui.view,arch_db:rida_report.rida_report_form
+#: model:ir.ui.menu,name:rida_report.rida_line_menu
 msgid "Lines"
 msgstr "Lignes"
 
 #. module: rida_report
+#: model:ir.ui.view,arch_db:rida_report.rida_line_search
+msgid "Lines for which I am responsible"
+msgstr "Lignes dont je suis responsable"
+
+#. module: rida_report
 #: model:ir.ui.menu,name:rida_report.rida_line_menu
+#: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "My Lines"
-msgstr "Mes lignes"
+msgstr "Mes Lignes"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
-msgid "My actions done"
-msgstr "Mes actions terminées"
+msgid "My contributions"
+msgstr "Mes contributions"
 
 #. module: rida_report
-#: model:ir.ui.view,arch_db:rida_report.rida_line_search
-msgid "My actions to do"
-msgstr "Mes actions à faire"
-
-#. module: rida_report
-#: model:ir.ui.view,arch_db:rida_report.rida_line_search
-msgid "My lines"
-msgstr "Mes lignes"
-
-#. module: rida_report
-#: model:ir.model.fields,field_description:rida_report.field_rida_report_name
 #: model:ir.ui.view,arch_db:rida_report.rida_report_form
 msgid "Name"
 msgstr "Nom"
+
+#. module: rida_report
+#: selection:rida.line,state:0
+#: selection:rida.report,state:0
+msgid "Open"
+msgstr "Ouvert"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P1 High"
+msgstr "P1 Élevée"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P2 Medium"
+msgstr "P2 Moyenne"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P3 Low"
+msgstr "P3 Faible"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_priority
+msgid "Priority"
+msgstr "Priorité"
 
 #. module: rida_report
 #: model:ir.actions.act_window,name:rida_report.rida_report_action
@@ -175,15 +301,20 @@ msgid "Related RIDA"
 msgstr "RIDA lié"
 
 #. module: rida_report
-#: model:ir.model.fields,field_description:rida_report.field_rida_report_project_id
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_project_id
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_project_id
 msgid "Related project"
 msgstr "Projet"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_user_id
 msgid "Related user"
-msgstr "Pilote"
+msgstr "Responsable action"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_state
+msgid "Status"
+msgstr "Statut"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_theme_id
@@ -192,15 +323,25 @@ msgid "Theme"
 msgstr "Client"
 
 #. module: rida_report
-#: selection:rida.line,state:0
-msgid "To do"
-msgstr "À faire"
+#: selection:rida.report,auth_mode:0
+msgid "Tout le monde"
+msgstr "Tout le monde"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_type
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "Type"
 msgstr "Type"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_auth_mode
+msgid "Utilisateurs autorisés"
+msgstr "Utilisateurs autorisés"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_user_ids
+msgid "Utilisateurs invités"
+msgstr "Utilisateurs invités"
 
 #. module: rida_report
 #: model:ir.model,name:rida_report.model_rida_line

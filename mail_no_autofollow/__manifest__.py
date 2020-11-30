@@ -22,16 +22,16 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
+    'category': 'Mail',
     'depends': ['mail'],
     'description': """
 No Auto-Subscription of Partners
 ================================
 Automatically remove partners that are not users from automatic subscription to objects.
 
-This tyically prevents customers from being automatically subscribed to their quotes, invoices, etc.
+This typically prevents customers from being automatically subscribed to their quotes, invoices, etc.
 
-We use this hack because wa can't inherit of a Abstract model
+We use this hack because we can't inherit of an Abstract model
 
 link to how and why we do that
 

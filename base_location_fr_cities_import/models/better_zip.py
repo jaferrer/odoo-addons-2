@@ -33,10 +33,10 @@ class BetterZipWithUpdate(models.Model):
     @api.multi
     def update_french_zipcodes(self):
         _logger.info(u"Started updating french zip codes database")
-        france_id = self.env['res.country'].search([('name', '=', 'France')])[0]
+        france_id = self.env.ref('base.fr')
 
         already_known = set(self.env['res.better.zip'].search(
-            [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.city)))
+            [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.code)))
 
         ans = urllib.urlopen('https://datanova.legroupe.laposte.fr/explore/dataset/laposte_hexasmal/download/'
                              '?format=csv&timezone=Europe/Berlin&use_labels_for_header=true')
@@ -45,18 +45,29 @@ class BetterZipWithUpdate(models.Model):
         for line in ans.readlines():
             line = line.strip()
             try:
-                code, _, name, city, city_complement, _ = line.split(';')
+                # TO CHECK: le format CSV a été modifié par La Poste, et ne correspond pas à sa propre doc.
+                # À surveiller car doublon du libellé d'acheminement
+                # Le format de la ligne suivante a été modifié le 25/02/2020
+                code, city, name, city_complement, _, coordinates = line.split(';')
+                latitude, longitude = (0, 0)
+                coordinates = coordinates and unicode(coordinates).replace(u" ", u"")
+                if coordinates:
+                    splitted_coordinates = coordinates.split(u",")
+                    if len(splitted_coordinates) == 2:
+                        [latitude, longitude] = splitted_coordinates
                 if city_complement:
                     city += " - %s" % city_complement
-                if (name, city) not in already_known:
+                if (name, code) not in already_known:
                     self.env['res.better.zip'].create({
                         'name': name,
                         'code': code,
                         'city': city,
                         'country_id': france_id.id,
+                        'latitude': float(latitude),
+                        'longitude': float(longitude),
                     })
             except ValueError:
-                # If the current line's format is wrong
-                pass
+                if line:
+                    _logger.info(u"Failed to create/update zip for \"%s\" from 'La Poste' API", line)
 
         _logger.info(u"Zip codes update succeed")

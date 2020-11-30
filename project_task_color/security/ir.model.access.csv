@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_model_project_task_color_group_project_user,access_model_project_task_color_group_project_user,model_project_task_color,project.group_project_user,1,1,1,1
+access_model_project_task_color_group_portal,access_model_project_task_color_group_portal,model_project_task_color,base.group_portal,1,0,0,0

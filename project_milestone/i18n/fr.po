@@ -40,7 +40,7 @@ msgstr "Fermée"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_closed_by
 msgid "Closed by"
-msgstr "Closed par"
+msgstr "Fermé par"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_create_uid
@@ -53,19 +53,10 @@ msgid "Created on"
 msgstr "Créé le"
 
 #. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_prod_at
-msgid "Delivery in Prod at"
-msgstr "Livrée en production le"
-
-#. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_prod_by
 msgid "Delivery in Prod by"
 msgstr "Livrée en production par"
 
-#. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_qualif_at
-msgid "Delivery in Test at"
-msgstr "Livrée en qualification le"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_livred_in_qualif_by
@@ -156,11 +147,6 @@ msgid "Number of days"
 msgstr "Nombre de jours"
 
 #. module: project_milestone
-#: selection:project.milestone,state:0
-msgid "Open"
-msgstr "Ouvert"
-
-#. module: project_milestone
 #: model:ir.model,name:project_milestone.model_project_project
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_project_id
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
@@ -174,6 +160,7 @@ msgstr "Recherche d'une Milestone"
 
 #. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
+#: selection:project.milestone,state:0
 msgid "Open"
 msgstr "Ouverte"
 
@@ -183,6 +170,11 @@ msgid "Should be in Prod at"
 msgstr "Date de mise en Production"
 
 #. module: project_milestone
+#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at_internal
+msgid "Should be in test at (internal)"
+msgstr "Date de mise en Qualif (interne)"
+
+#. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_start_date
 msgid "Start date"
 msgstr "Date de début"
@@ -190,12 +182,7 @@ msgstr "Date de début"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at
 msgid "Should be in Test at"
-msgstr "Date de mise en recette"
-
-#. module: project_milestone
-#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_should_be_test_before
-msgid "Should be tested before"
-msgstr "Date de fin du recettage"
+msgstr "Date de mise en Qualif"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_state
@@ -215,7 +202,7 @@ msgstr "Titre"
 
 #. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_form
-msgid "Tâches"
+msgid "Tasks"
 msgstr "Tâches"
 
 #. module: project_milestone

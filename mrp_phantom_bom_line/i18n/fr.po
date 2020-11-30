@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_phantom_bom_line
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-19 14:40+0000\n"
+"PO-Revision-Date: 2019-11-19 14:40+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mrp_phantom_bom_line
+#: model:ir.model.fields,field_description:mrp_phantom_bom_line.field_mrp_bom_line_type
+msgid "BoM Line Type"
+msgstr "Type de composant"
+
+#. module: mrp_phantom_bom_line
+#: model:ir.model.fields,help:mrp_phantom_bom_line.field_mrp_bom_line_type
+msgid ""
+"Phantom: this product line will not appear in the raw materials of manufacturing "
+"orders, it will be directly replaced by the raw materials of its own BoM, "
+"without triggering an extra manufacturing order."
+msgstr "Composant fantome : Ce composant n'apparaît pas dans les composants de l'ordre de fabrication. Il est directement remplacé par les composants de sa propre nomenclature sans déclencher un ordre de fabrication supplémentaire"
+
+#. module: mrp_phantom_bom_line
+#: selection:mrp.bom.line,type:0
+msgid "Normal"
+msgstr "Normal"
+
+#. module: mrp_phantom_bom_line
+#: selection:mrp.bom.line,type:0
+msgid "Phantom"
+msgstr "Fantôme"
+
+#. module: mrp_phantom_bom_line
+#: code:addons/mrp_phantom_bom_line/mrp_phantom_bom_line.py:83
+#, python-format
+msgid "BoM \"%s\" contains a phantom BoM line but the product \"%s\" does not "
+"have any BoM defined."
+msgstr "La nomenclature \"%s\" contient une ligne de nomenclature fantôme mais le produit \"%s\" n'a pas de nomenclature définie."

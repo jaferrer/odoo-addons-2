@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Mini sous tâche',
+    'name': 'Project Task Item',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -32,6 +32,7 @@ Mini sous tâche
     'data': [
         'security/ir.model.access.csv',
         'project_task_items.xml',
+        'security/ir_rules.xml',
     ],
     'demo': [],
     'test': [],

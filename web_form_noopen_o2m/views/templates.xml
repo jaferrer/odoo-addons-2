@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="assets_backend" name="web_form_noopen_o2m assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_form_noopen_o2m/static/src/js/web_form_noopen_o2m.js"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>
