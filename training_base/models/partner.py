@@ -28,6 +28,7 @@ class TrainingPartner(models.Model):
     is_institution = fields.Boolean("Is an institution")
     is_training_location = fields.Boolean("Is a training location")
     is_remote_training_location = fields.Boolean("Is a remote training location")
+    is_accessible_prm = fields.Boolean("Accessible to people with reduced mobility")
     attendance = fields.Selection([('normal', "Attendance not known"),
                                    ('blocked', "No attendance"),
                                    ('done', "Attendance")], string="Attendance", compute='_compute_attendance')
