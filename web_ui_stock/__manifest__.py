@@ -34,6 +34,7 @@ This modules allows to use the barcode scanner.
         'views/web_ui_stock.xml',
         'security/ir.model.access.csv',
     ],
+    'qweb': ['static/src/xml/qweb.xml'],
     'demo': [],
     'test': [],
     'installable': True,

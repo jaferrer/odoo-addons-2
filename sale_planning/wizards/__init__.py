@@ -17,5 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import sale_planning_wizard
-from . import confirm_period_wizard
+from . import merge_purchase_planning_wizard
+from . import add_product_planning_wizard
+from . import add_categ_planning_wizard
+from . import confirm_wizard

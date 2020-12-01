@@ -25,7 +25,7 @@
     'category': 'Purchase',
     'depends': [
         'res_calendar_season',
-        'purchase',
+        'purchase_stock',
     ],
     'description': """
 Planning
@@ -38,8 +38,6 @@ Settle the purchase planning
         'views/product_supplierinfo.xml',
         'views/purchase_planning.xml',
         'views/period_planning.xml',
-        'wizards/purchase_planning_wizard.xml',
-        'wizards/confirm_period_wizard.xml',
         'views/purchase_planning_menu.xml',
     ],
     'demo': [],

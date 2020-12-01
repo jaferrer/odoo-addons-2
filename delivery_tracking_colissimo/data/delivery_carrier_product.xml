@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--<odoo noupdate="1"> TODO-->
-<odoo>
+<odoo noupdate="1"> TODO
+<!--<odoo>-->
     <record model="delivery.carrier" id="colissimo_6A">
         <field name="name">Colissimo Domicile - sans signature</field>
         <field name="delivery_type">colissimo</field>

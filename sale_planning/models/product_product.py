@@ -25,4 +25,4 @@ class ProductProduct(models.Model):
 
     @api.model
     def _get_products_for_sale_forecast(self):
-        return self.search([('sale_ok', '=', True)])
+        return [('sale_ok', '=', True)]

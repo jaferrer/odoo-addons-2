@@ -23,6 +23,7 @@ from odoo import fields, models, api
 class SalePlanning(models.Model):
     _name = 'sale.planning'
     _description = "Sale Planning"
+    _rec_name = 'period_id'
 
     product_id = fields.Many2one('product.product', u"Product", required=True, readonly=True)
     stock_qty = fields.Float(u"Quantity in stock", related='product_id.qty_available', readonly=True)
@@ -31,11 +32,18 @@ class SalePlanning(models.Model):
     sale_last_year = fields.Float(u"Last year sales", required=True, readonly=True)
     sale_qty = fields.Float(u"Quantity to sale")
     reserve_qty = fields.Float(u"Quantity to reserve")
+    categ_id = fields.Many2one('product.category', "Product category")
     state = fields.Selection([
         ('draft', u"Draft"),
         ('confirm', "Confirm"),
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
+    purchase_state = fields.Selection([
+        ('draft', u"Draft"),
+        ('confirm', u"Confirmed"),
+        ('lock', u"Locked"),
+        ('done', u"Done"),
+    ], related='period_id.purchase_state')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -48,7 +56,7 @@ class SalePlanning(models.Model):
         result = {}
         for (period_id), product_ids in grouped_val_list.items():
             period = self.env['period.planning'].browse(period_id)
-            start_date, end_date = period.season_id._get_duration(period.year_id.number - 1)
+            start_date, end_date = period.season_id._get_duration(period.year_id.name - 1)
             result_group = self.env['sale.order.line'].read_group(
                 domain=[
                     ('order_id.confirmation_date', '>=', start_date),
@@ -63,6 +71,13 @@ class SalePlanning(models.Model):
         for vals in vals_list:
             vals['sale_last_year'] = result.get((vals['period_id'], vals['product_id']), 0)
         return super(SalePlanning, self).create(vals_list)
+
+    @api.multi
+    def write(self, vals):
+        vals['state'] = "draft"
+        for rec in self:
+            rec.period_id.write({'sale_state': "draft"})
+        super(SalePlanning, self).write(vals)
 
     @api.multi
     def confirm_forecast(self):

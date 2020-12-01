@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- permet de ne plus modifier l'url automatiquement car elle contient http au lieu de https sur nestor -->
+        <record model="ir.config_parameter" id="config_yousign_url_freeze">
+            <field name="key">web.base.url.freeze</field>
+            <field name="value">True</field>
+        </record>
+
+    </data>
+</odoo>

@@ -5,48 +5,112 @@
         <field name="name">period_sale_planning_kanban</field>
         <field name="model">period.planning</field>
         <field name="arch" type="xml">
-            <kanban class="oe_background_grey o_kanban_dashboard" create="0">
+            <kanban class="oe_background_grey o_kanban_dashboard">
                 <field name="season_id"/>
                 <field name="year_id"/>
+                <field name="count_sale_planning" invisible="1"/>
                 <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_global_click">
-                                <a type="action" name="%(sale_planning_view_action)d">
-                                    <div t-attf-class="o_kanban_card_header">
-                                        <div class="o_kanban_card_header_title">
-                                            <field name="season_id"/>
-                                            <field name="year_id"/>
-                                            <span class="float-right text-right">
-                                                <field name="sale_state" widget="label_selection" options="{'classes': {'confirm': 'warning','done': 'success'}}"/>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="container o_kanban_card_content">
-                                        <div class="col-6 o_kanban_primary_left">
-                                            <div t-if="record.count_sale_planning.raw_value > 0" class="row">
-                                                <div class="col-9">
-                                                    Forecast
-                                                </div>
-                                                <div class="col-3">
-                                                    <field name="count_sale_planning"/>
-                                                </div>
-                                            </div>
-                                        </div>
+                    <t t-name="kanban-box">
+                        <div>
+                            <div t-attf-class="o_kanban_card_header oe_kanban_global_click">
+                                <a type="object" name="see_planning_action">
+                                    <div class="o_kanban_card_header_title">
+                                        <field name="display_name"/>
+                                        <field name="purchase_state" invisible="1"/>
+                                        <span class="float-right text-right">
+                                            <field name="sale_state" widget="label_selection"
+                                                   options="{'classes': {'confirm': 'warning','done': 'success'}}"/>
+                                        </span>
                                     </div>
                                 </a>
                             </div>
-                        </t>
-                    </templates>
+                            <div class="container o_kanban_card_content">
+                                <button t-if="record.count_completed_sale_planning.raw_value > 0 and record.sale_state.raw_value == 'draft'"
+                                        class="btn btn-primary" name="confirm_sale_planning" type="object">
+                                    Confirm</button>
+                            </div>
+                            <div class="oe_kanban_bottom_left oe_kanban_global_click" style="height:150px">
+                                <a type="action" name="%(sale_planning.sale_planning_view_action)d">
+                                    <field name="count_completed_sale_planning" widget="gauge"
+                                           options="{'max_field': 'count_sale_planning', 'style': 'height: 150px;'}"/>
+                                </a>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
             </kanban>
         </field>
     </record>
 
+    <record id="period_sale_planning_form" model="ir.ui.view">
+        <field name="name">period_sale_planning_form</field>
+        <field name="model">period.planning</field>
+        <field name="arch" type="xml">
+            <form edit="false">
+                <header>
+                    <button class="btn btn-primary" name="confirm_sale_planning" type="object" string="Confirm"
+                            attrs="{'invisible':[('sale_state', '!=', 'draft')]}"/>
+                    <field name="sale_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "active"}'/>
+                        </button>
+                        <button name="see_sale_planning"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="count_sale_planning" string="Sale planning" widget="statinfo"/>
+                        </button>
+                        <button name="see_purchase_planning"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="count_purchase_planning" string="Purchase planning" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         attrs="{'invisible':[('period_warning', '=', False)]}">
+                        An unarchived planning exist for this period
+                    </div>
+                    <group>
+                        <field name="count_completed_sale_planning" invisible="1"/>
+                        <field name="season_id" options="{'no_create_edit': True}"/>
+                        <field name="year_id" options="{'no_create_edit': True}"/>
+                    </group>
+                    <group>
+                        <field name="period_warning" invisible="1"/>
+                        <field name="purchase_state" invisible="1"/>
+                        <button name="add_categ" string="Add product by category" type="object" class="btn-primary"
+                                attrs="{'invisible':[('sale_state', 'not in', ('draft', 'confirm'))]}"/>
+                        <button name="add_product" string="Add product by selection" type="object" class="btn-primary"
+                                attrs="{'invisible':[('sale_state', 'not in', ('draft', 'confirm'))]}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="period_sale_planning_view_action" model="ir.actions.act_window">
-        <field name="name">Period planning</field>
+        <field name="name">Sale planning</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">period.planning</field>
         <field name="view_id" ref="sale_planning.period_sale_planning_kanban"/>
-        <field name="view_mode">kanban</field>
+        <field name="view_mode">kanban,form</field>
+    </record>
+
+    <record id="period_sale_planning_filter" model="ir.ui.view">
+        <field name="name">period_sale_planning_filter</field>
+        <field name="model">period.planning</field>
+        <field name="inherit_id" ref="purchase_planning.period_planning_filter"/>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <field name="sale_state" string="Sale forecast statut"/>
+                <filter name="sale_state_filter" string="Sale forecast draft" domain="[('sale_state','=', 'draft')]"/>
+            </search>
+        </field>
     </record>
 
 </odoo>

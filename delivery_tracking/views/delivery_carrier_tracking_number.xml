@@ -5,10 +5,11 @@
         <field name="name">delivery_carrier_tracking_number_tree</field>
         <field name="model">delivery.carrier.tracking.number</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree create="false" edit="false" delete="false" duplicate="false">
                 <field name="carrier_id"/>
                 <field name="name"/>
                 <field name="create_date"/>
+                <button name="download_label" icon="fa-paperclip" type="object"/>
             </tree>
         </field>
     </record>

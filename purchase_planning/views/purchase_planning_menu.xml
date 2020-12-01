@@ -1,26 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_purchase_planning"
-            name="Purchase Forecast"
-            parent="purchase.menu_purchase_root"
-            sequence="5"
-            groups="sales_team.group_sale_manager"/>
-
-    <menuitem id="create_forecast_menu"
-          name="Create new forecast"
-          parent="menu_purchase_planning"
-          action="purchase_planning_create_action"
-          sequence="1"/>
-
-    <menuitem id="view_forecast_menu"
-          name="Forecast"
-          parent="menu_purchase_planning"
-          action="period_planning_view_action"
-          sequence="2"/>
-
-    <menuitem id="confirm_forecast_menu"
-          name="Confirm forecast"
-          parent="menu_purchase_planning"
-          action="purchase_planning_confirm_action"
-          sequence="3"/>
+              name="Purchase Forecast"
+              parent="purchase.menu_purchase_root"
+              sequence="5"
+              action="period_planning_view_action"
+              groups="sales_team.group_sale_manager"/>
 </odoo>

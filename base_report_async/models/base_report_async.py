@@ -13,6 +13,8 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 from unidecode import unidecode
 
+from genshi.template.eval import UndefinedError
+
 from odoo.addons.queue_job.job import job
 from odoo.addons.http_routing.models.ir_http import slugify
 
@@ -80,7 +82,6 @@ class IrActionsReport(models.Model):
     @api.multi
     def job_asynchronous_report_generation(self, records_to_print):
         self.ensure_one()
-        # needs module web_report_improved
         if 'type_multi_print' in self._fields and self.type_multi_print == 'zip' and len(records_to_print) > 1:
             attachments_to_zip = self.env['ir.attachment']
             index = 0
@@ -91,7 +92,7 @@ class IrActionsReport(models.Model):
                     new_attachment = self.get_attachment_base64_encoded(record_to_print)
                     attachments_to_zip |= new_attachment
                 except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
-                        ValueError) as error:
+                        ValueError, UndefinedError, AttributeError, TypeError) as error:
                     self.send_failure_mail(error)
                     return
             zip_file_name = '%s' % (slugify(self.name.replace('/', '-')) or 'documents')
@@ -99,19 +100,21 @@ class IrActionsReport(models.Model):
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                 for att in attachments_to_zip:
-                    zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
-                                      base64.b64decode(att.with_context(bin_size=False).datas))
-            with open(zip_file_path, 'r') as zf:
-                attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name,
+                    b64_data = att.with_context(bin_size=False).datas
+                    zip_file.writestr(att.datas_fname.replace(os.sep, '-'), base64.b64decode(b64_data))
+            with open(zip_file_path, 'rb') as zf:
+                b64_data = base64.b64encode(zf.read())
+                attachment = self._create_temporary_report_attachment(b64_data, zip_file_name,
                                                                       force_mimetype='application/zip')
         else:
             try:
                 attachment = self.get_attachment_base64_encoded(records_to_print)
-            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm, ValueError) as error:
+            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
+                    ValueError, UndefinedError, AttributeError, TypeError) as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        url = base_url + "/web/content/%s/%s" % (attachment.id, attachment.name)
+        url = base_url + "/web/content/%s/%s?download=true" % (attachment.id, attachment.name)
         self.send_mail_report_async_to_user(url)
         return u"report generated"
 
@@ -120,7 +123,10 @@ class IrActionsReport(models.Model):
         self.ensure_one()
         name = u"Report"
         if self.print_report_name:
-            name = eval(self.print_report_name, {'object': record, 'time': time})
+            if len(record) == 1:
+                name = eval(self.print_report_name, {'object': record, 'time': time})
+            else:
+                name = self.display_name
         data = {
             'model': record._name,
             'ids': record.ids,
@@ -150,7 +156,8 @@ This is an automated message please do not reply.</span></p>""").format(url, exp
     @api.multi
     def send_mail_report_async_to_user(self, url):
         self.ensure_one()
-        mail = self.env['mail.mail'].create(self.get_mail_data_report_async_success(url))
+        mail = self.env['mail.mail'].create(self.with_context(lang=self.env.user.lang).
+                                            get_mail_data_report_async_success(url))
         mail.send()
 
     @api.multi

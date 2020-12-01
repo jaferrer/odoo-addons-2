@@ -5,14 +5,15 @@
         <field name="name">sale_planning_tree</field>
         <field name="model">sale.planning</field>
         <field name="arch" type="xml">
-            <tree string="Sale planning" editable="top" decoration-warning="sale_qty==0 and reserve_qty==0">
+            <tree string="Sale planning" create="false" delete="false" editable="top" decoration-warning="sale_qty==0 and reserve_qty==0">
+                <field name="purchase_state" invisible="1"/>
                 <field name="product_id"/>
                 <field name="period_id"/>
                 <field name="stock_qty"/>
                 <field name="forecast_qty"/>
                 <field name="sale_last_year"/>
-                <field name="sale_qty"/>
-                <field name="reserve_qty"/>
+                <field name="sale_qty" attrs="{'invisible':[('purchase_state','in',('lock','done'))]}"/>
+                <field name="reserve_qty" attrs="{'invisible':[('purchase_state','in',('lock','done'))]}"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -55,13 +56,11 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">sale.planning</field>
         <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="sale_planning_create_action" model="ir.actions.act_window">
-        <field name="name">Sale planning</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">sale.planning</field>
-        <field name="view_mode">tree</field>
+        <field name="context">{
+                    'search_default_period_id': [active_id],
+                    'default_period_id': active_id,
+            }
+        </field>
     </record>
 
     <record id="sale_planning_filter" model="ir.ui.view">
@@ -72,10 +71,12 @@
             <search string="Search">
                 <field name="product_id" string="Product"/>
                 <field name="period_id" string="Period"/>
+                <field name="categ_id" string="Category"/>
                 <filter name="this_year" string="Current Year" domain="[('period_id.year_id.number', '=', context_today().strftime('%%Y'))]"/>
                 <group expand="0" string="Group By">
                     <filter name="product_group" string="Product" domain="[]" context="{'group_by':'product_id'}"/>
                     <filter name="period_group" string="Period" domain="[]" context="{'group_by':'period_id'}"/>
+                    <filter name="categ_group" string="Category" domain="[]" context="{'group_by':'categ_id'}"/>
                 </group>
            </search>
         </field>

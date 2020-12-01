@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates  id="template" xml:space="preserve">
+<t t-extend="Sidebar">
+    <t t-jquery="t[t-if=&quot;section.name == &apos;buttons&apos;&quot;]" t-operation="replace">
+        <t t-if="section.name == 'buttons'">
+            <t t-foreach="widget.items[section.name]" t-as="item" >
+                <a t-att-title="item.title or None" t-att-data-section="section.name" t-att-data-index="item_index" t-att-href="item.url" t-att-class="item.classname">
+                    <t t-raw="item.label"/>
+                </a>
+            </t>
+        </t>
+    </t>
+</t>
+</templates>

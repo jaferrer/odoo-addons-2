@@ -200,7 +200,8 @@ class AccountInvoice(models.Model):
         dunning_type_ids = self.invoice_dunning_ids.filtered(lambda it: it.state == 'send').mapped('dunning_type_id')
         return self.env['account.invoice.dunning.type'].search(
             [('id', 'not in', dunning_type_ids.ids), ('company_id', '=', self.company_id.id)],
-            order='number asc', limit=1)
+            order='number asc',
+            limit=1)
 
     @api.multi
     def _prepare_invoice_dunning(self, dunning_type_id):
@@ -242,17 +243,22 @@ class AccountInvoice(models.Model):
         return result
 
     @api.model
-    def compute_dunning_invoice(self):
+    def cron_compute_dunning_invoice(self):
 
         days = self.env.user.company_id.sending_validity_duration
 
         limite_validate_of_sent = datetime.datetime.now() - datetime.timedelta(days=days)
 
-        invoices_with_send_dunning = self.env['account.invoice.dunning'].search(
-            [('state', '=', 'send'), ('date_done', '>=', limite_validate_of_sent)]).mapped('invoice_ids')
-        invoices_dunning_to_create = self.search(
-            [('type', '=', 'out_invoice'), ('state', '=', 'open'), ('date_due', '<', fields.Datetime.now()),
-             ('id', 'not in', invoices_with_send_dunning.ids)])
+        invoices_with_send_dunning = self.env['account.invoice.dunning'].search([
+            ('state', '=', 'send'),
+            ('date_done', '>=', limite_validate_of_sent)
+        ]).mapped('invoice_ids')
+        invoices_dunning_to_create = self.search([
+            ('type', '=', 'out_invoice'),
+            ('state', '=', 'open'),
+            ('date_due', '<', fields.Datetime.now()),
+            ('id', 'not in', invoices_with_send_dunning.ids)
+        ])
 
         invoices_dunning_to_create._create_dunning()
 

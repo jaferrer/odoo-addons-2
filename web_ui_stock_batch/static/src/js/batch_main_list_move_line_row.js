@@ -2,6 +2,7 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
     "use strict";
 
     var Widget = require('web.Widget');
+    var Numpad = require('web_ui_stock_batch.BatchMoveLineNumpad');
     var rpc = require('web.rpc');
 
     return Widget.extend({
@@ -24,7 +25,7 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             console.log("ProductTableRow renderElement");
             this.$('button.js_change_location').click(ev => { this.batchMainList.allow_change_location(this) });
             this.$('button.js_confirm_location').click(ev => { this.confirm_location() });
-            this.$('button.js_open_numpad').click(ev => { this.batchMainList.open_numpad(this) });
+            this.$('button.js_open_numpad').click(ev => { this.open_numpad() });
             this.$('button.js_confirm_qty').click(ev => { this.confirm_qty() });
         },
         update_location: function (location) {
@@ -42,11 +43,11 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
         },
         confirm_location: function () {
             this.batchMainList.forbid_change_location();
-            this.batchMainList.$('#helper_location').addClass('d-none');
+            this.batchMainList.$('#helper_location').addClass('hidden');
             this.batchMainList.show_or_hide_change_location();
             this.$('#move_line_product').addClass('font-weight-bold');
             this.$('#move_line_product').addClass('text-warning');
-            this.batchMainList.$('#manual_scan_product').toggleClass('d-none');
+            this.batchMainList.$('#manual_scan_product').toggleClass('hidden');
         },
         update_num_lot: function (product_infos) {
             this.product.lot_id = product_infos.lot_id;
@@ -69,11 +70,11 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.$('#move_line_uom').removeClass('text-warning');
             this.$('#move_line_uom').addClass('text-danger');
             this.$('#move_line_uom').addClass('font-weight-bold');
-            this.batchMainList.$('#confirm_qty_header').addClass('d-none');
+            this.batchMainList.$('#confirm_qty_header').addClass('hidden');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#confirm_qty_body').addClass('d-none')
+                move_line_row.$('#confirm_qty_body').addClass('hidden')
             });
-            this.$('button.js_confirm_qty').addClass('d-none');
+            this.$('button.js_confirm_qty').addClass('hidden');
         },
         qty_lower: function () {
             this.$('#move_line_quantity').removeClass('text-success');
@@ -84,11 +85,11 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.$('#move_line_uom').addClass('text-warning');
             this.$('#move_line_uom').removeClass('text-danger');
             this.$('#move_line_uom').addClass('font-weight-bold');
-            this.batchMainList.$('#confirm_qty_header').removeClass('d-none');
+            this.batchMainList.$('#confirm_qty_header').removeClass('hidden');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#confirm_qty_body').removeClass('d-none')
+                move_line_row.$('#confirm_qty_body').removeClass('hidden')
             });
-            this.$('button.js_confirm_qty').removeClass('d-none');
+            this.$('button.js_confirm_qty').removeClass('hidden');
         },
         qty_right: function () {
             this.$('#move_line_quantity').addClass('text-success');
@@ -99,11 +100,11 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.$('#move_line_uom').removeClass('text-warning');
             this.$('#move_line_uom').removeClass('text-danger');
             this.$('#move_line_uom').removeClass('font-weight-bold');
-            this.batchMainList.$('#confirm_qty_header').removeClass('d-none');
+            this.batchMainList.$('#confirm_qty_header').removeClass('hidden');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#confirm_qty_body').removeClass('d-none')
+                move_line_row.$('#confirm_qty_body').removeClass('hidden')
             });
-            this.$('button.js_confirm_qty').removeClass('d-none');
+            this.$('button.js_confirm_qty').removeClass('hidden');
         },
         check_qty: function () {
             if (this.quantity_done > this.quantity_to_do) {
@@ -116,37 +117,28 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
                 this.qty_right();
             }
         },
+        open_numpad: function () {
+            new Numpad(this, this.product.name).appendTo('body');
+        },
         validate_new_qty: function (numpad) {
-            this.quantity_done = numpad.quantity;
+            this.quantity_done = numpad.qty_value;
             this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
             this.check_qty();
             this.$('#move_line_quantity').text(this.display_qty);
-            this.batchMainList.exit_numpad();
-        },
-        update_move_line_qty_to_do: function () {
-            let sml_update_move_line_info_params = {
-                model: 'stock.move.line',
-                method: 'change_qty_to_do_from_scan_batch',
-                args: [[this.id], this.quantity_done],
-            };
-            rpc.query(sml_update_move_line_info_params)
-                .then(() => {
-                    this.quantity_to_do = this.quantity_done;
-                    this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
-                    this.$('#move_line_quantity').text(this.display_qty);
-            })
         },
         confirm_qty: function () {
-            this.batchMainList.$('#change_qty_header').addClass('d-none');
+            this.batchMainList.$('#change_qty_header').addClass('hidden');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#change_qty_body').addClass('d-none')
+                move_line_row.$('#change_qty_body').addClass('hidden');
+                move_line_row.$('#confirm_qty_body').addClass('hidden');
             });
-            this.$('button.js_open_numpad').addClass('d-none');
-            this.batchMainList.$('#confirm_qty_header').addClass('d-none');
+            this.$('button.js_open_numpad').addClass('hidden');
+            this.batchMainList.$('#confirm_qty_header').addClass('hidden');
             this.batchMainList.move_line_rows.forEach((move_line_row) => {
-                move_line_row.$('#change_qty_body').addClass('d-none')
+                move_line_row.$('#change_qty_body').addClass('hidden');
+                move_line_row.$('#confirm_qty_body').addClass('hidden');
             });
-            this.$('button.js_confirm_qty').addClass('d-none');
+            this.$('button.js_confirm_qty').addClass('hidden');
             this.$('#move_line_quantity').addClass('text-success');
             this.$('#move_line_quantity').removeClass('text-warning');
             this.$('#move_line_quantity').removeClass('font-weight-bold');
@@ -155,12 +147,15 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.$('#move_line_uom').removeClass('font-weight-bold');
             this.$('#move_line_picking').addClass('text-warning');
             this.$('#move_line_picking').addClass('font-weight-bold');
-            this.batchMainList.$('#manual_scan_product').toggleClass('d-none');
+            this.batchMainList.$('#manual_scan_product').toggleClass('hidden');
             this.batchMainList.$('#manual_scan_product').removeClass('warning-background');
-            this.batchMainList.$('#manual_scan_picking').toggleClass('d-none');
+            this.batchMainList.$('#manual_scan_picking').toggleClass('hidden');
+            // Si l'on a pas pris la quantité demandée, crée une nouvelle ligne avec la quantité restante à faire
             if (this.quantity_done !== this.quantity_to_do) {
                 this.batchMainList.create_new_move_line(this);
-                this.update_move_line_qty_to_do();
+                this.quantity_to_do = this.quantity_done;
+                this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
+                this.$('#move_line_quantity').text(this.display_qty);
             }
         },
         send_qty_done_to_odoo: function () {

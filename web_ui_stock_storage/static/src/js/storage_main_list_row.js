@@ -8,9 +8,10 @@ odoo.define('web_ui_storage.StorageRow', function (require) {
     var WebClient = require("web.WebClient");
     var Dialog = require('web.Dialog');
     var QWeb = core.qweb;
+    var Numpad = require('web_ui_stock.Numpad');
 
     return Widget.extend({
-        template: 'PickingTableRow',
+        template: 'StorageTableRow',
         init: function (pickingMainList, picking) {
             this._super(pickingMainList);
             this.pickingMainList = pickingMainList;
@@ -23,18 +24,21 @@ odoo.define('web_ui_storage.StorageRow', function (require) {
         },
         renderElement: function () {
             this._super();
-            console.log("PickingTableRow renderElement");
+            console.log("StorageTableRow renderElement");
             this.$('button.js_delete_picking').click(ev => { this.pickingMainList.delete_row(this) });
-
+            this.$('button.js_open_numpad').click(ev => { this.open_numpad() });
         },
         _replace_picking:function(picking){
             this.id = picking.id;
             this.picking = picking;
             this.renderElement();
         },
+        open_numpad: function () {
+            new Numpad(this).appendTo('body');
+        },
         on_error_print: function (error) {
             this.$el.addClass('warning');
-            this.btn_info.toggleClass('d-none');
+            this.btn_info.toggleClass('hidden');
             this.btn_info.attr('data-content', error.data.arguments.filter(Boolean).join("<br/>") || error.message)
         },
     });

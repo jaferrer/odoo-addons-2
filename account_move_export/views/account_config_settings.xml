@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_config_settings_export" model="ir.ui.view">
+        <field name="name">view_account_config_settings_export</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@data-key='account']/div" position="after">
+                <div id="account_move_export">
+                    <h2>Accounting export</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label string="Export mode" for="export_mode" class="col-lg-3 o_light_label"/>
+                                        <field name="export_mode" widget="radio"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="Export cron" for="export_cron_id" class="col-lg-3 o_light_label"/>
+                                        <field name="export_cron_id"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': [('export_mode', '!=', 'auto')]}">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label string="Line selection" for="export_line_selection" class="col-lg-3 o_light_label"/>
+                                        <field name="export_line_selection"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="Account journals" for="export_journal_ids" class="col-lg-3 o_light_label"/>
+                                        <field name="export_journal_ids" widget="many2many_tags"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="Group by account" for="export_group_by_account" class="col-lg-3 o_light_label"/>
+                                        <field name="export_group_by_account"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box" attrs="{'invisible': ['|', ('export_mode', '!=', 'auto'), ('export_line_selection', '!=', 'bounded')]}">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label string="From" for="export_date_from" class="col-lg-3 o_light_label"/>
+                                        <field name="export_date_from"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="To" for="export_date_to" class="col-lg-3 o_light_label"/>
+                                        <field name="export_date_to"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group" id="ftp" string="FTP">
+                                    <div class="row">
+                                        <label string="FTP URL" for="export_ftp_url" class="col-lg-3 o_light_label"/>
+                                        <field name="export_ftp_url"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="FTP port" for="export_ftp_port" class="col-lg-3 o_light_label"/>
+                                        <field name="export_ftp_port"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="FTP login" for="export_ftp_login" class="col-lg-3 o_light_label"/>
+                                        <field name="export_ftp_login"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="FTP password" for="export_ftp_password" class="col-lg-3 o_light_label"/>
+                                        <field name="export_ftp_password" password="True"/>
+                                    </div>
+                                    <div class="row">
+                                        <label string="FTP export path" for="export_ftp_path" class="col-lg-3 o_light_label"/>
+                                        <field name="export_ftp_path"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

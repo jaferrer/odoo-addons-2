@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 19:02+0000\n"
-"PO-Revision-Date: 2020-03-24 19:02+0000\n"
+"POT-Creation-Date: 2020-07-30 15:32+0000\n"
+"PO-Revision-Date: 2020-07-30 15:32+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,22 +16,15 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: purchase_planning
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_confirm_wizard
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_create_view
-msgid "Cancel"
-msgstr "Annuler"
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_kanban
+msgid "Confirm"
+msgstr "Confirmer"
 
 #. module: purchase_planning
-#: model:ir.model,name:purchase_planning.model_confirm_period_wizard
-msgid "Confirm Period Wizard"
-msgstr "Confirmer la période"
-
-#. module: purchase_planning
-#: model:ir.actions.act_window,name:purchase_planning.purchase_planning_confirm_action
-#: model:ir.ui.menu,name:purchase_planning.confirm_forecast_menu
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_confirm_wizard
-msgid "Confirm forecast"
-msgstr "Confirmer le planning"
+#: selection:period.planning,purchase_state:0
+#: selection:purchase.planning,state:0
+msgid "Confirmed"
+msgstr "Confirmé"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__count_purchase_planning
@@ -39,24 +32,19 @@ msgid "Count Purchase Planning"
 msgstr "Nombre de plannings"
 
 #. module: purchase_planning
-#: model:ir.actions.act_window,name:purchase_planning.purchase_planning_create_action
-#: model:ir.ui.menu,name:purchase_planning.create_forecast_menu
-msgid "Create new forecast"
-msgstr "Créer nouveau planning"
+#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__count_purchase_order
+msgid "Count purchase order"
+msgstr "Commande d'achat"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__create_uid
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__create_uid
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__create_uid
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__create_date
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__create_date
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__create_date
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -84,10 +72,8 @@ msgid "Delivery Lead Time"
 msgstr "Délai de livraison"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__display_name
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__display_name
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__display_name
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__display_name
 msgid "Display Name"
 msgstr "Nom affiché"
 
@@ -109,13 +95,6 @@ msgid "Final quantity"
 msgstr "Quantité finale"
 
 #. module: purchase_planning
-#: model:ir.ui.menu,name:purchase_planning.view_forecast_menu
-#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_kanban
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_create_view
-msgid "Forecast"
-msgstr "Prévision"
-
-#. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__forecast_qty
 msgid "Forecast quantity"
 msgstr "Quantité prévisionnelle"
@@ -132,45 +111,31 @@ msgstr "Quantité prévue (calculée comme quantité en stock - sortante + entra
 "Dans les autres cas, cela comprend les marchandises stockées dans tous les emplacements de type \"interne\""
 
 #. module: purchase_planning
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_confirm_wizard
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_create_view
-msgid "Generate"
-msgstr "Générer"
-
-#. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
 msgid "Group By"
 msgstr "Regrouper par"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__id
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__id
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__id
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__id
 msgid "ID"
-msgstr "Id"
+msgstr "ID"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard____last_update
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning____last_update
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning____last_update
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard____last_update
 msgid "Last Modified on"
-msgstr "Dernière Modification le"
+msgstr "Dernière modification le"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__write_uid
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__write_uid
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__write_uid
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__write_date
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__write_date
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__write_date
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
@@ -180,9 +145,22 @@ msgid "Lead time in days between the confirmation of the purchase order and the 
 msgstr "Délai (en jours) entre la confirmation du bon de commande et la réception des articles dans votre entrepôt. Sert au planificateur à calculer le planning des achats automatiquement."
 
 #. module: purchase_planning
+#: selection:period.planning,purchase_state:0
+#: selection:purchase.planning,state:0
+msgid "Locked"
+msgstr "Vérouillé"
+
+#. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__min_qty
 msgid "Minimum quantity"
 msgstr "Quantité minimum"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__name
+#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__name
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Name"
+msgstr "Nom"
 
 #. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
@@ -196,7 +174,6 @@ msgid "Packaging quantity"
 msgstr "Quantité packagée"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_confirm_period_wizard__period_id
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__period_id
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
 msgid "Period"
@@ -205,12 +182,17 @@ msgstr "Période"
 #. module: purchase_planning
 #: model:ir.model,name:purchase_planning.model_period_planning
 msgid "Period Planning"
-msgstr "Planning des périodes"
+msgstr "Planning des ventes"
 
 #. module: purchase_planning
 #: model:ir.actions.act_window,name:purchase_planning.period_planning_view_action
 msgid "Period planning"
 msgstr "Planning des périodes"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__period_warning
+msgid "Period warning"
+msgstr "Alerte période"
 
 #. module: purchase_planning
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
@@ -225,6 +207,11 @@ msgid "Product"
 msgstr "Article"
 
 #. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__category_ids
+msgid "Product Category"
+msgstr "Catégorie d'article"
+
+#. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__product_tmpl_id
 msgid "Product Template"
 msgstr "Modèle d'article"
@@ -235,14 +222,14 @@ msgid "Purchase Forecast"
 msgstr "Planning d'achat"
 
 #. module: purchase_planning
+#: model:ir.model,name:purchase_planning.model_purchase_order
+msgid "Purchase Order"
+msgstr "Commande fournisseur"
+
+#. module: purchase_planning
 #: model:ir.model,name:purchase_planning.model_purchase_planning
 msgid "Purchase Planning"
 msgstr "Planning d'achat"
-
-#. module: purchase_planning
-#: model:ir.model,name:purchase_planning.model_purchase_planning_wizard
-msgid "Purchase Planning Wizard"
-msgstr "Purchase Planning Wizard"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__purchase_state
@@ -250,16 +237,37 @@ msgid "Purchase State"
 msgstr "Etat d'achat"
 
 #. module: purchase_planning
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__purchase_order_line_id
-msgid "Purchase order line"
-msgstr "Ligne d'achat"
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Purchase forecast draft"
+msgstr "Planning d'achat brouillon"
 
 #. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
+msgid "Purchase forecast statut"
+msgstr "État du planning d'achat"
+
+#. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_form
+msgid "Purchase order"
+msgstr "Commande d'achat"
+
+#. module: purchase_planning
+#: model:ir.actions.act_window,name:purchase_planning.purchase_planning_create_action
 #: model:ir.actions.act_window,name:purchase_planning.purchase_planning_view_action
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__purchase_planning_ids
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_form
 msgid "Purchase planning"
 msgstr "Planning d'achat"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__count_completed_purchase_planning
+msgid "Purchase planning done"
+msgstr "Plannings terminés"
+
+#. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_period_planning__purchase_group_id
+msgid "Purchase procurement group"
+msgstr "Groupe d'achat"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__stock_qty
@@ -272,13 +280,19 @@ msgid "Retained quantity"
 msgstr "Quantité retenue"
 
 #. module: purchase_planning
+#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__retained_qty_with_constraint
+msgid "Retained quantity with constraint"
+msgstr "Quantité retenue avec contrainte"
+
+#. module: purchase_planning
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
 #: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_filter
 msgid "Search"
 msgstr "Rechercher"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__season_id
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__season_id
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
 msgid "Season"
 msgstr "Saison"
 
@@ -286,6 +300,11 @@ msgstr "Saison"
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__state
 msgid "State"
 msgstr "État"
+
+#. module: purchase_planning
+#: model:ir.model,name:purchase_planning.model_stock_rule
+msgid "Stock Rule"
+msgstr "Règle de stock minimum"
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning__suggest_qty
@@ -314,13 +333,7 @@ msgstr "La quantité minimale à acheter à ce fournisseur, exprimée dans l'uni
 
 #. module: purchase_planning
 #: model:ir.model.fields,field_description:purchase_planning.field_period_planning__year_id
-#: model:ir.model.fields,field_description:purchase_planning.field_purchase_planning_wizard__year_id
+#: model_terms:ir.ui.view,arch_db:purchase_planning.period_planning_filter
 msgid "Year"
 msgstr "Année"
-
-#. module: purchase_planning
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_confirm_wizard
-#: model_terms:ir.ui.view,arch_db:purchase_planning.purchase_planning_create_view
-msgid "or"
-msgstr "ou"
 

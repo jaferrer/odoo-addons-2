@@ -3,36 +3,34 @@
 
     <t t-name="BatchMainWidget">
 
-        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+        <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
             <div class="container">
-                <div class="navbar-header navbar-form navbar-left">
-                    <span id="view_title" style="color:white;"/>
-                </div>
-                <div class="navbar-header navbar-form navbar-left button-group" role="group"
-                     id="scan_batch_printer_choice">
-                </div>
-                <div class="navbar-header navbar-form navbar-right">
-                    <button id="validate_batch"
-                            type="button"
-                            class="btn btn-success btn-margin-left pull-right js_validate_batch d-none">
-                        Valider
-                    </button>
-                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                <div class="row">
+                    <div class="navbar-col col-6">
+                        <span id="view_title"/>
+                    </div>
+                    <div class="navbar-col col-6">
+                        <button id="validate_batch"
+                                type="button"
+                                class="btn btn-success btn-margin-left pull-right hidden">
+                            Valider
+                        </button>
+                        <button id="btn_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                    </div>
+                    <div class="navbar-col col-12" id="scan_batch_printer_choice"></div>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <div id="big_helper" class="jumbotron">
-                <h1>Bienvenue dans l'écran de scanner de préparations par lots</h1>
+        <div class="jumbotron">
+            <div id="big_helper" class="container">
+                <h1>Préparations par lots</h1>
                 <p>Veuillez sélectionner un lot de pickings pour commencer</p>
-                <p>Ou</p>
-                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
             </div>
 
-            <div id="manual_scan_location" class="jumbotron d-none">
-                <h4 id="#scan_location_classic">Veuillez scanner l'emplacement demandé</h4>
-                <h4 id="#scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité</h4>
+            <div id="manual_scan_location" class="container hidden">
+                <h4 id="#scan_location_classic">Veuillez scanner l'emplacement demandé ou le saisir à la main</h4>
+                <h4 id="#scan_location_change" class="hidden">Veuillez scanner l'emplacement souhaité ou le saisir à la main</h4>
                 <div class="input-group">
                     <input id="search_location" type="text" class="form-control"
                            placeholder="Saisie emplacement manuel"/>
@@ -42,19 +40,21 @@
                 </div>
             </div>
 
-            <div id="helper_location" class="jumbotron d-none waiting-background">
-                <h4>Veuillez valider l'emplacement pour continuer</h4>
-                <h4>Ou</h4>
-                <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
+            <div id="helper_location" class="container hidden">
+                <div class="waiting-background">
+                    <h4>Veuillez valider l'emplacement pour continuer</h4>
+                    <h4>Ou</h4>
+                    <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
+                </div>
             </div>
 
-            <div id="manual_scan_product" class="jumbotron d-none">
+            <div id="manual_scan_product" class="container hidden">
                 <h4>Veuillez scanner l'article demandé</h4>
-                <p id="manual_scan_add_qty_1" class="d-none">
+                <p id="manual_scan_add_qty_1" class="hidden">
                     Vous pouvez scanner le même article plusieurs fois pour augmenter la quantité
                 </p>
-                <p id="manual_scan_add_qty_2" class="d-none">Ou</p>
-                <p id="manual_scan_add_qty_3" class="d-none">Utiliser le pavé numérique</p>
+                <p id="manual_scan_add_qty_2" class="hidden">Ou</p>
+                <p id="manual_scan_add_qty_3" class="hidden">Utiliser le pavé numérique</p>
                 <div class="input-group">
                     <input id="search_product" type="text" class="form-control"
                            placeholder="Saisie article manuel"/>
@@ -64,20 +64,22 @@
                 </div>
             </div>
 
-            <div id="manual_scan_lot" class="jumbotron waiting-background d-none">
-                <h4>
-                    Cet article est rattaché à un numéro de lot/série\nmerci de scanner ce numéro pour continuer
-                </h4>
-                <div class="input-group">
-                    <input id="search_product_lot" type="text" class="form-control"
-                           placeholder="Saisie numéro de lot/série manuel"/>
-                    <span class="input-group-btn">
-                        <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
-                    </span>
+            <div id="manual_scan_lot" class="container hidden">
+                <div class="waiting-background">
+                    <h4>
+                        Cet article est rattaché à un numéro de lot/série. Merci de scanner ce numéro pour continuer
+                    </h4>
+                    <div class="input-group">
+                        <input id="search_product_lot" type="text" class="form-control"
+                               placeholder="Saisie numéro de lot/série manuel"/>
+                        <span class="input-group-btn">
+                            <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <div id="manual_scan_picking" class="jumbotron d-none">
+            <div id="manual_scan_picking" class="container hidden">
                 <h4>Veuillez scanner le picking demandé</h4>
                 <div class="input-group">
                     <input id="search_picking" type="text" class="form-control"
@@ -88,42 +90,53 @@
                 </div>
             </div>
 
-            <div id="batch_scan_done" class="jumbotron d-none">
+            <div id="batch_scan_done" class="container hidden">
                 <h4>Lot terminé!</h4>
             </div>
+        </div>
 
-            <div class="row">
-                <table id="batch_selection_table" class="table">
+        <div class="container">
+            <div  class="table-responsive"  id="batch_selection_table">
+                <table class="table">
                     <thead id="batch_selection_table_header">
-                        <t t-call="BatchSelectionTableHeader"/>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Responsable</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
                     </thead>
                     <tbody id="batch_selection_table_body"/>
                 </table>
             </div>
 
-            <div class="row">
-                <table id="move_line_table" class="table d-none">
-                    <thead id="move_line_table_header">
-                        <t t-call="BatchMoveLineTableHeader"/>
-                    </thead>
-                    <tbody id="move_line_table_body"/>
-                </table>
+            <div  class="table-responsive hidden"  id="move_line_table">
+            <table class="table">
+                <thead id="move_line_table_header">
+                    <tr>
+                        <th>Emplacement</th>
+                        <th id="change_location_header" class="hidden">Modifier</th>
+                        <th id="confirm_location_header" class="hidden">Valider</th>
+                        <th>Article</th>
+                        <th>N° de lot/série</th>
+                        <th>Quantité</th>
+                        <th>Unité</th>
+                        <th id="change_qty_header" class="hidden">Ajuster</th>
+                        <th id="confirm_qty_header" class="hidden">Valider</th>
+                        <th>Picking</th>
+                    </tr>
+                </thead>
+                <tbody id="move_line_table_body"/>
+            </table>
             </div>
 
-            <div class="row d-none" id="need_for_lot"/>
+            <div class="hidden" id="need_for_lot"/>
 
-            <div class="row d-none" id="quantity_numpad"/>
+            <div class="hidden" id="quantity_numpad"/>
 
         </div>
     </t>
 
-    <t t-name="BatchSelectionTableHeader">
-        <tr>
-            <th>Nom</th>
-            <th>Responsable</th>
-            <th>Date</th>
-        </tr>
-    </t>
     <t t-name="BatchSelectionTable">
         <tr t-att-product_id="widget.id" id="batch_selection_row">
             <td>
@@ -141,30 +154,16 @@
         </tr>
     </t>
 
-    <t t-name="BatchMoveLineTableHeader">
-        <tr>
-            <th>Emplacement</th>
-            <th id="change_location_header" class="d-none">Modifier</th>
-            <th id="confirm_location_header" class="d-none">Valider</th>
-            <th>Article</th>
-            <th>N° de lot/série</th>
-            <th>Quantité</th>
-            <th>Unité</th>
-            <th id="change_qty_header" class="d-none">Ajuster</th>
-            <th id="confirm_qty_header" class="d-none">Valider</th>
-            <th>Picking</th>
-        </tr>
-    </t>
     <t t-name="BatchMoveLineRow">
         <tr t-att-product_id="widget.id" id="batch_selection_row">
             <td id="move_line_location" class="text-warning font-weight-bold">
                 <t t-esc="widget.move_line.location"/>
             </td>
-            <td id="change_location_body" class="d-none">
-                <button type="button" class="btn btn-primary js_change_location fa fa-cubes d-none"/>
+            <td id="change_location_body" class="hidden">
+                <button type="button" class="btn btn-primary js_change_location fa fa-cubes hidden"/>
             </td>
-            <td id="confirm_location_body" class="d-none">
-                <button type="button" class="btn btn-success js_confirm_location fa fa-check d-none"/>
+            <td id="confirm_location_body" class="hidden">
+                <button type="button" class="btn btn-success js_confirm_location fa fa-check hidden"/>
             </td>
             <td id="move_line_product">
                 <t t-esc="widget.product.name"/>
@@ -178,11 +177,11 @@
             <td id="move_line_uom">
                 <t t-esc="widget.move_line.product_uom"/>
             </td>
-            <td id="change_qty_body" class="d-none">
-                <button type="button" class="btn btn-primary js_open_numpad fa fa-calculator d-none"/>
+            <td id="change_qty_body" class="hidden">
+                <button type="button" class="btn btn-primary js_open_numpad fa fa-calculator hidden"/>
             </td>
-            <td id="confirm_qty_body" class="d-none">
-                <button type="button" class="btn btn-success js_confirm_qty fa fa-check d-none"/>
+            <td id="confirm_qty_body" class="hidden">
+                <button type="button" class="btn btn-success js_confirm_qty fa fa-check hidden"/>
             </td>
             <td id="move_line_picking">
                 <t t-esc="widget.move_line.picking"/>
@@ -190,7 +189,7 @@
         </tr>
     </t>
 
-    <t t-name="BatchMoveLineLot" class="d-none" id="need_for_lot_view">
+    <t t-name="BatchMoveLineLot" class="hidden" id="need_for_lot_view">
         <div>
             <table id="product_lot_table" class="table">
                 <thead id="product_lot_table_header">
@@ -198,7 +197,7 @@
                         <th>Nom</th>
                         <th>Code</th>
                         <th>Méthode de suivi</th>
-                        <th id="invalid_lot_number_header" class="d-none text-danger">Numéro de lot/série invalide</th>
+                        <th id="invalid_lot_number_header" class="hidden text-danger">Numéro de lot/série invalide</th>
                     </tr>
                 </thead>
                 <tbody id="product_lot_table_body">
@@ -212,140 +211,12 @@
                         <td>
                             <t t-esc="widget.batchMoveLineRow.product.tracking"/>
                         </td>
-                        <td id="invalid_lot_number_col" class="d-none text-danger">
+                        <td id="invalid_lot_number_col" class="hidden text-danger">
                             <t t-esc="widget.invalid_number"/>
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
-    </t>
-
-    <t t-name="BatchMoveLineNumpad">
-        <div class="col-sm-6 portrait-column-alignment">
-            <div class="align-self-end">
-                <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
-                    Annuler
-                </button>
-                <button type="button"
-                        id="btn_validate_new_qty"
-                        class="btn btn-success js_validate_new_qty pull-right">
-                    Confirmer
-                </button>
-            </div>
-            <table id="batch_numpad_table" class="table">
-                <thead id="batch_numpad_table_header">
-                    <tr>
-                        <th>Emplacement</th>
-                        <th>Nom</th>
-                        <th>Quantité actuelle</th>
-                        <th>Unité</th>
-                    </tr>
-                </thead>
-                <tbody id="batch_numpad_table_body">
-                    <tr>
-                        <td>
-                            <t t-esc="widget.batchMoveLineRow.location"/>
-                        </td>
-                        <td>
-                            <t t-esc="widget.batchMoveLineRow.product"/>
-                        </td>
-                        <td id="numpad_quantity" class="text-warning font-weight-bold">
-                            <t t-esc="widget.display_quantity"/>
-                        </td>
-                        <td>
-                            <t t-esc="widget.batchMoveLineRow.product_uom"/>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="col-sm-6 portrait-column-alignment">
-            <div class="d-flex justify-content-center">
-                <table id="numpad" class="table table-numpad">
-                    <thead>
-                        <tr>
-                            <th id="numpad_new_quantity"
-                                class="table-bordered rounded border-secondary"
-                                colspan="4"
-                                style="color: #6c757d;">
-                                <t t-esc="widget.value"/>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="numpad-body">
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3
-                                </button>
-                            </td>
-                            <td class="border-0 td-button-resize" rowspan="3">
-                                <button class="btn btn-outline-secondary js_numpad_validate numpad-resize">OK</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-resize">
-                                    C
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-resize">
-                                    ,
-                                </button>
-                            </td>
-                            <td class="border-0">
-                                <button class="btn numpad-button btn-outline-secondary js_numpad_backspace">
-                                    <img alt="Retour arrière"
-                                         src="/web_ui_stock_product/static/src/img/backspace.png"
-                                         width="24"
-                                         height="21"/>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
     </t>
 

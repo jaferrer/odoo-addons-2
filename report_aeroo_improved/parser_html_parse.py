@@ -66,6 +66,8 @@ class Parser(models.AbstractModel):
     """
     _inherit = 'report.report_aeroo.abstract'
 
+    index_html = 0
+
     @api.multi
     def complex_report(self, docids, data, report, ctx):
         ctx = dict(ctx) or {}
@@ -85,9 +87,8 @@ class Parser(models.AbstractModel):
         """
         self.index_html = self.index_html + 1
         xhtml = u'<?xml version="1.0"?>' \
-                u'<html xmlns="http://www.w3.org/1999/xhtml">' \
-                u'<head><title></title></head><body></body></html>'
-
+                u'<html xmlns="http://www.w3.org/1999/xhtml"><head><title></title></head>' \
+                u'<body>' + xhtml + u'</body></html>'
         xhtml = tools.ustr(xhtml.replace(u'<br>', u'<br/>'))
         self.options = get_options()
         xsl_dir = os.path.join(INSTALL_PATH, 'xsl')
@@ -98,10 +99,11 @@ class Parser(models.AbstractModel):
 
         try:
             # must be valid xml at this point
-            xhtml = etree.fromstring(xhtml)
-        except etree.XMLSyntaxError as xml_error:
-            _logger.error(xml_error)
-            raise
+            xhtml = etree.fromstring(
+                xhtml)
+        except etree.XMLSyntaxError as e:
+            _logger.error(e)
+            raise e
         params = {
             "url": "/",
             "heading_minus_level": str(self.options["top_header_level"] - 1),
@@ -122,8 +124,8 @@ class Parser(models.AbstractModel):
         # DEBUG
         stra = tools.ustr(odt).replace('<?xml version="1.0" encoding="utf-8"?>', '')
         stra = stra.replace('<?xml version="1.0"?>\n', '')
-        return (u"<htmlparse>--key--" + tools.ustr(self.index_html) + u"--key--" + stra + u"</htmlparse>")\
-            .replace('\n', ' ')
+        return (u"<htmlparse>--key--" + tools.ustr(self.index_html) + u"--key--" + stra + u"</htmlparse>").\
+            replace('\n', ' ')
 
     def handle_images(self, xhtml):
         """
@@ -250,9 +252,9 @@ class Parser(models.AbstractModel):
         transform = etree.XSLT(xslt_doc)
         contentxml = etree.fromstring(xml["content.xml"])
         stylesxml = etree.fromstring(xml["styles.xml"])
-        params = {}
-        xml["content.xml"] = str(transform(contentxml, **params))
-        xml["styles.xml"] = str(transform(stylesxml, **params))
+
+        xml["content.xml"] = str(transform(contentxml)).encode()
+        xml["styles.xml"] = str(transform(stylesxml)).encode()
 
         return xml
 

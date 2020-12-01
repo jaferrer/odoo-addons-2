@@ -17,9 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from suds.client import Client
+import requests
+import zeep
 
-from odoo import models, api
+from odoo import fields, models, api
+from odoo.exceptions import UserError
 
 
 class DeliveryCarrier(models.Model):
@@ -49,7 +51,7 @@ class DeliveryCarrier(models.Model):
     @api.model
     def _chronopost_get_header_value(self, picking):
         return {
-            'accountNumber': picking.carrier_id.api_account_number_chronopost,
+            'accountNumber': picking.carrier_id.provider_id.api_account_number_chronopost,
             'idEmit': '',
             'identWebPro': '',
             'subAccount': '',
@@ -59,19 +61,18 @@ class DeliveryCarrier(models.Model):
     def _chronopost_get_shipper_value(self, picking):
         return {
             'shipperAdress1': self.env.user.company_id.partner_id.street or '',
-            'shipperAdress2': (self.env.user.company_id.partner_id.street2 or '') + "-" +
-                              (self.env.user.company_id.partner_id.street3 or ''),
+            'shipperAdress2': self.env.user.company_id.partner_id.street2 or '',
             'shipperCity': self.env.user.company_id.partner_id.city or '',
             'shipperCivility': self.env.user.company_id.partner_id.title or 'M',
-            'shipperContactName': self.env.user.name or '',
+            'shipperContactName': '',
             'shipperCountry': self.env.user.company_id.country_id.code or '',
             'shipperCountryName': self.env.user.company_id.country_id.name.upper() or '',
             'shipperEmail': self.env.user.company_id.partner_id.email or '',
             'shipperMobilePhone': self.env.user.company_id.partner_id.mobile or '',
-            'shipperName': '',
+            'shipperName': self.env.user.company_id.partner_id.name or '',
             'shipperName2': '',
             'shipperPhone': self.env.user.company_id.partner_id.phone or '',
-            'shipperPreAlert': picking.carrier_id.api_pre_alert_chronopost or 0,
+            'shipperPreAlert': picking.carrier_id.provider_id.api_pre_alert_chronopost or 0,
             'shipperZipCode': self.env.user.company_id.partner_id.zip or '',
         }
 
@@ -79,7 +80,7 @@ class DeliveryCarrier(models.Model):
     def _chronopost_get_recipient_value(self, picking):
         return {
             'recipientAdress1': picking.partner_id.street or '',
-            'recipientAdress2': (picking.partner_id.street2 or '') + "-" + (picking.partner_id.street3 or ''),
+            'recipientAdress2': picking.partner_id.street2 or '',
             'recipientCity': picking.partner_id.city or '',
             'recipientContactName': picking.partner_id.name or '',
             'recipientCountry': picking.partner_id.country_id.code or '',
@@ -89,7 +90,7 @@ class DeliveryCarrier(models.Model):
             'recipientName': picking.partner_id.name or '',
             'recipientName2': '',
             'recipientPhone': picking.partner_id.phone or '',
-            'recipientPreAlert': picking.carrier_id.api_pre_alert_chronopost or 0,
+            'recipientPreAlert': picking.carrier_id.provider_id.api_pre_alert_chronopost or 0,
             'recipientZipCode': picking.partner_id.zip or '',
         }
 
@@ -97,8 +98,7 @@ class DeliveryCarrier(models.Model):
     def _chronopost_get_customer_value(self, picking):
         return {
             'customerAdress1': self.env.user.company_id.partner_id.street or '',
-            'customerAdress2': (self.env.user.company_id.partner_id.street2 or '') + "-" +
-                               (self.env.user.company_id.partner_id.street3 or ''),
+            'customerAdress2': self.env.user.company_id.partner_id.street2 or '',
             'customerCity': self.env.user.company_id.partner_id.city or '',
             'customerCivility': self.env.user.company_id.partner_id.title or 'M',
             'customerContactName': self.env.user.name or '',
@@ -106,10 +106,10 @@ class DeliveryCarrier(models.Model):
             'customerCountryName': self.env.user.company_id.country_id.name.upper() or '',
             'customerEmail': self.env.user.company_id.partner_id.email or '',
             'customerMobilePhone': self.env.user.company_id.partner_id.mobile or '',
-            'customerName': '',
+            'customerName': self.env.user.company_id.partner_id.name or '',
             'customerName2': '',
             'customerPhone': self.env.user.company_id.partner_id.phone or '',
-            'customerPreAlert': picking.carrier_id.api_pre_alert_chronopost or 0,
+            'customerPreAlert': picking.carrier_id.provider_id.api_pre_alert_chronopost or 0,
             'customerZipCode': self.env.user.company_id.partner_id.zip or '',
             'printAsSender': '',
         }
@@ -124,7 +124,8 @@ class DeliveryCarrier(models.Model):
         }
 
     @api.model
-    def _chronopost_get_skybill_value(self, package):
+    def _chronopost_get_skybill_value(self, picking, package):
+        ship_date = fields.Datetime.now().isoformat()
         return {
             'bulkNumber': '',
             'codCurrency': '',
@@ -142,21 +143,21 @@ class DeliveryCarrier(models.Model):
             'latitude': '',
             'longitude': '',
             'masterSkybillNumber': '',
-            'objectType': '',
+            'objectType': 'MAR',
             'portCurrency': '',
             'portValue': '',
-            'productCode': package.name or '',
+            'productCode': picking.carrier_id.carrier_code or '',
             'qualite': '',
-            'service': '',
-            'shipDate': '',
-            'shipHour': '',
+            'service': 0,
+            'shipDate': ship_date,
+            'shipHour': ship_date and ship_date[11:13],
             'skybillRank': '',
             'source': '',
             'weight': package.shipping_weight / 1000,
             'weightUnit': 'KGM',
-            'height': '',
-            'length': '',
-            'width': '',
+            'height': 0,
+            'length': 0,
+            'width': 0,
         }
 
     @api.model
@@ -187,11 +188,11 @@ class DeliveryCarrier(models.Model):
             'customerValue': self._chronopost_get_customer_value(picking),
             'recipientValue': self._chronopost_get_recipient_value(picking),
             'refValue': self._chronopost_get_ref_value(),
-            'skybillValue': self._chronopost_get_skybill_value(package),
+            'skybillValue': self._chronopost_get_skybill_value(picking, package),
             'skybillParamsValue': self._chronopost_get_skybill_params_value(),
-            'password': '',
-            'modeRetour': picking.carrier_id.api_password_chronopost,
-            'numberOfParcel': '',
+            'password': picking.carrier_id.provider_id.api_password_chronopost,
+            'modeRetour': '',
+            'numberOfParcel': 1,
             'version': '',
             'multiParcel': '',
             'scheduledValue': self._chronopost_get_scheduled_value(),
@@ -200,40 +201,29 @@ class DeliveryCarrier(models.Model):
     @api.model
     def _chronopost_get_label(self, value, picking):
         url_ws = 'https://ws.chronopost.fr/shipping-cxf/ShippingServiceWS?wsdl'
-        client = Client(url_ws)
-
-        reponse = client.service.shippingMultiParcelWithReservation(value['letter'])
-
+        client = zeep.Client(url_ws)
+        reponse = client.service.shippingMultiParcelWithReservation(**value['letter'])
         if reponse:
-            tracking_number = self.env['delivery.carrier.tracking.number'].create({
-                'name': str(reponse.labelResponse.parcelNumber),
-                'carrier_id': picking.carrier_id.id
-            })
-            label_name = "Colis %s" % reponse.labelResponse.parcelNumber
-            self.env['ir.attachment'].create({
-                'name': label_name,
-                # 'datas': my_plugin.binary,
-                'datas_fname': label_name,
-                'type': 'binary',
-                'res_model': 'delivery.carrier.tracking.number',
-                'res_id': tracking_number.id,
-            })
-            return tracking_number
-        return False
+            if reponse.errorCode != 0:
+                raise UserError("Erreur d'appel à Chronopost: %s.\n%s" % (reponse.errorCode, reponse.errorMessage))
+            tracking_number = reponse.resultParcelValue[0]['skybillNumber']
+            if tracking_number:
+                url = 'https://www.chronopost.fr/shipping-cxf/getReservedSkybill?reservationNumber=' + tracking_number
+                label = requests.get(url)
+                return picking.save_tracking_number(tracking_number, label.content)
 
     def chronopost_send_shipping(self, pickings):
         all_values = []
         for picking in pickings:
             for package in picking.package_ids:
                 if package.shipping_weight <= 0:
-                    return False
+                    raise UserError("Le poid du colis est de 0")
                 value_letter = self._chronopost_get_letter(picking, package)
-
                 # on lance le webservice pour générer l'étiquette selon les paramètres
                 genere = True
                 if genere:
-                    login = picking.carrier_id.api_login_chronopost
-                    password = picking.carrier_id.api_password_chronopost
+                    login = picking.carrier_id.provider_id.api_login_chronopost
+                    password = picking.carrier_id.provider_id.api_password_chronopost
                     value_colis = {
                         'name': picking.partner_id.id,
                         'contract_number': login,
@@ -243,13 +233,11 @@ class DeliveryCarrier(models.Model):
                         'date_envoi': picking.scheduled_date,
                         'bl': picking.id,
                     }
-
                     value_colis['label'] = self._chronopost_get_label(value_colis, picking)
                     all_values.append({
                         'exact_price': 0,
                         'tracking_number': value_colis['label'].name
                     })
-
         return all_values
 
     @api.model
@@ -257,11 +245,22 @@ class DeliveryCarrier(models.Model):
         tracking_number = self.env['delivery.carrier.tracking.number'].search([
             ('carrier_id', '=', picking.carrier_id.id)
         ], limit=1)
-        return "https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=[%s]" % (tracking_number)
+        return "https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=%s" % tracking_number.name
 
     @api.model
     def chronopost_cancel_shipment(self, pickings):
-        return self.env['stock.picking']
+        for picking in pickings:
+            tracking_number = self.env['delivery.carrier.tracking.number'].search([
+                ('carrier_id', '=', picking.carrier_id.id)
+            ], limit=1)
+            cancel_skybill = {
+                'accountNumber': picking.carrier_id.provider_id.api_login_chronopost,
+                'password': picking.carrier_id.provider_id.api_password_chronopost,
+                'skybillNumber': tracking_number,
+            }
+            url_ws = 'https://ws.chronopost.fr/tracking-cxf/TrackingServiceWS?wsdl'
+            client = zeep.Client(url_ws)
+            client.service.cancelSkybill(**cancel_skybill)
 
     @api.model
     def chronopost_get_default_custom_package_code(self):

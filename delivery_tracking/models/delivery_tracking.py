@@ -17,6 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import base64
+
 from odoo import fields, models, api, _ as _t
 from .delivery_carrier_provider import _PROVIDER
 
@@ -30,11 +32,24 @@ class DeliveryCarrierTrackingNumber(models.Model):
     carrier_id = fields.Many2one('delivery.carrier', "Carrier")
     provider_id = fields.Many2one('delivery.carrier.provider', "Provider", related='carrier_id.provider_id', store=True)
     state = fields.Selection([('draft', "Draft"), ('send', "Send"), ('cancel', "Cancel")])
+    binary_label = fields.Binary("Label", attachment=True)
+    datas_fname = fields.Char("File name")
 
     @api.multi
     def action_cancel(self):
         for rec in self:
             rec.carrier_id.cancel_shipment(rec.picking_id)
+
+    @api.multi
+    def download_label(self):
+        self.ensure_one()
+        url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        url += '/web/content/%s/%s/binary_label/%s?download=True' % (self._name, self.id, self.datas_fname)
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': '_new',
+        }
 
 
 class ProductTemplateDeliveryTracking(models.Model):
@@ -135,7 +150,7 @@ class DeliveryCarrierDeliveryTracking(models.Model):
     def _see_related(self, related_name):
         self.ensure_one()
         return {
-            'name': _t(self.env[related_name]._descritpion),
+            'name': _t(self.env[related_name]._description),
             'type': 'ir.actions.act_window',
             'res_model': related_name,
             'view_type': 'form',
@@ -143,3 +158,20 @@ class DeliveryCarrierDeliveryTracking(models.Model):
             'domain': [('carrier_id', '=', self.id)],
             'context': dict(self.env.context, default_carrier_id=self.id)
         }
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    cancel_shipment_ok = fields.Boolean("Can cancel tracking", related='carrier_id.cancel_shipment_ok')
+
+    @api.multi
+    def save_tracking_number(self, name, datas):
+        self.ensure_one()
+        return self.env['delivery.carrier.tracking.number'].create({
+            'name': name,
+            'carrier_id': self.carrier_id.id,
+            'picking_id': self.id,
+            'binary_label': base64.encodebytes(datas),
+            'datas_fname': "Colis %s.pdf" % name,
+        })

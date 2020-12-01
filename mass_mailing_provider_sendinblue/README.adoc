@@ -1,0 +1,81 @@
+= Synchronisation Odoo <-> Sendinblue mode d'emploi
+
+== Configuration
+
+=== Récupérer la clef API
+Pour commencer la connexion entre Odoo et l'API Sendinblue, il faut tout d'abord récupérer la clef API de son compte.
+- Dans le compte sendinblue : Nom du compte (en haut à droite) > SMTP & API > Clef API > v3
+- Copier cette clef dans Odoo : Email marketing > Configuration > Sendinblue > Clef de l'API Sendinblue
+
+=== Choisir le sens de mise à jour
+Pour chaque objet il est possible de synchroniser de Odoo vers Sendinblue ou de Sendinblue vers Odoo. Attention, tous
+les champs ne sont pas communs entre Odoo et Sendinblue, voir la partie 'Les objets' pour voir les champs qui peuvent
+être synchronisés.
+
+=== Commencer la synchronisation
+La synchronisation se fait dans Odoo : Email marketing > Synchronisation Sendinblue
+Le pop-up qui s'ouvre propose de synchroniser tout ou une partie des objets.
+
+== Les objets (NOM ODOO / NOM SENDINBLUE)
+
+=== Publipostages (mail.mass_mailing) / Templates d'email
+
+[cols="^.>,^.>"]
+|===
+|**Champs Odoo**|**Champs Sendinblue**
+|name|template_name
+|body_html|html_content
+|name|subject
+|reply_to|reply_to
+|===
+
+=== Contacts (mail.mass_mailing.contact) / Contacts
+
+[cols="^.>,^.>"]
+|===
+|**Champs Odoo**|**Champs Sendinblue**
+|email|email
+|name|LASTNAME
+|===
+
+=== Campagnes (mail.mass_mailing.campaign) / Campagnes
+
+[cols="^.>,^.>"]
+|===
+|**Champs Odoo**|**Champs Sendinblue**
+|user_id.login|sender
+|name|name
+|name|subject
+|self.mass_mailing_ids[0].id_sendinblue_tmpl|template_id
+|===
+
+=== Listes (mail.mass_mailing.list) / Listes
+
+[cols="^.>,^.>"]
+|===
+|**Champs Odoo**|**Champs Sendinblue**
+|name|name
+|folder_id.id|folder_id
+|===
+
+=== Dossiers (mail.mass_mailing.folder) / Dossiers
+
+[cols="^.>,^.>"]
+|===
+|**Champs Odoo**|**Champs Sendinblue**
+|name|name
+|total_blacklisted|total_blacklisted
+|total_subscribers|total_subscribers
+|unique_subscribers|unique_subscribers
+|===
+**/!\/!\/!\**
+
+Il est impossible de renommer un dossier Sendinblue à partir d'Odoo, la mise à jour se fait donc exclusivement dans le
+sens Sendinblue > Odoo quelle que soit la configuration sélectionnée. D'autant plus que les champs 'total_blacklisted',
+'total_subscribers' et 'unique_subscribers' proviennent toujours de Sendinblue.
+
+**/!\/!\/!\**
+
+== Documentation Sendinblue
+https://developers.sendinblue.com/docs
+https://github.com/sendinblue/APIv3-python-library

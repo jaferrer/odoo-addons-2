@@ -18,7 +18,7 @@
 #
 from odoo import fields, models, api
 
-_PROVIDER = []
+_PROVIDER = [('manual', "Manual")]
 
 
 class DeliveryCarrierProvider(models.Model):
@@ -44,6 +44,7 @@ class DeliveryCarrierProvider(models.Model):
 
     _sql_constraints = [
         ('carrier_unique', 'UNIQUE(carrier)', 'The Carrier Code must be unique'),
+        ('carrier_not_manual', "CHECK(carrier != 'manual')", "The Carrier Code can't be manual")
     ]
 
     @api.multi

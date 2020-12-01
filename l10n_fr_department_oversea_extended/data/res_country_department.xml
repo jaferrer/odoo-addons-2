@@ -1,0 +1,45 @@
+<odoo noupdate="1">
+
+    <record id="res_country_department_saint_pierre_et_miquelon" model="res.country.department">
+        <field name="name">Saint-Pierre-et-Miquelon</field>
+        <field name="code">975</field>
+        <field name="state_id" ref="res_country_state_saint_pierre_et_miquelon"/>
+    </record>
+
+    <record id="res_country_department_saint_barthelemy" model="res.country.department">
+        <field name="name">Saint-Barthélemy</field>
+        <field name="code">977</field>
+        <field name="state_id" ref="res_country_state_saint_barthelemy"/>
+    </record>
+
+    <record id="res_country_department_saint_martin" model="res.country.department">
+        <field name="name">Saint-Martin</field>
+        <field name="code">978</field>
+        <field name="state_id" ref="res_country_state_saint_martin"/>
+    </record>
+
+    <record id="res_country_department_wallis" model="res.country.department">
+        <field name="name">Wallis-et-Futuna</field>
+        <field name="code">986</field>
+        <field name="state_id" ref="res_country_state_wallis"/>
+    </record>
+
+    <record id="res_country_department_polynesie_fr" model="res.country.department">
+        <field name="name">Polynésie française</field>
+        <field name="code">987</field>
+        <field name="state_id" ref="res_country_state_polynesie_fr"/>
+    </record>
+
+    <record id="res_country_department_nouvelle_caledonie" model="res.country.department">
+        <field name="name">Nouvelle-Calédonie</field>
+        <field name="code">988</field>
+        <field name="state_id" ref="res_country_state_nouvelle_caledonie"/>
+    </record>
+
+    <record id="res_country_department_terres_australes_fr" model="res.country.department">
+        <field name="name">Terres australes et antarctiques française</field>
+        <field name="code">984</field>
+        <field name="state_id" ref="res_country_state_terres_australes_fr"/>
+    </record>
+
+</odoo>
