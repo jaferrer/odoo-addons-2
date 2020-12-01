@@ -21,6 +21,7 @@
                             <field name="is_institution"/>
                             <field name="is_training_location"/>
                             <field name="is_remote_training_location" attrs="{'invisible': [('is_training_location', '=', False)]}"/>
+                            <field name="is_accessible_prm" attrs="{'invisible': [('is_training_location', '=', False)]}"/>
                         </group>
                     </page>
                     <page string="Biography" attrs="{'invisible': [('is_trainer', '=', False)]}">

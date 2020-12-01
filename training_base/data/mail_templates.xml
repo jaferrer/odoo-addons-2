@@ -17,7 +17,12 @@
                         <br/><br/>
                         Title: ${object.session_id.name}.
                         <br/><br/>
+                        % if object.location_id.is_accessible_prm:
+                        Location (accessible to people with reduced mobility): ${object.location_id.contact_address}.
+                        % endif
+                        % if not object.location_id.is_accessible_prm:
                         Location: ${object.location_id.contact_address}.
+                        % endif
                         <br/>
                         % if object.location_id.is_remote_training_location and object.remote_url:
                         <br/>
