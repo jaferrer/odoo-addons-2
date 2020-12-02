@@ -18,11 +18,12 @@
 #
 
 import base64
-import xlsxwriter
 import csv
-import StringIO
-
 from io import BytesIO
+import re
+import StringIO
+import xlsxwriter
+
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 from openerp import models, fields, api, exceptions, _
@@ -74,6 +75,7 @@ class OdooScript(models.Model):
         self.last_execution_begin = fields.Datetime.now()
         exec (self.script, glob, loc)
         self.last_execution_end = fields.Datetime.now()
+        # pylint: disable=print-statement
         if autocommit:
             self.env.cr.commit()
             print u"End of process, result committed"
@@ -114,15 +116,18 @@ class OdooScriptWatcher(models.Model):
         self.ensure_one()
         query_upper = self.query.upper()
         for forbidden_keyword in FORBIDDEN_SQL_KEYWORDS:
-            if forbidden_keyword in query_upper:
+            # we do not want keyword followed by space, with begin of line or space before
+            # we do accept keyword in name, i.e. DROP_SHIPMENT
+            if re.search(r"(^| )" + forbidden_keyword + r" ", query_upper, re.MULTILINE | re.IGNORECASE):
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
-
+        self.env.cr.execute('SAVEPOINT watch_query')
         query_with_header = "COPY (%s) TO STDOUT WITH CSV HEADER" % self.query.rstrip(';')
         output = StringIO.StringIO()
         self.env.cr.copy_expert(query_with_header, output)
         output.seek(0)
         res = csv.reader(output)
         rows_with_header = [row for row in res]
+        self.env.cr.execute('ROLLBACK TO SAVEPOINT watch_query')
         len_row_without_header = len(rows_with_header) - 1
         if len_row_without_header:
             if self.nb_lines != len_row_without_header or not self.has_result:

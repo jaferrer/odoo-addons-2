@@ -17,11 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, _
-from urllib2 import urlopen
-from lxml import etree
-from urllib import urlencode
-import ssl
+import requests
+
+from openerp import models, api
 
 
 class ColissimoTrackingTransporter(models.Model):
@@ -43,25 +41,23 @@ class ColissimoTrackingNumber(models.Model):
         super(ColissimoTrackingNumber, self).update_delivery_status()
         for rec in self:
             if rec.transporter_id.name == 'Colissimo':
+
                 rec.status_ids.unlink()
-                unverified_context = ssl._create_unverified_context()
-                post_response = urlopen('http://www.colissimo.fr/portail_colissimo/suivreResultatStubs.do',
-                                        urlencode({"language": _("en_GB"), "parcelnumber": rec.name}),
-                                        context=unverified_context)
-                if post_response:
-                    response_etree = etree.parse(post_response, etree.HTMLParser())
-                    body = response_etree.xpath(".//tbody")
-                    if body:
-                        list_status = body[0].findall(".//tr")
-                        if list_status:
-                            for status in list_status:
-                                description_status = status.findall(".//td")
-                                description = ' '.join(description_status[1].text.split())
-                                if len(description_status) == 3 and description_status[2].text and\
-                                                ' '.join(description_status[2].text.split()) != '':
-                                    description = ' '.join(description_status[2].text.split()) + ' - ' + description
-                                    date = description_status[0].text
-                                    date = date[6:] + '-' + date[3:5] + '-' + date[:2] + ' 00:00:01'
-                                    self.env['tracking.status'].create({'date': date,
-                                                                        'status': description,
-                                                                        'tracking_id': rec.id})
+                try:
+                    headers = {
+                        "Accept": "application/json",
+                        "X-Okapi-Key": self.env['ir.config_parameter'].get_param("entrepot_project.token_chronopost")
+                    }
+                    response = requests.get(url="https://api.laposte.fr/suivi/v2/idships/%s?lang=fr_FR" % (rec.name),
+                                            headers=headers)
+
+                    if response.status_code != 200:
+                        continue
+
+                    events = response.json().get('shipment', {}).get('event', {})
+                    for event in events:
+                        self.env['tracking.status'].create({'date': event.get('date'),
+                                                            'status': event.get('label', ''),
+                                                            'tracking_id': rec.id})
+                except:
+                    pass
