@@ -35,7 +35,11 @@ You must install the `odoo_webservice_api` Prestashop module if your Prestashop 
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/product_view.xml'
+        'security/ir.model.access.csv',
+        'views/product_view.xml',
+        'views/product_features.xml',
+        'views/prestashop_backend.xml',
+        'views/prestashop_product_category.xml',
     ],
     'demo': [],
     'test': [],

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+
+    <t t-name="BatchActivity">
+
+        <div>
+            <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
+                <div class="container">
+                    <div class="row">
+                        <div class="navbar-col col-xs-6">
+                            <button id="back-btn"
+                                    type="button"
+                                    class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
+                            <span id="view_title"/>
+                        </div>
+                        <div class="navbar-col col-xs-6">
+                            <button id="validate_batch"
+                                    type="button"
+                                    class="btn btn-success btn-margin-left pull-right hidden">
+                                Valider
+                            </button>
+                            <button id="exit-btn" type="button" class="btn btn-danger pull-right">Quitter</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div id="activity-container">
+                <!-- Les fragments seront chargés ici -->
+            </div>
+        </div>
+    </t>
+
+    <t t-name="BatchSelection">
+
+        <div class="jumbotron">
+            <div id="big_helper" class="container">
+                <h1>Préparations par lots</h1>
+                <p>Veuillez sélectionner un lot de pickings pour commencer</p>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <table id="batch_selection_table" class="table ui_stock_table  table-condensed table-hover">
+                <tbody id="batch_selection_table_body">
+
+                    <t t-foreach="widget.batchList" t-as="batch">
+                        <tr t-att-data-batch_id="batch.id" class="batch-item ui_stock_item">
+                            <td class="main-col">
+                                <p>
+                                    <t t-esc="batch.name"/>
+                                </p>
+                                <p class="text-muted">
+                                    <t t-esc="batch.user"/>
+                                </p>
+                            </td>
+                            <td>
+                                <p>
+                                    <t t-esc="batch.picking_count"/>
+                                    commandes
+                                </p>
+                            </td>
+                        </tr>
+                    </t>
+
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <t t-name="BatchView">
+
+        <div class="jumbotron">
+            <div class="container">
+                <p>Voici les opérations à effectuer</p>
+                <button class="btn btn-lg btn-success col-xs-12" id="start-picking-btn" type="button">
+                    <t t-if="!widget.isStarted"><span>Démarrer la vague</span></t>
+                    <t t-if="widget.isStarted"><span>Reprendre la vague</span></t>
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <table class="ui_stock_table table table-condensed" id="move_line_table">
+                <thead id="move_line_table_header">
+                    <tr>
+                        <th class="main-col">Article</th>
+                        <th>Emplacement</th>
+                        <th>Quantité</th>
+                    </tr>
+                </thead>
+
+                <tbody id="move_line_table_body">
+
+                    <t t-foreach="widget.batchMoveLines" t-as="moveLine">
+                        <tr t-att-data-move_line_id="moveLine.id" class="move-line-item ui_stock_item">
+                            <td class="main-col">
+                                <p>
+                                    <t t-esc="moveLine.product.name"/>
+                                </p>
+                                <p class="text-muted">
+                                    <t t-esc="moveLine.product.lot_name"/>
+                                </p>
+                            </td>
+                            <td>
+                                <p>
+                                    <t t-esc="moveLine.location"/>
+                                </p>
+                            </td>
+                            <td class="qty-col">
+                                <p>
+                                    <t t-esc="moveLine.qty_done"/>/<t t-esc="moveLine.qty_todo"/>
+                                </p>
+                                <small>
+                                    <t t-esc="moveLine.product_uom"/>
+                                </small>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <t t-name="BatchNavigate">
+        <div>
+            <div class="jumbotron alert-info">
+                <div class="container text-center">
+                    <strong>
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> <span id="info-text"></span>
+                    </strong>
+                </div>
+            </div>
+
+            <t t-if='widget.moveLine'>
+                <div class="container">
+                    <div class="row picking-nav">
+
+                        <div class="col-xs-12 picking-flex">
+                            <div>
+                                 <p id="picking-location">
+                                    <t t-esc="widget.moveLine.location"/>
+                                </p>
+                                <p id="picking-product">
+                                    <t t-esc="widget.moveLine.product.name"/>
+                                </p>
+                                <p id="picking-name">
+                                    <t t-esc="widget.moveLine.picking"/>
+                                </p>
+                            </div>
+                            <div id="picking-qty">
+                                <span id="picking-qty-done"><t t-esc="widget.moveLine.qty_done"/></span>
+                                <span>/<t t-esc="widget.moveLine.qty_todo"/></span>
+                            </div>
+                        </div>
+
+                        <t t-if='widget.showManualInput'>
+                            <div class="col-xs-12">
+                                <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="container bottom-container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="btn-group dropup btn-navigation-action">
+                              <button type="button" class="btn btn-info" id="skip-move-line-btn" style="flex-grow:1;">Passer ce produit</button>
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-right">
+                                <li><a type="button" id="end-navigation-btn">Terminer la vague</a></li>
+                              </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="BatchRecap">
+
+        <div class="jumbotron">
+            <div class="container">
+                <button t-attf-class="btn btn-lg col-xs-12 #{widget.isValid and 'btn-success' or 'btn-warning'}"
+                        id="validate-picking-btn"
+                        type="button">Valider et terminer la vague</button>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <table class="ui_stock_table table table-condensed table-hover" id="move_line_table">
+                <thead id="move_line_table_header">
+                    <tr>
+                        <th class="main-col">Article</th>
+                        <th></th>
+                        <th>Quantité</th>
+                    </tr>
+                </thead>
+
+                <tbody id="move_line_table_body">
+                    <t t-foreach="widget.batchMoveLines" t-as="moveLine">
+                        <t t-set="line_status" t-value="moveLine.qty_done == moveLine.qty_todo and 'text-success' or 'text-danger bold'"/>
+                        <tr t-att-data-move_line_id="moveLine.id" t-attf-class="move-line-item ui_stock_item #{line_status}">
+                            <td class="main-col">
+                                <p>
+                                    <t t-esc="moveLine.product.name"/>
+                                </p>
+                                <p class="text-muted">
+                                    <t t-esc="moveLine.product.lot_name"/>
+                                </p>
+                            </td>
+                            <td>
+                                <t t-if="moveLine.qty_todo != moveLine.qty_done">
+                                    <p>
+                                        <t t-esc="moveLine.picking"/>
+                                    </p>
+                                 </t>
+                            </td>
+                            <td class="qty-col">
+                                <p>
+                                    <t t-esc="moveLine.qty_done"/>/<t t-esc="moveLine.qty_todo"/>
+                                </p>
+                                <small>
+                                    <t t-esc="moveLine.product_uom"/>
+                                </small>
+                            </td>
+                        </tr>
+                        <t t-set="prev_move_line_id" t-value="moveLine.id"/>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</templates>

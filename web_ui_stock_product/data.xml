@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="web_ui_action_product" model="stock.picking.type.web.ui.action">
+            <field name="name">Écran de création de chariot</field>
+            <field name="action">stock.ui.product</field>
+        </record>
+
+        <record id="product_poste_1" model="poste.product">
+            <field name="name">Poste produits 1</field>
+            <field name="code">PRODUCT_POSTE_1</field>
+            <field name="description">Poste produits 1</field>
+        </record>
+
+    </data>
+</odoo>

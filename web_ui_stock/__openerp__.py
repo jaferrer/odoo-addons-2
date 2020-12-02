@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -34,6 +34,7 @@ This modules allows to use the barcode scanner.
         'views/web_ui_stock.xml',
         'security/ir.model.access.csv',
     ],
+    'qweb': ['static/src/xml/qweb.xml'],
     'demo': [],
     'test': [],
     'installable': True,
