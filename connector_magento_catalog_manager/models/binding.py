@@ -16,6 +16,24 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import models, api
 
-from . import common
-from . import exporter
+
+class MagentoBinding(models.AbstractModel):
+    _inherit = 'magento.binding'
+
+    @api.model
+    def get_or_create_binding(self, record, backend_record):
+        """ Return the existing binding for a single record, or create it if it doesn't exist """
+        record.ensure_one()
+        binding = self.with_context(active_test=False).search([
+            ('odoo_id', '=', record.id),
+            ('backend_id', '=', backend_record.id),
+        ])
+        if not binding:
+            self.create({
+                'backend_id': backend_record.id,
+                'odoo_id': record.id,
+            })
+
+        return binding

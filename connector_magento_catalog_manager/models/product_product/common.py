@@ -40,11 +40,11 @@ class ProductProductAdapter(Component):
             if key in self._root_magento_fields():
                 res[key] = value
                 continue
-            res['custom_attributes'].update({
+            res['custom_attributes'].append({
                 'attribute_code': key,
                 'value': value,
             })
-        return res
+        return {'product': res}
 
     def create(self, data):
         """ Create a record on the external system """
@@ -56,4 +56,35 @@ class ProductProductAdapter(Component):
         """ Update records on the external system """
         if self.collection.version == '1.7':
             return super(ProductProductAdapter, self).write(external_id, data, storeview_id)
-        return super(ProductProductAdapter, self).write(external_id, self._normalize_data(data))
+        # return super(ProductProductAdapter, self).write(external_id, self._normalize_data(data))
+        # Because of some nonsense in the connector_magento module, we are forced to make a dirty bypass of the parent
+        # model here to avoid a NonImplementedError (despite the write being impleted in a parent model)
+        from ...components.backend_adapter import MagentoAdapter
+        return MagentoAdapter.write(self, external_id, self._normalize_data(data))
+
+
+class MagentoBindingProductProductListener(Component):
+    _name = 'magento.product.product.listener'
+    _inherit = 'base.event.listener'
+    _apply_on = ['magento.product.product', 'product.product', 'product.template']
+
+    @staticmethod
+    def export(record):
+        bindings = record
+        if record._name == 'product.product':
+            bindings = record.magento_bind_ids
+        elif record._name == 'product.template':
+            bindings = record.mapped('product_variant_ids.magento_bind_ids')
+
+        for binding in bindings:
+            binding.with_delay().export_record()
+
+    def on_record_create(self, record, fields=None):
+        if record.env.context.get('connector_no_export'):
+            return
+        self.export(record)
+
+    def on_record_write(self, record, fields=None):
+        if record.env.context.get('connector_no_export'):
+            return
+        self.export(record)
