@@ -63,7 +63,7 @@ class ProductProductAdapter(Component):
         return MagentoAdapter.write(self, external_id, self._normalize_data(data))
 
 
-class MagentoBindingProductProductListener(Component):
+class MagentoProductProductListener(Component):
     _name = 'magento.product.product.listener'
     _inherit = 'base.event.listener'
     _apply_on = ['magento.product.product', 'product.product', 'product.template']
@@ -88,3 +88,9 @@ class MagentoBindingProductProductListener(Component):
         if record.env.context.get('connector_no_export'):
             return
         self.export(record)
+
+
+class MagentoProductProductDeleter(Component):
+    _inherit = 'magento.exporter.deleter'
+    _name = 'magento.product.product.deleter'
+    _apply_on = ['product.product']

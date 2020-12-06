@@ -22,15 +22,31 @@ from odoo import models, fields, api
 class ProductProductExporter(models.TransientModel):
     _name = 'product.product.exporter.wizard'
 
-    def _default_backend(self):
-        return self.env['magento.backend'].search([], limit=1).id
+    product_tmpl_id = fields.Many2one('product.template', u"Article")
+    product_id = fields.Many2one('product.product', u"Article", required=True)
+    backend_id = fields.Many2one('magento.backend', u"Backend", required=True)
 
-    product_id = fields.Many2one('product.product')
-    backend_id = fields.Many2one(
-        comodel_name='magento.backend',
-        default=_default_backend,
-        string='Backend',
-    )
+    @api.model
+    def default_get(self, fields_list):
+        res = super(ProductProductExporter, self).default_get(fields_list)
+        res.setdefault('backend_id', self.env['magento.backend'].search([], limit=1).id)
+        if self.env.context.get('active_model') == 'product.product':
+            res.setdefault('product_id', self.env.context.get('active_id'))
+        elif self.env.context.get('active_model') == 'product.template':
+            product_tmpl_id = self.env.context.get('active_id')
+            res.setdefault('product_tmpl_id', product_tmpl_id)
+            res.setdefault('product_id', self.env['product.product'].search([
+                ('product_tmpl_id', '=', product_tmpl_id)
+            ], limit=1).id)
+
+        return res
+
+    @api.multi
+    @api.onchange('product_tmpl_id')
+    def _onchange_product_tmpl_id(self):
+        self.ensure_one()
+        if self.product_tmpl_id:
+            self.product_id = self.product_tmpl_id.product_variant_id
 
     @api.multi
     def apply(self):

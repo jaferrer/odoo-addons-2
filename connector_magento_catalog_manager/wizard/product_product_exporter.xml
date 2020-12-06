@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <field name="product_id"/>
-                    <field name="backend_id"/>
+                    <group>
+                        <field name="product_tmpl_id" invisible="1"/>
+                        <field name="product_id"/>
+                        <field name="backend_id"/>
+                    </group>
                 </sheet>
                 <footer>
                     <button name="apply" type="object" string="Exporter" class="btn btn-primary"/>
@@ -28,6 +31,14 @@
         <field name="key">action</field>
         <field name="key2">client_action_multi</field>
         <field name="model">product.product</field>
+        <field name="name">Export vers Magento</field>
+        <field name="value" eval="'ir.actions.act_window,'+str(ref('product_product_exporter_wizard_action'))"/>
+    </record>
+
+    <record model="ir.values" id="product_template_exporter_wizard_ir_values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">product.template</field>
         <field name="name">Export vers Magento</field>
         <field name="value" eval="'ir.actions.act_window,'+str(ref('product_product_exporter_wizard_action'))"/>
     </record>
