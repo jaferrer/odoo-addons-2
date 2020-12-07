@@ -50,5 +50,5 @@ class ProductProductExporter(models.TransientModel):
 
     @api.multi
     def apply(self):
-        self.env['magento.product.product'].get_or_create_binding(self.product_id, self.backend_id)
+        self.env['magento.product.product'].get_or_create_bindings(self.product_id, self.backend_id)
         # TODO trigger listener or manually trigger export
