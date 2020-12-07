@@ -31,6 +31,7 @@ A odoo to magento exporter, for magento v2
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'wizard/product_product_exporter.xml',
     ],
     'demo': [],
