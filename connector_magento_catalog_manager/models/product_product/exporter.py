@@ -26,6 +26,21 @@ class ProductProductExporter(Component):
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.product']
 
+    def _export_images(self):
+        images = self.env['ir.attachment'].search([
+            ('res_model', '=', 'product.template'),
+            ('res_id', '=', self.binding.odoo_id.product_tmpl_id.id),
+            ('res_field', 'in', ['image', 'image_medium', 'image_small'])
+        ])
+        bindings = self.env['magento.ir.attachment'].get_or_create_bindings(images, self.backend_record)
+        for binding in bindings:
+            binding.with_delay().export_record()
+
+    def _run(self, fields=None):
+        res = super(ProductProductExporter, self)._run(fields)
+        self._export_images()
+        return res
+
 
 class ProductExportMapper(Component):
     _name = 'magento.product.product.export.mapper'

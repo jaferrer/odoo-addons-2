@@ -17,6 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import binding
-from . import ir_attachment
-from . import product_product
+from . import common
+from . import exporter
