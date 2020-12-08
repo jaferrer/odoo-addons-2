@@ -33,6 +33,7 @@ A odoo to magento exporter, for magento v2
     'data': [
         'security/ir.model.access.csv',
         'wizard/product_product_exporter.xml',
+        'views/product_template.xml',
     ],
     'demo': [],
     'test': [],
