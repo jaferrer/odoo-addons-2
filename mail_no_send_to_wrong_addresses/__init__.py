@@ -18,3 +18,4 @@
 #
 
 from . import mail_no_send_to_wrong_addresses
+from . import mail_compose_message
