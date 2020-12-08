@@ -26,6 +26,9 @@ class ProductProductExporter(Component):
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.product']
 
+    def _has_to_skip(self):
+        return not self.binding.is_available_on_profilesmarket
+
     def _export_images(self):
         images = self.env['ir.attachment'].search([
             ('res_model', '=', 'product.template'),

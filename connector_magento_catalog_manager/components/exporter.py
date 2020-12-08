@@ -17,5 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import backend_adapter
-from . import exporter
+from odoo.addons.component.core import AbstractComponent
+
+
+class MagentoExporter(AbstractComponent):
+    """ A common flow for the exports to Magento """
+
+    _inherit = 'magento.exporter'
+
+    def run(self, binding, *args, **kwargs):
+        self.binding = binding
+        if self._has_to_skip():
+            return
+        return super(MagentoExporter, self).run(binding, *args, **kwargs)
+
