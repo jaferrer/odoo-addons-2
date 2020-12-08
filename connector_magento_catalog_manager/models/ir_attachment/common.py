@@ -59,6 +59,14 @@ class MagentoIrAttachmentAdapter(Component):
         return ans
 
 
+class IrAttachment(models.Model):
+    _inherit = 'ir.attachment'
+
+    magento_bind_ids = fields.One2many('magento.ir.attachment', 'odoo_id', u"Magento Bindings")
+
+    sequence = fields.Integer(u"Position")
+
+
 class MagentoIrAttachmentBinder(Component):
     _name = 'magento.ir.attachment.binder'
     _inherit = 'magento.binder'
@@ -76,9 +84,10 @@ class MagentoIrAttachment(models.Model):
         ('image', u"Image"),
         ('small_image', u"Image réduite"),
         ('thumbnail', u"Aperçu")
-    ], compute='_compute_image_type')
+    ], compute='_compute_image_type', store=True)
 
     @api.multi
+    @api.depends('name')
     def _compute_image_type(self):
         for rec in self:
             if rec.name == 'image':

@@ -16,15 +16,33 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from datetime import datetime
 
+import odoo
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping
+from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
 
 class MagentoIrAttachmentExporter(Component):
     _name = 'magento.ir.attachment.exporter'
     _inherit = 'magento.exporter'
     _apply_on = ['magento.ir.attachment']
+
+    def _should_import(self):
+        assert self.binding
+        if not self.external_id:
+            return False
+        sync = self.binding.sync_date
+        if not sync:
+            return True
+        record = self.backend_adapter.read(self.external_id, *self._comodel_data(), attributes=['updated_at'])
+        if not record.get('updated_at'):
+            # in rare case it can be empty, in doubt, import it
+            return True
+        sync_date = odoo.fields.Datetime.from_string(sync)
+        magento_date = datetime.strptime(record['updated_at'], MAGENTO_DATETIME_FORMAT)
+        return sync_date < magento_date
 
     def _comodel_data(self):
         # Currently, only product.product need images soooooo...
@@ -53,7 +71,6 @@ class MagentoIrAttachmentMapper(Component):
 
     direct = [
         ('datas_fname', 'label'),
-        ('id', 'position'),
     ]
 
     @mapping
@@ -76,3 +93,7 @@ class MagentoIrAttachmentMapper(Component):
                 'type': record.mimetype,
             }
         }
+
+    @mapping
+    def position(self, record):
+        return {'position': record.sequence or 0}

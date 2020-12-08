@@ -30,19 +30,25 @@ class ProductProductExporter(Component):
         return not self.binding.is_available_on_profilesmarket
 
     def _export_images(self):
+        """ Export the related images
+
+        Because they need the product's SKU, they have to be exported after it
+
+        WARNING: it MUST be done on the 'all' storeview in order to be used correctly
+        """
         images = self.env['ir.attachment'].search([
             ('res_model', '=', 'product.template'),
             ('res_id', '=', self.binding.odoo_id.product_tmpl_id.id),
-            ('res_field', 'in', ['image', 'image_medium', 'image_small'])
+            ('res_field', 'in', ['image', 'image_medium', 'image_small']),
+            ('magento_bind_ids', '=', False),
         ])
-        bindings = self.env['magento.ir.attachment'].get_or_create_bindings(images, self.backend_record)
-        for binding in bindings:
-            binding.with_delay().export_record()
+        if images:
+            bindings = self.env['magento.ir.attachment'].get_or_create_bindings(images, self.backend_record)
+            for binding in bindings:
+                binding.export_record()
 
-    def _run(self, fields=None):
-        res = super(ProductProductExporter, self)._run(fields)
+    def _after_export(self):
         self._export_images()
-        return res
 
 
 class ProductExportMapper(Component):
