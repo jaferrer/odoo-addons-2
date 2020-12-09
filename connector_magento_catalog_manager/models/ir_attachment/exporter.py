@@ -16,12 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import datetime
 
-import odoo
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping
-from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
 
 class MagentoIrAttachmentExporter(Component):

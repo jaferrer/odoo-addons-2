@@ -21,7 +21,7 @@ from odoo import models, fields, api
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
-    
+
     magento_product_bind_ids = fields.Many2many('magento.product.product', compute='_compute_magento_product_bind_ids')
 
     @api.multi

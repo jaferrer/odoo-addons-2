@@ -93,4 +93,4 @@ class ProductExportMapper(Component):
     @mapping
     def attribute_set(self, record):
         # TODO create model and stuff
-        return{'attribute_set_id': 10}
+        return {'attribute_set_id': 10}

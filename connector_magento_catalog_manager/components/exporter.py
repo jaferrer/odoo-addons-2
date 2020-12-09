@@ -30,4 +30,3 @@ class MagentoExporter(AbstractComponent):
         if self._has_to_skip():
             return
         return super(MagentoExporter, self).run(binding, *args, **kwargs)
-
