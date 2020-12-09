@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="altares_api_view_partner_form" model="ir.ui.view">
+        <field name="name">altares_api_view_partner_form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']/field[@name='comment']" position="after">
+                <group name="altares" string="Altares grade">
+                    <group>
+                        <field name="viability_rating"/>
+                        <field name="viability_score"/>
+                        <field name="portfolio_comparison"/>
+                        <field name="data_depth_indicator"/>
+                        <field name="company_profile"/>
+                        <field name="altares_duns_number"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="altares_api_partner_action_server" model="ir.actions.server">
+        <field name="name">Get Altares grades</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="propagate_context" eval="True"/>
+        <field name="code">
+            action = records.get_altares_grade()
+        </field>
+    </record>
+
+</odoo>

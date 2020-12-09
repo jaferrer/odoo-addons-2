@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="altares_api_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">altares_api_res_config_settings_view_form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='module_auth_oauth']" position="after">
+                <div class="col-xs-12 col-md-6 o_setting_box" id="altares_api">
+                    <div class="o_setting_right_pane">
+                        <div class="text-muted">Get your ID from Altares</div>
+                        <div class="content-group">
+                            <div class="mt16 row">
+                                <label for="user_id_altares" class="col-xs-3 col-md-3 o_light_label"/>
+                                <field name="user_id_altares" class="oe_inline"/>
+                            </div>
+                        </div>
+                        <div class="content-group">
+                            <div class="mt16 row">
+                                <label for="user_password_altares" class="col-xs-3 col-md-3 o_light_label"/>
+                                <field name="user_password_altares" class="oe_inline" password="true"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
