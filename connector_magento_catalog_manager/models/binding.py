@@ -23,7 +23,7 @@ class MagentoBinding(models.AbstractModel):
     _inherit = 'magento.binding'
 
     @api.model
-    def get_or_create_bindings(self, records, backend_record):
+    def get_or_create_bindings(self, records, backend_record, **data):
         """ Return the existing binding for some records, or create them if they don't exist """
         bindings = self.browse()
         for rec in records:
@@ -32,10 +32,7 @@ class MagentoBinding(models.AbstractModel):
                 ('backend_id', '=', backend_record.id),
             ])
             if not binding:
-                binding = self.create({
-                    'backend_id': backend_record.id,
-                    'odoo_id': rec.id,
-                })
+                binding = self.create(dict(data, backend_id=backend_record.id, odoo_id=rec.id,))
             bindings |= binding
 
         return bindings

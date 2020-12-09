@@ -43,7 +43,10 @@ class ProductProductExporter(Component):
             ('magento_bind_ids', '=', False),
         ])
         if images:
-            bindings = self.env['magento.ir.attachment'].get_or_create_bindings(images, self.backend_record)
+            bindings = self.env['magento.ir.attachment'].get_or_create_bindings(
+                images, self.backend_record,
+                comodel_external_name=self.backend_adapter._magento2_model, comodel_external_id=self.binding.external_id
+            )
             for binding in bindings:
                 binding.export_record()
 

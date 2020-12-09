@@ -30,29 +30,24 @@ class MagentoIrAttachmentExporter(Component):
     _apply_on = ['magento.ir.attachment']
 
     def _should_import(self):
-        assert self.binding
-        if not self.external_id:
-            return False
-        sync = self.binding.sync_date
-        if not sync:
-            return True
-        record = self.backend_adapter.read(self.external_id, *self._comodel_data(), attributes=['updated_at'])
-        if not record.get('updated_at'):
-            # in rare case it can be empty, in doubt, import it
-            return True
-        sync_date = odoo.fields.Datetime.from_string(sync)
-        magento_date = datetime.strptime(record['updated_at'], MAGENTO_DATETIME_FORMAT)
-        return sync_date < magento_date
+        # assert self.binding
+        # if not self.external_id:
+        #     return False
+        # sync = self.binding.sync_date
+        # if not sync:
+        #     return True
+        # record = self.backend_adapter.read(self.external_id, *self._comodel_data(), attributes=['updated_at'])
+        # if not record.get('updated_at'):
+        #     # in rare case it can be empty, in doubt, import it
+        #     return True
+        # sync_date = odoo.fields.Datetime.from_string(sync)
+        # magento_date = datetime.strptime(record['updated_at'], MAGENTO_DATETIME_FORMAT)
+        # return sync_date < magento_date
+        # It seems like we should never import an ir.attachment during the export process
+        return False
 
     def _comodel_data(self):
-        # Currently, only product.product need images soooooo...
-        comodel_binding = self.env['magento.product.product']
-        comodel_adapter = self.component(usage='backend.adapter', model_name=comodel_binding._name)
-        comodel_binding_record = comodel_binding.search([
-            ('odoo_id.product_tmpl_id', '=', self.binding.odoo_id.res_id),
-            ('backend_id', '=', self.backend_record.id)
-        ], limit=1)
-        return comodel_adapter._magento2_model, comodel_binding_record.external_id
+        return self.binding.comodel_data()
 
     def _create(self, data):
         self._validate_create_data(data)

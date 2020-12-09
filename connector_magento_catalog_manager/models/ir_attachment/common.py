@@ -27,6 +27,10 @@ class MagentoIrAttachmentAdapter(Component):
 
     _magento2_key = 'id'
 
+    def _call(self, url, data=None, http_method=None, **kwargs):
+        kwargs['storeview'] = 'all'
+        return super(MagentoIrAttachmentAdapter, self)._call(url, data, http_method=http_method, **kwargs)
+
     @staticmethod
     def _normalize_data(record):
         return {'entry': record}
@@ -85,6 +89,8 @@ class MagentoIrAttachment(models.Model):
         ('small_image', u"Image réduite"),
         ('thumbnail', u"Aperçu")
     ], compute='_compute_image_type', store=True)
+    comodel_external_name = fields.Char()
+    comodel_external_id = fields.Char()
 
     @api.multi
     @api.depends('name')
@@ -96,3 +102,22 @@ class MagentoIrAttachment(models.Model):
                 rec.image_type = 'small_image'
             elif rec.name.endswith('small'):
                 rec.image_type = 'thumbnail'
+
+    @api.multi
+    def comodel_data(self):
+        return self.comodel_external_name, self.comodel_external_id
+
+
+class MagentoIrAttachmentListener(Component):
+    _name = 'magento.ir.attachment.listener'
+    _inherit = 'base.event.listener'
+    _apply_on = ['ir.attachment']
+
+    def on_record_write(self, record, fields=None):
+        if any(field in fields for field in ['db_datas', 'store_fname']):
+            for binding in record.magento_bind_ids:
+                with binding.backend_id.work_on('magento.ir.attachment') as work:
+                    adapter = work.component(usage='backend.adapter')
+                    adapter.delete(binding.external_id, *binding.comodel_data())
+                binding.external_id = False
+                binding.with_delay().export_record()

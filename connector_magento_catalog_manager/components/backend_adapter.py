@@ -28,7 +28,6 @@ class MagentoAdapter(AbstractComponent):
     _inherit = 'magento.adapter'
 
     def _call(self, url, data=None, http_method=None, **kwargs):
-        kwargs['storeview'] = 'all'
         _logger.info(u"MAGENTO %s %s REQUESTED %s", http_method, url, data)
         res = super(MagentoAdapter, self)._call(url, data, http_method=http_method, **kwargs)
         _logger.info(u"MAGENTO %s %s ANSWERED %s", http_method, url, str(res)[:2048])
