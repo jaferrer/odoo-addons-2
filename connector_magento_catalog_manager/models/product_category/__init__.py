@@ -17,5 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import product_category_exporter
-from . import product_product_exporter
+from . import common
+from . import exporter
