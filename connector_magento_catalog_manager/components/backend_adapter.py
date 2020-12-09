@@ -66,6 +66,10 @@ class MagentoAdapter(AbstractComponent):
         """ Returns the information of a record """
         if self.collection.version == '1.7':
             return super(MagentoAdapter, self).read(external_id, attributes, storeview)
-        url = '%s/%s' % (self._magento2_model, self.escape(external_id))
-        ans = self._call(url, None, http_method='GET', storeview=storeview)
+        if self._magento2_key:
+            url = '%s/%s' % (self._magento2_model, self.escape(external_id))
+            ans = self._call(url, None, http_method='GET', storeview=storeview)
+        else:
+            answers = self._call(self._magento2_model, None)
+            ans = next(record for record in answers if record['id'] == external_id)
         return ans
