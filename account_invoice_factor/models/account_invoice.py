@@ -50,9 +50,9 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def _force_send_to_factor(self):
-        self.ensure_one()
-        if self.state != 'paid' and self.allow_transmit_factor and not self.factor_needs_transmission:
-            self.write({'factor_needs_transmission': True})
+        for rec in self:
+            if rec.state != 'paid' and rec.allow_transmit_factor and not rec.factor_needs_transmission:
+                rec.write({'factor_needs_transmission': True})
 
     def on_new_payment(self):
         self._force_send_to_factor()
