@@ -45,6 +45,10 @@ class ProductProductAdapter(Component):
             })
         return {'product': res}
 
+    def _call(self, url, data=None, http_method=None, **kwargs):
+        kwargs['storeview'] = 'all'
+        return super(ProductProductAdapter, self)._call(url, data, http_method=http_method, **kwargs)
+
     def create(self, data):
         """ Create a record on the external system """
         if self.collection.version == '1.7':
