@@ -49,8 +49,9 @@ class PurchaseSupplierEvaluationQuestion(models.Model):
 
     name = fields.Char("Question", required=True)
     sequence = fields.Integer("Séquence")
-    eval_answer_ids = fields.Many2many('purchase.supplier.evaluation.answer', 'question_evaluation_fournisseur_answers',
-                                       string="Réponses possibles")
+    eval_answer_ids = fields.One2many('purchase.supplier.evaluation.answer',
+                                      'eval_question_id',
+                                      string="Réponses possibles")
 
 
 class PurchaseSupplierEvaluationAnswer(models.Model):
@@ -61,7 +62,7 @@ class PurchaseSupplierEvaluationAnswer(models.Model):
     name = fields.Char("Réponse", required=True)
     sequence = fields.Integer("Séquence")
     grade = fields.Float("Note", default=0.0)
-    eval_question_id = fields.Many2one('purchase.supplier.evaluation.question', string="Question", required=True)
+    eval_question_id = fields.Many2one('purchase.supplier.evaluation.question', string="Question")
 
 
 class PurchaseSupplierEvaluationPurchaseOrder(models.Model):
@@ -85,9 +86,15 @@ class PurchaseSupplierEvaluationPurchaseOrder(models.Model):
         if not self.env['purchase.supplier.evaluation'].search([('purchase_id', '=', self.id)]):
             eval_questions = self.env['purchase.supplier.evaluation.question'].search([])
             for question in eval_questions:
+                # A supplier always have the best grade by default
+                best_grade_answer = self.env['purchase.supplier.evaluation.answer']
+                for answer in question.eval_answer_ids:
+                    if answer.grade > best_grade_answer.grade:
+                        best_grade_answer = answer
                 self.env['purchase.supplier.evaluation'].create({
                     'purchase_id': self.id,
                     'eval_question_id': question.id,
+                    'eval_answer_id': best_grade_answer.id,
                 })
 
         action_ref = self.env.ref('supplier_evaluation.purchase_supplier_evaluation_action')
