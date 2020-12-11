@@ -28,9 +28,7 @@ class DelegateTimeline(models.AbstractModel):
 
     @api.model
     def delegate_create(self, create_info):
-        vals = create_info.get('delegate_data', {})
-        res = self.env[create_info['delegate_relation']].create(vals)
-        return self.search([(create_info['delegate_field'], '=', res.id)]).ids
+        return self.env[create_info['delegate_relation']].create(create_info.get('delegate_data', {})).id
 
     @api.multi
     def delegate_unlink(self, unlink_info):
