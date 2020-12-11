@@ -29,6 +29,12 @@ class ProductProductExporter(Component):
     def _has_to_skip(self):
         return not self.binding.is_available_on_profilesmarket
 
+    def _export_dependencies(self):
+        super(ProductProductExporter, self)._export_dependencies()
+        for categ in self.binding.categ_ids:
+            categ_binding = self.env['magento.product.category'].get_or_create_bindings(categ, self.backend_record)
+            categ_binding.export_record()
+
     def _export_images(self):
         """ Export the related images
 
@@ -94,3 +100,11 @@ class ProductExportMapper(Component):
     def attribute_set(self, record):
         # TODO create model and stuff
         return {'attribute_set_id': 10}
+
+    @mapping
+    def categories(self, record):
+        categs = []
+        for categ in record.categ_ids:
+            categ_id = self.binder_for('magento.product.category').to_external(categ, wrap=True)
+            categs.append(categ_id)
+        return {'category_ids': categs}
