@@ -70,3 +70,7 @@ class ProductCategoryExportMapper(Component):
                 raise MappingError("The product category %s has a parent %s which has not been exported yet" %
                                    (record.display_name, record.parent_id.display_name))
             return {'parent_id': record.magento_parent_id.external_id}
+
+    @mapping
+    def include_in_menu(self, record):
+        return {'include_in_menu': False}

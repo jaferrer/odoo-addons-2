@@ -38,20 +38,6 @@ class MagentoProductCategoryAdapter(Component):
             return super(MagentoProductCategoryAdapter, self).write(external_id, data)
         return super(MagentoProductCategoryAdapter, self).write(external_id, self._normalize_data(data))
 
-    def assign_product(self, categ_id, product_id, position=0):
-        if self.collection.version == '1.7':
-            return super(MagentoProductCategoryAdapter, self).assign_product(categ_id, product_id, position)
-        url = "%s/%s/products" % (self._magento2_model, categ_id)
-        data = {
-            'productLink': {
-                'sku': product_id,
-                'position': position,
-                'category_id': categ_id,
-            }
-        }
-        ans = self._call(url, data, http_method='POST', storeview='all')
-        return ans
-
 
 class MagentoProductCategoryListener(Component):
     _name = 'magento.product.category.listener'

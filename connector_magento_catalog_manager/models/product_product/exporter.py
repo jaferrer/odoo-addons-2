@@ -31,9 +31,9 @@ class ProductProductExporter(Component):
 
     def _export_dependencies(self):
         super(ProductProductExporter, self)._export_dependencies()
-        categ_binding = self.env['magento.product.category'].get_or_create_bindings(
-            self.binding.categ_id, self.backend_record)
-        categ_binding.export_record()
+        for categ in self.binding.categ_ids:
+            categ_binding = self.env['magento.product.category'].get_or_create_bindings(categ, self.backend_record)
+            categ_binding.export_record()
 
     def _export_images(self):
         """ Export the related images
@@ -56,15 +56,8 @@ class ProductProductExporter(Component):
             for binding in bindings:
                 binding.export_record()
 
-    def _add_to_category(self):
-        categ_binding = self.env['magento.product.category'].get_or_create_bindings(
-            self.binding.categ_id, self.backend_record)
-        categ_adapter = self.component(usage='backend.adapter', model_name='magento.product.category')
-        categ_adapter.assign_product(categ_binding.external_id, self.binding.external_id)
-
     def _after_export(self):
         self._export_images()
-        self._add_to_category()
 
 
 class ProductExportMapper(Component):
@@ -107,3 +100,11 @@ class ProductExportMapper(Component):
     def attribute_set(self, record):
         # TODO create model and stuff
         return {'attribute_set_id': 10}
+
+    @mapping
+    def categories(self, record):
+        categs = []
+        for categ in record.categ_ids:
+            categ_id = self.binder_for('magento.product.category').to_external(categ, wrap=True)
+            categs.append(categ_id)
+        return {'category_ids': categs}
