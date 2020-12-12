@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="TriggerOnchangeTemplate">
+        <button class="btn-primary" t-att-title="widget.help">
+            <t t-raw="widget.string"/>
+        </button>
+    </t>
+</templates>
