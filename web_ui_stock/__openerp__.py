@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'stock',
-    'depends': ['stock'],
+    'depends': ['stock', 'barcodes'],
     'description': """
 Web UI Stock API
 ================

@@ -1,7 +1,7 @@
 odoo.define('web_ui_stock_receipt.ReceiptMainWidget', function (require) {
     "use strict";
 
-    var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
+    var BarcodeHandlerMixin = require('barcodes.BarcodeHandlerMixin');
     var Widget = require('web.Widget');
     var core = require('web.core');
     var QWeb = core.qweb;
@@ -16,18 +16,19 @@ odoo.define('web_ui_stock_receipt.ReceiptMainWidget', function (require) {
     let StockPickingReceipt = new Model('stock.picking');
     let StockMoveLine = new Model('stock.pack.operation');
 
-    var ReceiptMainWidget = Widget.extend({
+    var ReceiptMainWidget = Widget.extend(BarcodeHandlerMixin, {
         template: 'ReceiptMainWidget',
         init: function (parent, action, options) {
-            this._super(parent, action, options);
+            this._super.apply(this, arguments);
+            BarcodeHandlerMixin.init.apply(this, arguments);
             this.pickingTypeId = parseInt(options.picking_type_id || "0");
             this.selection_stock_pickings = [];
             this.selected_receipt_picking = false;
             this.move_line_rows = [];
             this.changing_location = false;
             this.selected_scan_receipt_computer = 0;
-            this.barcode_scanner = new BarcodeScanner();
             this.scanned_row = false;
+            this.codeInput = null;
         },
         start: function () {
             this._super();
@@ -48,6 +49,7 @@ odoo.define('web_ui_stock_receipt.ReceiptMainWidget', function (require) {
             this._load_receipt_pickings();
             this._connect_scanner_product();
 
+            this.register_scanner()
             this.$('#search_product').focus(() => {
                 this._disconnect_scanner();
                 this.$('#search_product').on('keyup', (e) => {
@@ -64,6 +66,20 @@ odoo.define('web_ui_stock_receipt.ReceiptMainWidget', function (require) {
                 console.log('clear_search_product');
                 this.$('#search_product').val('');
                 this.$('#search_product').focus()
+            });
+        },
+        register_scanner: function () {
+            this.codeInput.focus(() => {
+                this.stop_listening()
+                this.codeInput.on('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        this.on_barcode_scanned($(this.codeInput).val())
+                    }
+                })
+            });
+            this.codeInput.blur(() => {
+                this.codeInput.off('keyup');
+                this.start_listening()
             });
         },
         _load_receipt_pickings: function () {
@@ -96,16 +112,11 @@ odoo.define('web_ui_stock_receipt.ReceiptMainWidget', function (require) {
         _set_view_title: function (title) {
             $("#view_title").text(title);
         },
-        _connect_scanner_product: function () {
-            this.barcode_scanner.connect(this.scan_product.bind(this));
-        },
-        _disconnect_scanner: function () {
-            this.barcode_scanner.disconnect();
-        },
         get_header: function () {
             return this.getParent().get_header();
         },
-        scan_product: function (name) {
+        scan_product: this.on_barcode_scanned.bind(this),
+        on_barcode_scanned: function (name) {
            console.log(name);
             this.$('#search_product').val('');
             StockPickingType.call('web_ui_get_product_info_by_name', [[this.pickingTypeId], name])

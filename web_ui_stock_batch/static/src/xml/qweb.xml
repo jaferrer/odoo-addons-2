@@ -131,13 +131,11 @@
                 <div class="container bottom-container">
                     <div class="row">
 
-                        <t t-if='widget.showManualInput'>
                             <div class="col-md-12">
                                 <p>
                                     <input type="text" id="search-code" name="search-code" class="form-control" placeholder="Saisie manuelle"/>
                                 </p>
                             </div>
-                        </t>
 
                         <div class="col-md-12">
                             <div class="btn-group dropup btn-navigation-action">

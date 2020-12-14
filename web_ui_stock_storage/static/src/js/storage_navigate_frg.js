@@ -2,8 +2,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
     "use strict";
 
     var Widget = require('web.Widget');
-    var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
     var Numpad = require('web_ui_stock_storage.StorageNumpad');
+    var BarcodeHandlerMixin = require('barcodes.BarcodeHandlerMixin');
     var Model = require('web.Model');
     let StockPickingType = new Model('stock.picking.type');
     let StockPicking = new Model('stock.picking');
@@ -16,9 +16,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
         lot: 4
     }
 
-    return Widget.extend({
+    return Widget.extend(BarcodeHandlerMixin, {
         template: 'StorageNavigate',
-        barcode_scanner: null,
         activity: null,
         pickingId: null,
         moveLineIds: [],
@@ -30,8 +29,8 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
         showManualInput: true,
         hasQtyChanged: false,
         init: function (activity, pickingId, options = {}) {
-            this._super();
-            this.barcode_scanner = new BarcodeScanner();
+            this._super.apply(this, arguments);
+            BarcodeHandlerMixin.init.apply(this, arguments);
             this.activity = activity;
             this.pickingId = parseInt(pickingId);
 
@@ -74,24 +73,21 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
         },
         destroy: function () {
             $('.modal-backdrop').remove();
-            this.barcode_scanner.disconnect();
             this._super();
         },
         register_scanner: function () {
-            this.barcode_scanner.disconnect();
             this.codeInput.focus(() => {
-                this.barcode_scanner.disconnect();
+                this.stop_listening()
                 this.codeInput.on('keyup', (e) => {
                     if (e.key === 'Enter') {
-                        this.scan($(this.codeInput).val())
+                        this.on_barcode_scanned($(this.codeInput).val())
                     }
                 })
             });
             this.codeInput.blur(() => {
                 this.codeInput.off('keyup');
-                this.barcode_scanner.connect(this.scan.bind(this));
+                this.start_listening()
             });
-            this.barcode_scanner.connect(this.scan.bind(this));
         },
         init_title: function () {
             StockPicking.call('read', [[this.pickingId], ['name']]).then((res) => {
@@ -137,7 +133,7 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             StockPickingType.call('web_ui_get_storage_validate_move', [[this.activity.pickingTypeId], this.pickingId])
                 .then(() => window.history.back());
         },
-        scan: function (code) {
+        on_barcode_scanned: function (code) {
             console.log(code);
             $(this.codeInput).val('');
             switch (this.state) {
@@ -152,6 +148,7 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
                     break;
             }
         },
+        scan: this.on_barcode_scanned.bind(this), //Compatibility
         scanProduct: function (code) {
             this.moveLines = []
             StockPickingType.call('web_ui_get_storage_product_info_by_name', [[this.activity.pickingTypeId], code, this.pickingId])
