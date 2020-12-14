@@ -3,6 +3,7 @@ odoo.define('web_timeline.TimelineRenderer', function (require) {
 
     var AbstractRenderer = require('web.AbstractRenderer');
     var core = require('web.core');
+    var pyeval = require('web.pyeval');
     var time = require('web.time');
     var utils = require('web.utils');
     var session = require('web.session');
@@ -42,6 +43,7 @@ odoo.define('web_timeline.TimelineRenderer', function (require) {
             this.colors = params.colors;
             this.fieldNames = params.fieldNames;
             this.dependency_arrow = params.dependency_arrow;
+            this.pager = params.pager;
             this.view = params.view;
             this.modelClass = this.view.model;
             this.subgroupStack = {
@@ -69,7 +71,11 @@ odoo.define('web_timeline.TimelineRenderer', function (require) {
 
             this.$el.addClass(attrs.class);
             this.$timeline = this.$el.find(".oe_timeline_widget");
-
+            if (this.pager) {
+                this.$(".pager").removeClass('o_hidden')
+                this.$(".timeline2_pager_previous").click(() => this.page_previous())
+                this.$(".timeline2_pager_next").click(() => this.page_next())
+            }
             if (!this.date_start) {
                 throw new Error(_t("Timeline view has not defined 'date_start' attribute."));
             }

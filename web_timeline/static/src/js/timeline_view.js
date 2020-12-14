@@ -188,6 +188,7 @@ odoo.define('web_timeline.TimelineView', function (require) {
             this.rendererParams.view = this;
             this.rendererParams.min_height = this.min_height;
             this.rendererParams.dependency_arrow = this.dependency_arrow;
+            this.rendererParams.pager = this.pager;
 
             this.loadParams.modelName = this.modelName;
             this.loadParams.fieldNames = fieldNames;

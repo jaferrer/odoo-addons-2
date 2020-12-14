@@ -251,6 +251,7 @@ odoo.define('web_timeline.TimelineController', function (require) {
         _onAdd: function (event) {
             var self = this;
             var item = event.data.item;
+            let group = this.renderer.visGroups.get(item.group);
             // Initialize default values for creation
             var default_context = {};
             default_context['default_'.concat(this.date_start)] = item.start;
@@ -260,11 +261,11 @@ odoo.define('web_timeline.TimelineController', function (require) {
             if (this.date_start) {
                 default_context['default_'.concat(this.date_start)] = moment(item.start).add(1, 'hours').toDate();
             }
+            if (group) {
+                default_context['default_'.concat(group.field)] = group._id;
+            }
             if (this.date_stop && item.end) {
                 default_context['default_'.concat(this.date_stop)] = moment(item.end).add(1, 'hours').toDate();
-            }
-            if (item.group > 0) {
-                default_context['default_'.concat(this.renderer.last_group_bys[0])] = item.group;
             }
             // Show popup
             new dialogs.FormViewDialog(this, {
