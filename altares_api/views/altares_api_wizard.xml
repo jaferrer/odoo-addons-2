@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- OUTLOOK.CONTACT.SYNC -->
+
+    <record id="altares_api_wizard_form" model="ir.ui.view">
+        <field name="name">altares_api_wizard_form</field>
+        <field name="model">altares.api.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Societies grades update">
+                <group>
+                    <group>
+                        <field name="partner_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="do_update_altares_grades" string="Update grades" type="object" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="altares_api_wizard_action" model="ir.actions.act_window">
+        <field name="name">Update Altares grades</field>
+        <field name="res_model">altares.api.wizard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- MENU RES.PARTNER -->
+    <menuitem id="altares_api_wizard_menu"
+              name="Update Altares grades"
+              action="altares_api_wizard_action"
+              parent="contacts.menu_contacts"
+              sequence="10"/>
+
+</odoo>
