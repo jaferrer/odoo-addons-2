@@ -48,14 +48,19 @@ class AccountInvoice(models.Model):
         res['value']['allow_transmit_factor'] = factor_bank_ok
         return res
 
+    @api.multi
+    def _force_send_to_factor(self):
+        for rec in self:
+            if rec.state != 'paid' and rec.allow_transmit_factor and not rec.factor_needs_transmission:
+                rec.write({'factor_needs_transmission': True})
+
     def on_new_payment(self):
-        if self.state != 'paid' and self.allow_transmit_factor and not self.factor_needs_transmission:
-            self.write({'factor_needs_transmission': True})
+        self._force_send_to_factor()
 
     @api.multi
     def resend_to_factor(self):
-        self.ensure_one()
-        self.factor_needs_transmission = True
+        for rec in self:
+            rec._force_send_to_factor()
 
     @api.multi
     @api.onchange('partner_id')
@@ -76,4 +81,6 @@ class AccountInvoice(models.Model):
         for rec in self:
             if rec.allow_transmit_factor and rec.partner_non_eligible_factor:
                 rec.allow_transmit_factor = False
+            if rec.allow_transmit_factor and vals.get('state') == 'open':
+                rec.factor_needs_transmission = True
         return res
