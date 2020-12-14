@@ -43,6 +43,8 @@ class AltaresApiWizard(models.TransientModel):
         self.ensure_one()
         user_id_altares = self.env['ir.config_parameter'].get_param('altares_api.user_id_altares')
         user_password_altares = self.env['ir.config_parameter'].get_param('altares_api.user_password_altares')
+        if not user_id_altares or not user_password_altares:
+            return ""
         headers = {
             'x-dnb-user': user_id_altares,
             'x-dnb-pwd': user_password_altares
@@ -92,6 +94,8 @@ class AltaresApiWizard(models.TransientModel):
     @api.multi
     def get_altares_grade(self, partner):
         token = self.get_token()
+        if not token:
+            return {}
         duns_number = self.get_duns_number(token, partner)
         headers = {
             'Authorization': token
@@ -112,7 +116,13 @@ class AltaresApiWizard(models.TransientModel):
         company_profile = \
             "\n".join(grades_infos['OrganizationProfileDetail']['TradeDataAvailabilityDetail'].get('AssessmentText'))
 
-        return viability_rating, viability_score, portfolio_comparison, data_depth_indicator, company_profile
+        return {
+            'viability_rating': viability_rating,
+            'viability_score': viability_score,
+            'portfolio_comparison': portfolio_comparison,
+            'data_depth_indicator': data_depth_indicator,
+            'company_profile': company_profile,
+        }
 
     @api.multi
     def do_update_altares_grades(self):
@@ -122,12 +132,6 @@ class AltaresApiWizard(models.TransientModel):
         self.ensure_one()
         all_partners = self.partner_ids or self.env['res.partner'].search([('is_company', '=', True)])
         for partner in all_partners:
-            viability_rating, viability_score, portfolio_comparison, data_depth_indicator, company_profile = \
-                self.get_altares_grade(partner)
-            partner.write({
-                'viability_rating': viability_rating,
-                'viability_score': viability_score,
-                'portfolio_comparison': portfolio_comparison,
-                'data_depth_indicator': data_depth_indicator,
-                'company_profile': company_profile,
-            })
+            data = self.sudo().get_altares_grade(partner)
+            if data:
+                partner.write(data)

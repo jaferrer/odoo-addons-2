@@ -75,10 +75,10 @@ class ResPartnerAltares(models.Model):
             chunk_number += 1
             chunk_partners = partners[:50]
             partners = partners[50:]
-            if not jobify:
-                chunk_partners.job_altares_grades_update()
-            else:
-                chunk_partners.with_delay(
+            if jobify:
+                chunk_partners = chunk_partners.with_delay(
                     description="Mise à jour des notes Altares dans les sociétés (chunk %s)" % chunk_number,
                     max_retries=0
-                ).job_altares_grades_update()
+                )
+
+            chunk_partners.job_altares_grades_update()
