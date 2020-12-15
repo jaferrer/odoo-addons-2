@@ -57,6 +57,9 @@ class TrainingSession(models.Model):
     def name_get(self):
         result = []
         for rec in self:
+            if self.env.context.get('do_not_display_session_number'):
+                result += [(rec.id, rec.training_id.name)]
+                continue
             ordered_sessions = self.search([('id', 'in', rec.training_id.session_ids.ids)],
                                            order='first_sitting_date, id')
             nb_sessions_for_training = len(ordered_sessions)
