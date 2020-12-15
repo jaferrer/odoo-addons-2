@@ -56,17 +56,14 @@ class CustomerFileToImport(models.Model):
     extension = fields.Char(string=u"Extension", readonly=True, help=u"Example : '.xls', '.csv' or '.txt'")
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
 
-    @api.multi
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s%s" % (rec.name, rec.extension)
 
-    @api.multi
     def _compute_log_lines_count(self):
         for rec in self:
             rec.log_lines_count = len(rec.log_line_ids)
 
-    @api.multi
     def _compute_state(self):
         for rec in self:
             state = 'draft'
@@ -80,12 +77,10 @@ class CustomerFileToImport(models.Model):
                 state = 'csv_generated'
             rec.state = state
 
-    @api.multi
     def generate_out_csv_files(self):
         """Method to overwrite for each model"""
         self.ensure_one()
 
-    @api.multi
     def action_generate_out_csv_files(self):
         self.ensure_one()
         self.log_info(u"Generating CSV file for %s" % self.name)
@@ -94,15 +89,12 @@ class CustomerFileToImport(models.Model):
         self.csv_file_ids.unlink()
         self.generate_out_csv_files()
 
-    @api.multi
     def import_actual_files(self):
         self.csv_file_ids.action_import()
 
-    @api.multi
     def log(self, type, msg):
         self._log(msg=msg, type=type)
 
-    @api.multi
     def _log(self, msg, type='INFO'):
         self.ensure_one()
         if type == 'INFO':
@@ -119,15 +111,12 @@ class CustomerFileToImport(models.Model):
             'message': msg,
         })
 
-    @api.multi
     def log_info(self, msg):
         self._log(msg)
 
-    @api.multi
     def log_warning(self, msg):
         self._log(msg, type='WARNING')
 
-    @api.multi
     def log_error(self, msg):
         self._log(msg, type='ERROR')
 
@@ -147,12 +136,10 @@ class CustomerFileToImport(models.Model):
             raise exceptions.UserError(u"Impossible de générer un ID XML pour l'objet %s" % object)
         return xlml_id
 
-    @api.multi
     def save_data(self, model, data, fields_to_import=None, sequence=0):
         fields_to_import = fields_to_import or list(list(data.values())[0].keys())
         self.save_generated_csv_file(model, fields_to_import, data, sequence=sequence)
 
-    @api.multi
     def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
         model_obj = self.env['ir.model'].search([('model', '=', model)])
@@ -186,7 +173,6 @@ class CustomerFileToImport(models.Model):
             'fields_to_import': str(['id'] + fields_to_import)
         })
 
-    @api.multi
     def check_line_length(self, iterable):
         self.ensure_one()
         if len(iterable) != self.nb_columns:
@@ -194,12 +180,10 @@ class CustomerFileToImport(models.Model):
             return False
         return True
 
-    @api.multi
     def set_to_import(self):
         for rec in self:
             rec.csv_file_ids.unlink()
 
-    @api.multi
     def open_log_lines(self):
         self.ensure_one()
         ctx = dict(self.env.context)
@@ -208,7 +192,6 @@ class CustomerFileToImport(models.Model):
         ctx['search_default_group_by_type'] = True
         return {
             'name': u"Log lines for CSV files generation of %s" % self.display_name,
-            'view_type': 'form',
             'view_mode': 'tree',
             'res_model': 'customer.importation.log.line',
             'type': 'ir.actions.act_window',
@@ -221,7 +204,6 @@ class CustomerFileToImport(models.Model):
         _logger.info(u"Creating file %s", vals.get('name', ''))
         return super(CustomerFileToImport, self).create(vals)
 
-    @api.multi
     def write(self, vals):
         for rec in self:
             _logger.info(u"Editing file %s", vals.get('name', rec.name))
@@ -257,12 +239,10 @@ class CustomerGeneratedCsvFile(models.Model):
     imported = fields.Boolean(string=u"Imported")
     imported_file_ids = fields.One2many('customer.imported.csv.file', 'original_file_id', string=u"Imported files")
 
-    @api.multi
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
 
-    @api.multi
     def download_generated_csv_file(self):
         url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         url += '/web/content/%s/%s/generated_csv_file/%s?download=True' % (self._name, self.id, self.datas_fname)
@@ -272,7 +252,6 @@ class CustomerGeneratedCsvFile(models.Model):
             'target': '_new',
         }
 
-    @api.multi
     @api.depends('imported_file_ids', 'imported_file_ids.done', 'imported_file_ids.error')
     def _compute_state(self):
         for rec in self:
@@ -289,11 +268,9 @@ class CustomerGeneratedCsvFile(models.Model):
                 state = 'importing'
             rec.state = state
 
-    @api.multi
     def name_get(self):
         return [(rec.id, u"%s, model %s" % (rec.model, rec.import_id.name)) for rec in self]
 
-    @api.multi
     def action_import(self):
         for rec in self:
             imported = self.env['customer.imported.csv.file'].create({
@@ -331,16 +308,13 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
     processed = fields.Boolean(string=u"Traité")
 
-    @api.multi
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
 
-    @api.multi
     def name_get(self):
         return [(rec.id, u"CSV file importation of model %s" % rec.model) for rec in self]
 
-    @api.multi
     def get_default_importation_options(self):
         self.ensure_one()
         return {u'datetime_format': u'%Y-%m-%d %H:%M:%S',
@@ -355,7 +329,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
                 u'float_decimal_separator': u'.',
                 u'advanced': True}
 
-    @api.multi
     def get_default_values_for_importation_wizard(self):
         self.ensure_one()
         return {
@@ -385,7 +358,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
                     self.error_msg = error_msg
                 self.error = True
 
-    @api.multi
     def launch_importation(self):
         for rec in self:
             fields_to_import = safe_eval(rec.fields_to_import)
@@ -465,7 +437,6 @@ class CustomerFileQueueJob(models.Model):
     imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
                                        readonly=True)
 
-    @api.multi
     def update_importation_file_states(self):
         files_to_update = self.env['customer.imported.csv.file']
         for rec in self:
@@ -484,7 +455,6 @@ class CustomerFileQueueJob(models.Model):
         result.update_importation_file_states()
         return result
 
-    @api.multi
     def write(self, vals):
         result = super(CustomerFileQueueJob, self).write(vals)
         if vals.get('state'):

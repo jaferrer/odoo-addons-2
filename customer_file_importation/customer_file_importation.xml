@@ -111,7 +111,6 @@
         <record model="ir.actions.act_window" id="act_window_customer_file_to_import">
             <field name="name">Customer File To Import</field>
             <field name="res_model">customer.file.to.import</field>
-            <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -126,7 +125,7 @@
             <field name="model">customer.imported.csv.file</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" delete="false" edit="false" colors="red:error;green:done;blue:not error and not done">
+                <tree create="false" delete="false" edit="false">
                     <field name="sequence"/>
                     <field name="create_uid"/>
                     <field name="create_date"/>
@@ -185,7 +184,6 @@
         <record model="ir.actions.act_window" id="act_window_customer_imported_csv_file">
             <field name="name">Imported CSV Files</field>
             <field name="res_model">customer.imported.csv.file</field>
-            <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
             <field name="context">{'search_default_to_import': True, 'search_default_error': True}</field>
