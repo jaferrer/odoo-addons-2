@@ -96,6 +96,8 @@ class MagentoIrAttachment(models.Model):
     @api.depends('name')
     def _compute_image_type(self):
         for rec in self:
+            if not rec.res_model == 'product.template':
+                continue
             if rec.name == 'image':
                 rec.image_type = 'image'
             elif rec.name.endswith('medium'):
