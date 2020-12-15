@@ -157,7 +157,9 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 this.renderState();
             }
         },
-        scan: this.on_barcode_scanned.bind(this), //Compatibility
+        scan: function (ean) {
+            return this.on_barcode_scanned(ean)
+        }, //Compatibility
         scanLocation: function (code) {
             return true;
         },

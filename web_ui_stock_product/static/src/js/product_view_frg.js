@@ -94,7 +94,9 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                     break;
             }
         },
-        scan: this.on_barcode_scanned.bind(this), //Compatibility
+        scan: function (ean) {
+            return this.on_barcode_scanned(ean)
+        }, //Compatibility
         scanProduct: function (value) {
             StockPickingType.call('web_ui_get_product_info_by_name', [[this.activity.pickingTypeId], value, false, this.activity.is_internal_move])
                 .always(() => {
