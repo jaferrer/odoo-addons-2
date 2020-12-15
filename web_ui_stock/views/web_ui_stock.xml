@@ -10,7 +10,6 @@
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/packing_mobile_widgets.js"></script>
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/web_stock_ui_barecode_scanner.js"></script>
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/web_ui_stock_activity.js"></script>
-                <script type="text/javascript" src="/web_ui_stock/static/src/js/web_ui_stock_fragment.js"></script>
                 <script type="text/javascript" src="/web_ui_stock/static/src/js/web_ui_stock_numpad.js"></script>
             </xpath>
         </template>

@@ -148,7 +148,9 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
                     break;
             }
         },
-        scan: this.on_barcode_scanned.bind(this), //Compatibility
+        scan: function (ean) {
+            return this.on_barcode_scanned(ean)
+        }, //Compatibility
         scanProduct: function (code) {
             this.moveLines = []
             StockPickingType.call('web_ui_get_storage_product_info_by_name', [[this.activity.pickingTypeId], code, this.pickingId])
