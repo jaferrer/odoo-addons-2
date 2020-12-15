@@ -150,6 +150,8 @@ class TrainingPartner(models.Model):
         template = self.env.ref('training_base.email_template_training_convocation_to_partner')
         ctx = {
             'partner_to': self.id,
+            'title_name': self.title.name or "",
+            'partner_name': self.name or "",
             'default_res_id': sitting.id,
             'default_template_id': template.id,
             'default_composition_mode': 'comment',
@@ -215,6 +217,8 @@ class TrainingPartner(models.Model):
         template = self.env.ref('training_base.email_template_training_certificate_to_partner')
         ctx = {
             'partner_to': self.id,
+            'title_name': self.title.name or "",
+            'partner_name': self.name or "",
             'default_res_id': session.id,
             'default_template_id': template.id,
             'default_composition_mode': 'comment',
