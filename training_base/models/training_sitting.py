@@ -33,7 +33,8 @@ class TrainingSitting(models.Model):
     session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
     training_id = fields.Many2one('training.training', string="Training", related='session_id.training_id',
                                   readonly=True, store=True)
-    trainer_id = fields.Many2one('res.partner', string="Trainer", required=True, domain=[('is_trainer', '=', True)])
+    trainer_ids = fields.Many2many('res.partner', string="Trainer(s)", required=True,
+                                   domain=[('is_trainer', '=', True)])
     location_id = fields.Many2one('res.partner', string="Location", required=True,
                                   domain=[('is_training_location', '=', True)])
     is_remote_training_location = fields.Boolean(related='location_id.is_remote_training_location')
@@ -58,7 +59,7 @@ class TrainingSitting(models.Model):
     def onchange_session_id(self):
         for rec in self:
             if rec.session_id:
-                rec.trainer_id = rec.session_id.trainer_id
+                rec.trainer_ids = rec.session_id.trainer_ids
                 rec.location_id = rec.session_id.location_id
 
     def send_convocation_to_all(self):
