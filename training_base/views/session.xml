@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="training_id"/>
-                    <field name="trainer_id" groups="training_base.group_training_manager"/>
+                    <field name="trainer_ids" widget="many2many_tags" groups="training_base.group_training_manager"/>
                     <field name="location_id"/>
                     <field name="nb_attendees"/>
                     <field name="price"/>
@@ -25,7 +25,7 @@
             <field name="arch" type="xml">
                 <search>
                     <field name="training_id"/>
-                    <field name="trainer_id" groups="training_base.group_training_manager"/>
+                    <field name="trainer_ids" groups="training_base.group_training_manager"/>
                     <field name="location_id"/>
                     <field name="price"/>
                     <field name="attendee_ids"/>
@@ -55,7 +55,7 @@
                     <sheet>
                         <group>
                             <field name="training_id" options="{'no_create': True}"/>
-                            <field name="trainer_id" options="{'no_create': True}" groups="training_base.group_training_manager"/>
+                            <field name="trainer_ids" widget="many2many_tags" options="{'no_create': True}" groups="training_base.group_training_manager"/>
                             <field name="location_id" options="{'no_create': True}"/>
                             <field name="price"/>
                             <field name="nb_mini"/>
@@ -87,7 +87,7 @@
                                     <field name="last_sitting_date"/>
                                 </group>
                                 <field name="sitting_ids" context="{'default_session_id': id}">
-                                    <field name="trainer_id"/>
+                                    <field name="trainer_ids" widget="many2many_tags"/>
                                     <field name="location_id"/>
                                     <field name="date"/>
                                     <field name="start_hour"/>

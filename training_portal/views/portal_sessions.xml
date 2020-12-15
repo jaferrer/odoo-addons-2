@@ -63,7 +63,7 @@
                             <t t-if="sitting.location_id.display_name" t-esc="sitting.location_id.display_name" />
                             <t t-else="">Not available</t>
                         </td>
-                        <td><t t-esc="sitting.trainer_id.display_name" /></td>
+                        <td><t t-esc="', '.join([trainer.display_name for trainer in sitting.trainer_ids])" /></td>
                     </tr>
                 </tbody>
             </t>

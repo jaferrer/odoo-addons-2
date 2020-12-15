@@ -25,7 +25,7 @@
                 <search>
                     <field name="training_id"/>
                     <field name="session_id"/>
-                    <field name="trainer_id"/>
+                    <field name="trainer_ids"/>
                     <field name="location_id"/>
                     <field name="date"/>
                     <group expand="0" name="group_by" string="Group By">
@@ -51,7 +51,7 @@
                             <group>
                                 <field name="session_id" options="{'no_create': True}"/>
                                 <field name="training_id" options="{'no_create': True}"/>
-                                <field name="trainer_id" options="{'no_create': True}"/>
+                                <field name="trainer_ids" widget="many2many_tags" options="{'no_create': True}"/>
                                 <field name="location_id" options="{'no_create': True}"/>
                                 <field name="is_remote_training_location" invisible="1"/>
                                 <field name="remote_url" attrs="{'invisible': [('is_remote_training_location', '=', False)]}" widget="url"/>

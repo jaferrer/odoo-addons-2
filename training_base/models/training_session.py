@@ -32,9 +32,11 @@ class TrainingSession(models.Model):
         return self.env.user.partner_id.is_trainer and self.env.user.partner_id or False
 
     training_id = fields.Many2one('training.training', string="Training", required=True, ondelete='cascade')
-    trainer_id = fields.Many2one('res.partner', string="Trainer", domain=[('is_trainer', '=', True)],
-                                 default=_get_default_trainer_id)
-    attendee_ids = fields.Many2many('res.partner', string="Attendees", domain=[('is_attendee', '=', True)])
+    trainer_ids = fields.Many2many('res.partner', 'training_trainer_session_rel', 'session_id', 'trainer_id',
+                                   string="Trainer(s)", domain=[('is_trainer', '=', True)],
+                                   default=_get_default_trainer_id)
+    attendee_ids = fields.Many2many('res.partner', 'training_attendee_session_rel', 'session_id', 'attendee_id',
+                                    string="Attendees", domain=[('is_attendee', '=', True)])
     nb_attendees = fields.Integer(string="Number of attendees", compute='_compute_nb_attendees', store=True)
     location_id = fields.Many2one('res.partner', domain=[('is_training_location', '=', True)], string="Location")
     price = fields.Float(string="Price")
