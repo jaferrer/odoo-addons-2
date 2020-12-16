@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="pos_change_contact_crm_team_form" model="ir.ui.view">
+            <field name="name">pos_change_contact_crm_team_form</field>
+            <field name="model">crm.team</field>
+            <field name="inherit_id" ref="pos_sale.crm_team_view_form_inherit_pos_sale"/>
+            <field name="arch" type="xml">
+                <field name="company_id" position="after">
+                    <field name="partner_contact_id"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
