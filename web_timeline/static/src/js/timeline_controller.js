@@ -31,6 +31,7 @@ odoo.define('web_timeline.TimelineController', function (require) {
             this.context = params.actionContext;
             this.moveQueue = [];
             this.debouncedInternalMove = _.debounce(this.internalMove, 0);
+            this.display_ask_question = params.ask_question;
         },
 
         /**
@@ -197,6 +198,17 @@ odoo.define('web_timeline.TimelineController', function (require) {
             });
         },
 
+        _unlink: function (item) {
+            return this._rpc({
+                model: this.model.modelName,
+                method: 'unlink',
+                args: [
+                    [item.id],
+                ],
+                context: this.getSession().user_context,
+            })
+        },
+
         /**
          * Triggered when a timeline item gets removed from the view.
          * Requires user confirmation before it gets actually deleted.
@@ -204,43 +216,20 @@ odoo.define('web_timeline.TimelineController', function (require) {
          * @private
          * @returns {jQuery.Deferred}
          */
-        _onRemove: function (e) {
-            var self = this;
+        _onRemove: function (event) {
+            let item = event.data.item;
+            let callback = event.data.callback;
 
-            function do_it(event) {
-                return self._rpc({
-                    model: self.model.modelName,
-                    method: 'unlink',
-                    args: [
-                        [event.data.item.id],
-                    ],
-                    context: self.getSession().user_context,
-                }).then(function () {
-                    var unlink_index = false;
-                    for (var i = 0; i < self.model.data.data.length; i++) {
-                        if (self.model.data.data[i].id === event.data.item.id) {
-                            unlink_index = i;
-                        }
-                    }
-                    if (!isNaN(unlink_index)) {
-                        self.model.data.data.splice(unlink_index, 1);
-                    }
-
-                    event.data.callback(event.data.item);
-                });
+            if (!event.data.item) {
+                return callback(item);
             }
-
-            var message = _t("Are you sure you want to delete this record?");
-            var def = $.Deferred();
-            Dialog.confirm(this, message, {
-                title: _t("Warning"),
-                confirm_callback: function() {
-                    do_it(e)
-                        .done(def.resolve.bind(def, true))
-                        .fail(def.reject.bind(def));
-                },
-            });
-            return def.promise();
+            if (this.display_ask_question) {
+                if (confirm(_t("Are you sure you want to delete this record ?"))) {
+                    return this._unlink(item).then(res => res ? callback(item) : callback(null));
+                }
+                return callback(null);
+            }
+            return this._unlink(item).then(res => res ? callback(item) : callback(null));
         },
 
         /**

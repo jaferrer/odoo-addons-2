@@ -123,6 +123,7 @@ odoo.define('web_timeline.TimelineView', function (require) {
             this.axis = attrs.axis;
             this.inUtc = utils.toBoolElse(attrs.use_utc || '', true);
             this.pager = utils.toBoolElse(attrs.pager || '', true);
+            this.ask_question = utils.toBoolElse(attrs.ask_question || '', false);
             this.current_window = {
                 start: new moment(),
                 end: new moment().add(24, 'hours')
@@ -199,6 +200,7 @@ odoo.define('web_timeline.TimelineView', function (require) {
             this.controllerParams.date_stop = this.date_stop;
             this.controllerParams.date_delay = this.date_delay;
             this.controllerParams.actionContext = this.action.context;
+            this.controllerParams.ask_question = this.ask_question;
             return this;
         },
         parse_element_type: function (element_type) {
