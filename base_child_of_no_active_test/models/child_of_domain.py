@@ -100,13 +100,13 @@ def parse_without_active_test(self):
                     doms.insert(0, OR_OPERATOR)
                 doms += [AND_OPERATOR, ('parent_left', '<', rec.parent_right), ('parent_left', '>=', rec.parent_left)]
             if prefix:
-                return [(left, 'in', left_model.search(doms).ids)]
+                return [(left, 'in', left_model.with_context(active_test=False).search(doms).ids)]
             return doms
         else:
             parent_name = parent or left_model._parent_name
             child_ids = set(ids)
             while ids:
-                ids = left_model.search([(parent_name, 'in', ids)]).ids
+                ids = left_model.with_context(active_test=False).search([(parent_name, 'in', ids)]).ids
                 child_ids.update(ids)
             return [(left, 'in', list(child_ids))]
 
