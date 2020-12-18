@@ -58,7 +58,7 @@ def parse_without_active_test(self):
             :var obj comodel: relational model of field (field.comodel)
                 (res_partner.bank_ids -> res.partner.bank)
     """
-    cr, uid, context = self.root_model.env.args
+    cr, _, context = self.root_model.env.args
 
     def to_ids(value, comodel):
         """ Normalize a single id or name, or a list of those, into a list of ids
@@ -133,7 +133,7 @@ def parse_without_active_test(self):
                     record = record[parent_name]
             return [(left, 'in', list(parent_ids))]
 
-    HIERARCHY_FUNCS = {'child_of': child_of_domain,
+    hierarchy_funcs = {'child_of': child_of_domain,
                        'parent_of': parent_of_domain}
 
     def pop():
@@ -154,7 +154,7 @@ def parse_without_active_test(self):
     # process from right to left; expression is from left to right
     self.stack.reverse()
 
-    while self.stack:
+    def while_stack():
         # Get the next leaf to process
         leaf = pop()
 
@@ -205,9 +205,9 @@ def parse_without_active_test(self):
             leaf.add_join_context(parent_model, parent_fname, 'id', parent_fname)
             push(leaf)
 
-        elif left == 'id' and operator in HIERARCHY_FUNCS:
+        elif left == 'id' and operator in hierarchy_funcs:
             ids2 = to_ids(right, model)
-            dom = HIERARCHY_FUNCS[operator](left, ids2, model)
+            dom = hierarchy_funcs[operator](left, ids2, model)
             for dom_leaf in reversed(dom):
                 new_leaf = create_substitution_leaf(leaf, dom_leaf, model)
                 push(new_leaf)
@@ -283,12 +283,12 @@ def parse_without_active_test(self):
         # -------------------------------------------------
 
         # Applying recursivity on field(one2many)
-        elif field.type == 'one2many' and operator in HIERARCHY_FUNCS:
+        elif field.type == 'one2many' and operator in hierarchy_funcs:
             ids2 = to_ids(right, comodel)
             if field.comodel_name != model._name:
-                dom = HIERARCHY_FUNCS[operator](left, ids2, comodel, prefix=field.comodel_name)
+                dom = hierarchy_funcs[operator](left, ids2, comodel, prefix=field.comodel_name)
             else:
-                dom = HIERARCHY_FUNCS[operator]('id', ids2, model, parent=left)
+                dom = hierarchy_funcs[operator]('id', ids2, model, parent=left)
             for dom_leaf in reversed(dom):
                 push(create_substitution_leaf(leaf, dom_leaf, model))
 
@@ -354,9 +354,9 @@ def parse_without_active_test(self):
         elif field.type == 'many2many':
             rel_table, rel_id1, rel_id2 = field.relation, field.column1, field.column2
 
-            if operator in HIERARCHY_FUNCS:
+            if operator in hierarchy_funcs:
                 ids2 = to_ids(right, comodel)
-                dom = HIERARCHY_FUNCS[operator]('id', ids2, comodel)
+                dom = hierarchy_funcs[operator]('id', ids2, comodel)
                 ids2 = comodel.search(dom).ids
                 if comodel == model:
                     push(create_substitution_leaf(leaf, ('id', 'in', ids2), model))
@@ -403,12 +403,12 @@ def parse_without_active_test(self):
                         ('id', m2m_op, select_distinct_from_where_not_null(cr, rel_id1, rel_table)), model))
 
         elif field.type == 'many2one':
-            if operator in HIERARCHY_FUNCS:
+            if operator in hierarchy_funcs:
                 ids2 = to_ids(right, comodel)
                 if field.comodel_name != model._name:
-                    dom = HIERARCHY_FUNCS[operator](left, ids2, comodel, prefix=field.comodel_name)
+                    dom = hierarchy_funcs[operator](left, ids2, comodel, prefix=field.comodel_name)
                 else:
-                    dom = HIERARCHY_FUNCS[operator]('id', ids2, model, parent=left)
+                    dom = hierarchy_funcs[operator]('id', ids2, model, parent=left)
                 for dom_leaf in reversed(dom):
                     push(create_substitution_leaf(leaf, dom_leaf, model))
             else:
@@ -432,8 +432,8 @@ def parse_without_active_test(self):
 
                 # resolve string-based m2o criterion into IDs
                 if isinstance(right, basestring) or \
-                        right and isinstance(right, (tuple, list)) and all(
-                        isinstance(item, basestring) for item in right):
+                        right and isinstance(right, (tuple, list)) and \
+                        all(isinstance(item, basestring) for item in right):
                     push(create_substitution_leaf(leaf, _get_expression(comodel, left, right, operator), model))
                 else:
                     # right == [] or right == False and all other cases are handled by __leaf_to_sql()
@@ -521,6 +521,9 @@ def parse_without_active_test(self):
     # END OF PARSING FULL DOMAIN
     # -> generate joins
     # ----------------------------------------
+
+    while self.stack:
+        while_stack()
 
     joins = set()
     for leaf in self.result:
