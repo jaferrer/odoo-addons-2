@@ -17,5 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import mail_no_send_to_wrong_addresses
-from . import mail_compose_message
+from . import backend_adapter
+from . import exporter

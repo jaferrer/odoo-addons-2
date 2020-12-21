@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_category_exporter_wizard_form" model="ir.ui.view">
+        <field name="name">product_category_exporter_wizard_form</field>
+        <field name="model">product.category.exporter.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="categ_id"/>
+                        <field name="backend_id"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="apply" type="object" string="Exporter" class="btn btn-primary"/>
+                    <button special="cancel" string="Annuler" class="btn btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_category_exporter_wizard_action" model="ir.actions.act_window">
+        <field name="name">Export vers Magento</field>
+        <field name="res_model">product.category.exporter.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.values" id="product_category_exporter_wizard_ir_values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">product.category</field>
+        <field name="name">Export vers Magento</field>
+        <field name="value" eval="'ir.actions.act_window,'+str(ref('product_category_exporter_wizard_action'))"/>
+    </record>
+</odoo>

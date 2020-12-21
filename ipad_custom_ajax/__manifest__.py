@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import mail_no_send_to_wrong_addresses
-from . import mail_compose_message
+{
+    'name': 'Ipad custom Ajax',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical Settings',
+    'depends': ['web'],
+    'description': """
+Because some Ipad have "Macinstosh" in their user-agent instead of Ipad, they weren't able to get some reports.
+This module fixes this issue.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/assets.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+}

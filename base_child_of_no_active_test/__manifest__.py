@@ -17,5 +17,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import mail_no_send_to_wrong_addresses
-from . import mail_compose_message
+{
+    'name': 'No active test in child of domains',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical Settings',
+    'depends': ['base'],
+    'description': "No active test in child of domains",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+}

@@ -42,7 +42,13 @@ class ResendMailsLimitedNumber(models.Model):
             rec.nb_automatic_resend = rec.nb_automatic_resend + 1
             rec.state = 'outgoing'
             rec.send()
-            if rec.state == 'exception' and rec.nb_automatic_resend >= max_nb_resend_before_raise:
+            self.env.cr.execute("""
+                        SELECT id
+                        FROM mail_mail
+                        WHERE id = %s
+                        """ % rec.id)
+            mail = self.env.cr.fetchone()
+            if mail and rec.state == 'exception' and rec.nb_automatic_resend > max_nb_resend_before_raise:
                 raise exceptions.UserError(u"Mail with ID=%s has been resend more than %s times with no success" %
                                            (rec.id, max_nb_resend_before_raise))
 

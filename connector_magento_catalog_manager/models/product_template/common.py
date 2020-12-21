@@ -16,6 +16,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import models, fields, api
 
-from . import mail_no_send_to_wrong_addresses
-from . import mail_compose_message
+
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    magento_product_bind_ids = fields.Many2many('magento.product.product', compute='_compute_magento_product_bind_ids')
+
+    @api.multi
+    def _compute_magento_product_bind_ids(self):
+        for rec in self:
+            rec.magento_product_bind_ids = rec.product_variant_id.magento_bind_ids

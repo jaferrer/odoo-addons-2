@@ -16,6 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import models, api
 
-from . import mail_no_send_to_wrong_addresses
-from . import mail_compose_message
+
+class MagentoBinding(models.AbstractModel):
+    _inherit = 'magento.binding'
+
+    @api.model
+    def get_or_create_bindings(self, records, backend_record, **data):
+        """ Return the existing binding for some records, or create them if they don't exist """
+        bindings = self.browse()
+        for rec in records:
+            binding = self.with_context(active_test=False).search([
+                ('odoo_id', '=', rec.id),
+                ('backend_id', '=', backend_record.id),
+            ])
+            if not binding:
+                binding = self.create(dict(data, backend_id=backend_record.id, odoo_id=rec.id,))
+            bindings |= binding
+
+        return bindings
