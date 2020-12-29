@@ -13,7 +13,7 @@
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
                         Hello ${ctx.get('title_name') and ctx.get('title_name') + " " or ""}${ctx.get('partner_name')},
                         <br/><br/>
-                        Here is your convocation for training of ${format_date(object.date)}.
+                        Here is your convocation for training of ${object.get_formatted_date_for_report()}.
                         <br/><br/>
                         Title: ${object.training_id.name}.
                         <br/><br/>
