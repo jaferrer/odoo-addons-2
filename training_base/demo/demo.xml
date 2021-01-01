@@ -69,7 +69,7 @@
 
         <record model="training.session" id="training_session_2">
             <field name="training_id" ref="training_demo"/>
-            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="trainer_ids" eval="[(6, 0, [ref('training_base.demo_trainer')])]"/>
             <field name="location_id" ref="demo_training_location"/>
             <field name="nb_mini" eval="8"/>
             <field name="nb_maxi" eval="25"/>
@@ -78,7 +78,7 @@
 
         <record model="training.sitting" id="training_sitting_1">
             <field name="session_id" ref="training_session_1"/>
-            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="trainer_ids" eval="[(6, 0, [ref('training_base.demo_trainer')])]"/>
             <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-09</field>
             <field name="start_hour" eval="9.5"/>
@@ -87,7 +87,7 @@
 
         <record model="training.sitting" id="training_sitting_2">
             <field name="session_id" ref="training_session_1"/>
-            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="trainer_ids" eval="[(6, 0, [ref('training_base.demo_trainer')])]"/>
             <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-20</field>
             <field name="start_hour" eval="14"/>
@@ -96,7 +96,7 @@
 
         <record model="training.sitting" id="training_sitting_3">
             <field name="session_id" ref="training_session_2"/>
-            <field name="trainer_id" ref="demo_trainer"/>
+            <field name="trainer_ids" eval="[(6, 0, [ref('training_base.demo_trainer')])]"/>
             <field name="location_id" ref="demo_training_location"/>
             <field name="date">2020-11-30</field>
             <field name="start_hour" eval="9.5"/>

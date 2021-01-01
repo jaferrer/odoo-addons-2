@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from odoo.addons.mail.models.mail_template import format_date
 from odoo.tools import format_duration
 
 from odoo import models, fields, api, exceptions, _
@@ -33,7 +34,8 @@ class TrainingSitting(models.Model):
     session_id = fields.Many2one('training.session', string="Session", required=True, ondelete='cascade')
     training_id = fields.Many2one('training.training', string="Training", related='session_id.training_id',
                                   readonly=True, store=True)
-    trainer_id = fields.Many2one('res.partner', string="Trainer", required=True, domain=[('is_trainer', '=', True)])
+    trainer_ids = fields.Many2many('res.partner', string="Trainer(s)", required=True,
+                                   domain=[('is_trainer', '=', True)])
     location_id = fields.Many2one('res.partner', string="Location", required=True,
                                   domain=[('is_training_location', '=', True)])
     is_remote_training_location = fields.Boolean(related='location_id.is_remote_training_location')
@@ -58,7 +60,7 @@ class TrainingSitting(models.Model):
     def onchange_session_id(self):
         for rec in self:
             if rec.session_id:
-                rec.trainer_id = rec.session_id.trainer_id
+                rec.trainer_ids = rec.session_id.trainer_ids
                 rec.location_id = rec.session_id.location_id
 
     def send_convocation_to_all(self):
@@ -86,6 +88,10 @@ class TrainingSitting(models.Model):
         for rec in self:
             if not rec.end_hour or not rec.start_hour:
                 raise exceptions.UserError(_("Start and end hours are required"))
+
+    def get_formatted_date_for_report(self):
+        self.ensure_one()
+        return format_date(self.env, self.date)
 
     def write(self, vals):
         result = super(TrainingSitting, self).write(vals)

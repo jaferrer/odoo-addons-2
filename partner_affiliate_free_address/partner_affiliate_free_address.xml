@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record model="ir.ui.view" id="res_partner_form">
+        <field name="name">res_partner_form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <field name="street" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="street2" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="city" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="state_id" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="zip" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="country_id" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="vat" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+            <field name="company_id" position="attributes">
+                <attribute name="attrs"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
