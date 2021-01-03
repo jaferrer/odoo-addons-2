@@ -172,13 +172,6 @@ msgid "Are you sure? Odoo will send the default text."
 msgstr "Êtes-vous sûr ? Odoo enverra le texte par défaut."
 
 #. module: training_base
-#: model:ir.model.fields,field_description:training_base.field_training_session__message_attachment_count
-#: model:ir.model.fields,field_description:training_base.field_training_sitting__message_attachment_count
-#: model:ir.model.fields,field_description:training_base.field_training_training__message_attachment_count
-msgid "Attachment Count"
-msgstr "Nombre de pièces jointes"
-
-#. module: training_base
 #: model:ir.model.fields,field_description:training_base.field_res_partner__attendance
 #: model:ir.model.fields,field_description:training_base.field_res_users__attendance
 #: model:ir.model.fields,field_description:training_base.field_training_attendee__attendance

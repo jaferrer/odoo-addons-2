@@ -64,7 +64,7 @@
 
                         </group>
                         <notebook>
-                            <page string="Attendees">
+                            <page string="Attendees" name="attendees">
                                 <button name="send_convocation_to_all" type="object" string="Send convocations to all attendees" confirm="Are you sure? Odoo will send the default text." groups="training_base.group_training_manager"/>
                                 <group> </group>
                                 <field name="attendee_ids" context="{'sitting_id': id}">
