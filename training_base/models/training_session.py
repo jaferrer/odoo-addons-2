@@ -118,7 +118,11 @@ class TrainingSessionCertificateSent(models.Model):
                                                                "session and the same partner.")
     ]
 
-    def create_line_if_needed(self, partner_id, session_id, certificate):
+    def create_or_update_line(self, partner_id, session_id, certificate):
+        line = self.search([('partner_id', '=', partner_id), ('session_id', '=', session_id)])
+        if line:
+            line.certificate_id = certificate
+            return
         if not self.search([('partner_id', '=', partner_id), ('session_id', '=', session_id)]):
             self.create({
                 'partner_id': partner_id,

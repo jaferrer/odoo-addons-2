@@ -29,11 +29,11 @@ class MailComposer(models.TransientModel):
             attachment = self.attachment_ids[0]
             attachment.write({'res_model': 'res.partner',
                               'res_id': partner_id})
-            self.env['training.sitting.convocation.sent'].create_line_if_needed(partner_id, sitting_id, attachment)
+            self.env['training.sitting.convocation.sent'].create_or_update_line(partner_id, sitting_id, attachment)
         if 'send_mail_certificate' in self.env.context:
             (partner_id, session_id) = self.env.context['send_mail_certificate']
             attachment = self.attachment_ids[0]
             attachment.write({'res_model': 'res.partner',
                               'res_id': partner_id})
-            self.env['training.session.certificate.sent'].create_line_if_needed(partner_id, session_id, attachment)
+            self.env['training.session.certificate.sent'].create_or_update_line(partner_id, session_id, attachment)
         return super(MailComposer, self).action_send_mail()
