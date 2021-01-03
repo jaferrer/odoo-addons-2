@@ -43,6 +43,7 @@ class TrainingSitting(models.Model):
     date = fields.Date(string="Date", required=True)
     start_hour = fields.Float(string="Start Hour", required=True)
     end_hour = fields.Float(string="End Hour", required=True)
+    nb_hours = fields.Float(string="Number of hours", compute='_compute_nb_hours')
     formatted_start_hour = fields.Char(string="Formated Start Hour", compute='_compute_formatted_hours')
     formatted_end_hour = fields.Char(string="Formated End Hour", compute='_compute_formatted_hours')
     attendee_ids = fields.Many2many('res.partner', related='session_id.attendee_ids')
@@ -50,6 +51,10 @@ class TrainingSitting(models.Model):
 
     def name_get(self):
         return [(rec.id, "%s (date %s)" % (rec.session_id.display_name, rec.date)) for rec in self]
+
+    def _compute_nb_hours(self):
+        for rec in self:
+            rec.nb_hours = rec.end_hour - rec.start_hour
 
     def _compute_formatted_hours(self):
         for rec in self:
@@ -134,7 +139,11 @@ class TrainingSittingConvocationSent(models.Model):
                                                                "sitting and the same partner.")
     ]
 
-    def create_line_if_needed(self, partner_id, sitting_id, summons):
+    def create_or_update_line(self, partner_id, sitting_id, summons):
+        line = self.search([('partner_id', '=', partner_id), ('sitting_id', '=', sitting_id)])
+        if line:
+            line.summons_id = summons
+            return
         if not self.search([('partner_id', '=', partner_id), ('sitting_id', '=', sitting_id)]):
             self.create({
                 'partner_id': partner_id,
