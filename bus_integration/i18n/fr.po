@@ -61,3 +61,9 @@ msgstr "Erreur"
 #, python-format
 msgid "Fields %s are tagged with update prohibited by bus configuration and can't be updated"
 msgstr "La mise à jour des champs %s est interdite pas la configuration du bus 'update prohibited'"
+
+#: code:addons/bus_integration/controllers/main.py:52
+#, python-format
+msgid "Please log in using a domain name not an IP address"
+msgstr "Veuillez vous connecter en utilisant un nom de domaine et non une adresse IP"
+
