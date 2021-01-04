@@ -71,5 +71,4 @@ WHERE schemaname != 'pg_catalog'
         for table in self.search([]):
             if table.name not in table_names:
                 _logger.info("deleting not anymore existing table %s from size monitoring", table.name)
-                print "deleting not anymore existing table %s from size monitoring" % table.name
                 table.unlink()
