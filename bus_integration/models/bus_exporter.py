@@ -50,7 +50,7 @@ from ..connector.jobs import job_generate_message
 class BusSynchronizationExporter(models.AbstractModel):
     _name = 'bus.exporter'
 
-    authorize_field_type = ['char', 'boolean', 'date', 'datetime', 'float', 'html', 'integer', 'text', 'selection', ]
+    authorize_field_type = ['char', 'boolean', 'date', 'datetime', 'float', 'html', 'integer', 'text', 'selection', 'binary', ]
 
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
