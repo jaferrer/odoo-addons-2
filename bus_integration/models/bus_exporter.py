@@ -97,7 +97,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             restrict_domain = [('id', 'not in', ids_to_export.ids)]
             if force_domain:
                 restrict_domain += force_domain
-            ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(restrict_domain)
+            ids_to_export = self.with_context(active_test=False).env[batch.model].search(restrict_domain)
         export_chunk = batch.chunk_size or False
         if export_chunk:
             while ids_to_export:
