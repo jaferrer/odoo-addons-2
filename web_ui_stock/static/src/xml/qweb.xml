@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template">
 
+    <t t-name="StockActivity">
+
+        <div>
+            <nav class="navbar navbar-dark bg-dark no-margin" role="navigation">
+                <div class="container">
+                    <div class="row row-flex">
+                        <div class="navbar-col col flex-all">
+                            <button id="back-btn"
+                                    type="button"
+                                    class="btn btn-primary button-back-to-choice hidden fa fa-arrow-left"/>
+                            <span id="view_title"/>
+                        </div>
+                        <div class="navbar-col col">
+                            <button id="validate-activity"
+                                    type="button"
+                                    class="btn btn-success btn-margin-left pull-right hidden">
+                                Valider
+                            </button>
+                            <button id="exit-btn" type="button" class="btn btn-danger pull-right">Quitter</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div id="activity-container">
+                <!-- Les fragments seront chargés ici -->
+            </div>
+        </div>
+    </t>
+
     <t t-name="LineNumpad">
             <div class="modal modal-condensed fade" id="numpad-modal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">

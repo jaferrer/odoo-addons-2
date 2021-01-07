@@ -152,6 +152,6 @@
   margin-bottom: 0;
 }
 
-.ui_stock_table tr > td:last-child {
+.ui_stock_table tr > td:last-child:not(:first-child) {
   text-align: right;
 }

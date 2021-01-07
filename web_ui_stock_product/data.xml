@@ -7,10 +7,10 @@
             <field name="action">stock.ui.product</field>
         </record>
 
-        <record id="product_poste_1" model="poste.product">
-            <field name="name">Poste produits 1</field>
-            <field name="code">PRODUCT_POSTE_1</field>
-            <field name="description">Poste produits 1</field>
+        <record id="web_ui_action_internal_move" model="stock.picking.type.web.ui.action">
+            <field name="name">Écran de mouvement interne</field>
+            <field name="action">stock.ui.product</field>
+            <field name="type">internal_move</field>
         </record>
 
     </data>
