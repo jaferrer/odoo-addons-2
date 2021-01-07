@@ -16,7 +16,14 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo.addons.connector.exception import ConnectorException
 
-from . import backend_adapter
-from . import exceptions
-from . import exporter
+
+class BadConnectorAnswerException(ConnectorException):
+    def __init__(self, url, method, ans):
+        self._url = url
+        self._method = method
+        self._ans = ans
+
+    def __str__(self):
+        return u"Error while doing %s on %s : %s" % (self._method, self._url, self._ans)

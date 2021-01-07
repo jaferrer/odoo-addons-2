@@ -62,7 +62,7 @@ class MagentoIrAttachmentMapper(Component):
     _apply_on = ['magento.ir.attachment']
 
     direct = [
-        ('datas_fname', 'label'),
+        ('magento_name', 'label'),
     ]
 
     @mapping
@@ -81,7 +81,7 @@ class MagentoIrAttachmentMapper(Component):
         return {
             'content': {
                 'base64_encoded_data': record.datas,
-                'name': record.datas_fname,
+                'name': record.magento_name,
                 'type': record.mimetype,
             }
         }
