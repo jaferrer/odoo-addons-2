@@ -9,6 +9,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
     var Model = require('web.Model');
     let StockPickingType = new Model('stock.picking.type');
     let ProductProduct = new Model('product.product');
+    let Widget = require('web.Widget');
 
     const STATES = {
         product: 1,
