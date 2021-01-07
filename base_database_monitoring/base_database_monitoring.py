@@ -17,10 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, fields, api
+
+
+_logger = logging.getLogger(__name__)
 
 
 @job
@@ -46,7 +50,8 @@ class OdooMonitoringDatabaseTable(models.Model):
 FROM pg_catalog.pg_tables
 WHERE schemaname != 'pg_catalog'
   AND schemaname != 'information_schema';""")
-        for item in self.env.cr.dictfetchall():
+        tables_dict = self.env.cr.dictfetchall()
+        for item in tables_dict:
             tablename = item['tablename']
             if tablename not in existing_tablenames:
                 data = {'name': tablename}
@@ -57,4 +62,13 @@ WHERE schemaname != 'pg_catalog'
                             break
                     except KeyError:
                         continue
+                print "create %s" % data
                 self.create(data)
+        self.remove_not_existing_tables([item['tablename'] for item in tables_dict])
+
+    @api.model
+    def remove_not_existing_tables(self, table_names):
+        for table in self.search([]):
+            if table.name not in table_names:
+                _logger.info("deleting not anymore existing table %s from size monitoring", table.name)
+                table.unlink()

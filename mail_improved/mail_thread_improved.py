@@ -85,8 +85,8 @@ class MailThreadImprovedModels(models.Model):
         msg_to_delete_ids = res and reduce(lambda x, y: x + y, res)
         _logger.debug("=== useless_messages_deletion_for_model %s deleting %s", model, msg_to_delete_ids)
         if msg_to_delete_ids:
-            del_req = """DELETE FROM mail_message WHERE id IN %s""" % str(msg_to_delete_ids)
-            self.env.cr.execute(del_req)
+            del_req = """DELETE FROM mail_message WHERE id IN %s"""
+            self.env.cr.execute(del_req, (msg_to_delete_ids,))
             # we launch again the same job to handle the next chunck, it will return doing nothing if no more msg
             job_delete_useless_message_for_model\
                 .delay(ConnectorSession.from_env(self.env),

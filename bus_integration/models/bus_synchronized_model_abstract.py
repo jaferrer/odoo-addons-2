@@ -20,7 +20,7 @@
 
 import logging
 
-from openerp import fields, models, api
+from openerp import fields, models, api, exceptions, _
 
 _logger = logging.getLogger(__name__)
 
@@ -39,6 +39,13 @@ class BusSynchronizedModelAbstract(models.AbstractModel):
             .mapped('field_id.name')
         return set(mapping_field_names) & set(vals.keys())
 
+    def _get_vals_with_prohibited_update(self, vals):
+        mapping = self.env['bus.object.mapping'].get_mapping(self._name)
+        if not mapping.is_importable or not mapping.update_prohibited:
+            return None
+        mapping_field_names = mapping.field_ids.mapped('field_id.name')
+        return list(set(mapping_field_names) & set(vals.keys()))
+
     @api.model
     def create(self, vals):
         vals['write_date_bus'] = fields.Datetime.now()
@@ -50,4 +57,12 @@ class BusSynchronizedModelAbstract(models.AbstractModel):
         if not self.env.context.get('bus_receive_transfer_external_key', False) and\
                 self._vals_contains_a_mapped_exported_field(vals):
             vals['write_date_bus'] = fields.Datetime.now()
+
+        if not self.env.user.is_bus_user:
+            fields_prohibited = self._get_vals_with_prohibited_update(vals)
+            if fields_prohibited:
+                raise exceptions.except_orm(
+                    _(u"Error"),
+                    _(u"Fields %s are tagged with update prohibited by bus configuration "
+                      u"and can't be updated") % fields_prohibited)
         return super(BusSynchronizedModelAbstract, self).write(vals)
