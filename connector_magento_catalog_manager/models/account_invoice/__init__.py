@@ -17,13 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping
-
-
-class ProductImportMapper(Component):
-    _inherit = 'magento.product.product.import.mapper'
-
-    @mapping
-    def is_available_on_profilesmarket(self, record):
-        return {'is_available_on_profilesmarket': True}
+from . import common

@@ -19,6 +19,7 @@
 import logging
 
 from odoo.addons.component.core import AbstractComponent
+from odoo.addons.connector_magento_catalog_manager.components.exceptions import BadConnectorAnswerException
 
 
 _logger = logging.getLogger(__name__)
@@ -39,8 +40,7 @@ class MagentoAdapter(AbstractComponent):
             return super(MagentoAdapter, self).create(data)
         ans = self._call(self._magento2_model, data, http_method='POST')
         if not ans.get(self._magento2_key):
-            # TODO Custom except please
-            raise Exception
+            raise BadConnectorAnswerException(self._magento2_model, 'POST', ans)
         return ans[self._magento2_key]
 
     def write(self, external_id, data):
@@ -50,8 +50,7 @@ class MagentoAdapter(AbstractComponent):
         url = "%s/%s" % (self._magento2_model, self.escape(external_id))
         ans = self._call(url, data, http_method='PUT')
         if not ans.get(self._magento2_key):
-            # TODO Custom except please
-            raise Exception
+            raise BadConnectorAnswerException(url, 'PUT', ans)
         return ans[self._magento2_key]
 
     def delete(self, external_id):
@@ -59,7 +58,10 @@ class MagentoAdapter(AbstractComponent):
         if self.collection.version == '1.7':
             return super(MagentoAdapter, self).delete(external_id)
         url = '%s/%s' % (self._magento2_model, self.escape(external_id))
-        return self._call(url, None, http_method='DELETE')
+        ans = self._call(url, None, http_method='DELETE')
+        if ans is not True:
+            raise BadConnectorAnswerException(url, 'DELETE', ans)
+        return ans
 
     def read(self, external_id, attributes=None, storeview=None):
         """ Returns the information of a record """

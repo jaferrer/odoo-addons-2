@@ -18,6 +18,7 @@
 #
 from odoo import models, fields, api
 from odoo.addons.component.core import Component
+from odoo.addons.connector_magento_catalog_manager.components.exceptions import BadConnectorAnswerException
 
 
 class MagentoIrAttachmentAdapter(Component):
@@ -40,6 +41,8 @@ class MagentoIrAttachmentAdapter(Component):
             return super(MagentoIrAttachmentAdapter, self).create(data)
         url = '%s/%s/media' % (comodel_name, comodel_id)
         ans = self._call(url, self._normalize_data(data), http_method='POST')
+        if not (isinstance(ans, basestring) and ans.isdigit()):
+            raise BadConnectorAnswerException(url, 'POST', ans)
         return ans
 
     def write(self, external_id, data, comodel_name, comodel_id):
@@ -47,13 +50,18 @@ class MagentoIrAttachmentAdapter(Component):
             return super(MagentoIrAttachmentAdapter, self).write(external_id, data)
         url = '%s/%s/media/%s' % (comodel_name, comodel_id, external_id)
         ans = self._call(url, self._normalize_data(data), http_method='PUT')
+        if not (isinstance(ans, basestring) and ans.isdigit()):
+            raise BadConnectorAnswerException(url, 'PUT', ans)
         return ans
 
     def delete(self, external_id, comodel_name, comodel_id):
         if self.collection.version == '1.7':
             return super(MagentoIrAttachmentAdapter, self).delete(external_id)
         url = '%s/%s/media/%s' % (comodel_name, comodel_id, external_id)
-        return self._call(url, None, http_method='DELETE')
+        ans = self._call(url, None, http_method='DELETE')
+        if ans is not True:
+            raise BadConnectorAnswerException(url, 'DELETE', ans)
+        return ans
 
     def read(self, external_id, comodel_name, comodel_id, **kwargs):
         if self.collection.version == '1.7':
@@ -91,17 +99,25 @@ class MagentoIrAttachment(models.Model):
     ], compute='_compute_image_type', store=True)
     comodel_external_name = fields.Char()
     comodel_external_id = fields.Char()
+    magento_name = fields.Char(u"Nom magento", compute='_compute_magento_name')
 
     @api.multi
     @api.depends('name')
     def _compute_image_type(self):
         for rec in self:
+            if rec.res_model != 'product.template':
+                continue
             if rec.name == 'image':
                 rec.image_type = 'image'
             elif rec.name.endswith('medium'):
                 rec.image_type = 'small_image'
             elif rec.name.endswith('small'):
                 rec.image_type = 'thumbnail'
+
+    @api.multi
+    def _compute_magento_name(self):
+        for rec in self:
+            rec.magento_name = rec.datas_fname or rec.name or u"Image"
 
     @api.multi
     def comodel_data(self):
