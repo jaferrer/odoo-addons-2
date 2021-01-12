@@ -17,5 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+{
+    "name": "POS Multi Discount",
+    "summary": "POS Support of discount",
+    "version": "0.1",
+    "category": "Point Of Sale",
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    "license": "AGPL-3",
+    "application": False,
+    "installable": True,
+    "auto_install": True,
+    "depends": [
+        "point_of_sale",
+        "pos_discount",
+    ],
+    'data': [
+        'views/pos_config.xml',
+        'views/product_view.xml',
+        'views/assets.xml',
+    ],
+}

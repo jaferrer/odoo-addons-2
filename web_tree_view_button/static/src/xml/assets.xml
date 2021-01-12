@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="assets_web_tree_view_button" name="Tree View Button Title Asset" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_tree_view_button/static/src/js/editableListRenderer.js"></script>
+            </xpath>
+        </template>
+    </data>
+</odoo>

@@ -17,5 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+from odoo import models, fields
+
+
+class CrmTeam(models.Model):
+    _inherit = 'crm.team'
+
+    partner_contact_id = fields.Many2one('res.partner', "Données de contact")
+    contact_name = fields.Char(related='partner_contact_id.name')
+    contact_email = fields.Char(related='partner_contact_id.email')
+    contact_website = fields.Char(related='partner_contact_id.website')
+    contact_phone = fields.Char(related='partner_contact_id.phone')
+    contact_vat = fields.Char(related='partner_contact_id.vat')
+    contact_address = fields.Char(related='partner_contact_id.contact_address')
