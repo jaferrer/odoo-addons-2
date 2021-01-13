@@ -27,7 +27,7 @@ from openerp import models, fields, api, _
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.other.update_database_monitoring')
 def job_create_measure_of_disk_usage(session, model_name, table_ids):
     session.env[model_name].browse(table_ids).create_measure_of_disk_usage()
 
@@ -102,9 +102,7 @@ WHERE table_name = %s""", (rec.name,))
             query = """SELECT count(*) from %s""" % rec.name
             self.env.cr.execute(query)
             res = self.env.cr.fetchall()
-            if not (res and res[0]):
-                return  # silently fails when table is empty
-            cardinality = self.env.cr.fetchall()[0][0]
+            cardinality = res and res[0][0] or 0
             # We convert Bytes to GigaBytes
             existing_line = self.env['odoo.monitoring.disk.usage.by.table'].search([('table_id', '=', rec.id),
                                                                                     ('date', '=', date)], limit=1)
