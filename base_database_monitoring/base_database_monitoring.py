@@ -27,7 +27,7 @@ from openerp import models, fields, api
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.other.update_database_monitoring')
 def job_update_tables_list(session, model_name):
     session.env[model_name].update_tables_list()
 
@@ -62,7 +62,6 @@ WHERE schemaname != 'pg_catalog'
                             break
                     except KeyError:
                         continue
-                print "create %s" % data
                 self.create(data)
         self.remove_not_existing_tables([item['tablename'] for item in tables_dict])
 
