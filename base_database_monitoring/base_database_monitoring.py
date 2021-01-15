@@ -37,6 +37,7 @@ class OdooMonitoringDatabaseTable(models.Model):
 
     name = fields.Char(string=u"Name", readonly=True, required=True)
     model_id = fields.Many2one('ir.model', string=u"Model", readonly=True)
+    active = fields.Boolean(string=u"Active", default=True)
 
     @api.model
     def cron_update_tables_list(self):
@@ -69,5 +70,5 @@ WHERE schemaname != 'pg_catalog'
     def remove_not_existing_tables(self, table_names):
         for table in self.search([]):
             if table.name not in table_names:
-                _logger.info("deleting not anymore existing table %s from size monitoring", table.name)
-                table.unlink()
+                _logger.info("inactivating not anymore existing table %s from size monitoring", table.name)
+                table.active = False
