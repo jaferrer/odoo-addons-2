@@ -41,15 +41,16 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="order_line" position="before">
-                    <field name="lines_display" invisible="1"/>
-                    <button name="toggle_lines_display" type="object" string="Show All Lines"
-                            attrs="{'invisible': [('lines_display', '=', 'all')]}" class="oe_right"/>
-                    <button name="toggle_lines_display" type="object" string="Hide Delivered Lines"
-                            attrs="{'invisible': [('lines_display', '!=', 'all')]}" class="oe_right"/>
-                    <field name="line_not_null_remaining_qty_ids" attrs="{'invisible': [('lines_display', '!=', 'not_null_remaining_quantity')]}"/>
+                    <group>
+                        <field name="show_not_null_remaining_qty_lines" attrs="{'invisible': [('state', 'not in', ['progress', 'manual', 'done'])]}"/>
+                    </group>
+                    <field name="line_not_null_remaining_qty_ids"
+                           context="{'default_department_id':department_id, 'default_project_id':project_id, 'default_order_partner_id':partner_id}"
+                           options="{'nopopup':1}"
+                           attrs="{'invisible': [('show_not_null_remaining_qty_lines', '=', False)]}"/>
                 </field>
                 <field name="order_line" position="attributes">
-                    <attribute name="attrs">{'invisible': [('lines_display', '!=', 'all')]}</attribute>
+                    <attribute name="attrs">{'invisible': [('show_not_null_remaining_qty_lines', '=', True)]}</attribute>
                 </field>
                 <xpath expr="//field[@name='order_line']/tree//field[@name='product_uom_qty']" position="after">
                     <field name="sent_qty"/>
