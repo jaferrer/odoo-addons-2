@@ -2,7 +2,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
     "use strict";
 
     var Widget = require('web.Widget');
-    var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
+    var BarcodeHandlerMixin = require('barcodes.BarcodeHandlerMixin');
     var Numpad = require('web_ui_stock_batch.BatchNumpad');
     var Model = require('web.Model');
     let StockPickingBatch = new Model('stock.picking.wave');
@@ -15,9 +15,8 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
         picking : 3
     }
 
-    return Widget.extend({
+    return Widget.extend(BarcodeHandlerMixin, {
         template: 'BatchNavigate',
-        barcode_scanner: null,
         activity: null,
         batchId: null,
         moveLineId: null,
@@ -28,8 +27,8 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
         showManualInput: 1,
         hasQtyChanged: false,
         init: function (activity, batchId, options = {}, currentMoveLine = null) {
-            this._super();
-            this.barcode_scanner = new BarcodeScanner();
+            this._super.apply(this, arguments);
+            BarcodeHandlerMixin.init.apply(this, arguments);
             this.activity = activity;
             this.batchId = parseInt(batchId);
             this.moveLineId = currentMoveLine ? parseInt(currentMoveLine) : '';
@@ -76,24 +75,21 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
             this.init_navigation();
         },
         destroy: function () {
-            this.barcode_scanner.disconnect();
             this._super();
         },
         register_scanner: function () {
-            this.barcode_scanner.disconnect();
             this.codeInput.focus(() => {
-                this.barcode_scanner.disconnect();
+                this.stop_listening()
                 this.codeInput.on('keyup', (e) => {
                     if (e.key === 'Enter') {
-                        this.scan($(this.codeInput).val())
+                        this.on_barcode_scanned($(this.codeInput).val())
                     }
                 })
             });
             this.codeInput.blur(() => {
                 this.codeInput.off('keyup');
-                this.barcode_scanner.connect(this.scan.bind(this));
+                this.start_listening()
             });
-            this.barcode_scanner.connect(this.scan.bind(this));
         },
         init_title: function () {
             StockPickingBatch.call('read', [[this.batchId], ['name']]).then((res) => {
@@ -134,7 +130,7 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
         end_navigation: function() {
             this.activity.init_fragment_batch_recap(this.batchId);
         },
-        scan: function (code) {
+        on_barcode_scanned: function (code) {
             console.log(code);
 
             let goToNextStep = false;
@@ -161,6 +157,9 @@ odoo.define('web_ui_stock_batch.BatchNavigate', function (require) {
                 this.renderState();
             }
         },
+        scan: function (ean) {
+            return this.on_barcode_scanned(ean)
+        }, //Compatibility
         scanLocation: function (code) {
             return true;
         },

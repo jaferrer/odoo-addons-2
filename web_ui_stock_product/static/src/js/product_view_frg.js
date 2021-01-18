@@ -1,8 +1,6 @@
 odoo.define('web_ui_stock_product.ProductView', function (require) {
     "use strict";
-
-    var StockFragment = require('web_ui_stock.StockFragment');
-
+    var BarcodeHandlerMixin = require('barcodes.BarcodeHandlerMixin');
     var ProductRow = {
         Row: require('web_ui_stock_product.ProductRow'),
         Error: require('web_ui_stock_product.ProductRow.Error'),
@@ -11,6 +9,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
     var Model = require('web.Model');
     let StockPickingType = new Model('stock.picking.type');
     let ProductProduct = new Model('product.product');
+    let Widget = require('web.Widget');
 
     const STATES = {
         product: 1,
@@ -18,7 +17,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
         lot: 3
     }
 
-    return StockFragment.extend({
+    return Widget.extend(BarcodeHandlerMixin, {
         template: 'ProductView',
         activity: null,
         ownerId: null,
@@ -27,7 +26,8 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
         lot_row: false,
         currentProduct: null,
         init: function (activity, ownerId) {
-            this._super();
+            this._super.apply(this, arguments);
+            BarcodeHandlerMixin.init.apply(this, arguments);
             this.activity = activity;
             this.ownerId = ownerId ? parseInt(ownerId) : null;
         },
@@ -36,6 +36,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this.productBlock = this.$('#product-block');
             this.product_table_body = this.$('#product_table_body');
             this.needLot = this.$('#need_for_lot');
+            this.codeInput = this.$('#search-code');
 
             this.$('#clear-search-code').click(() => {
                 this.codeInput.val('');
@@ -80,7 +81,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this.needLot.empty();
             this.renderState();
         },
-        scan: function (value) {
+        on_barcode_scanned: function (value) {
             console.log(value);
             this.codeInput.val('');
             switch (this.state) {
@@ -95,6 +96,9 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
                     break;
             }
         },
+        scan: function (ean) {
+            return this.on_barcode_scanned(ean)
+        }, //Compatibility
         scanProduct: function (value) {
             StockPickingType.call('web_ui_get_product_info_by_name', [[this.activity.pickingTypeId], value, false, this.activity.is_internal_move])
                 .always(() => {
