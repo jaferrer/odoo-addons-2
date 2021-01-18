@@ -36,6 +36,7 @@ odoo.define('web_ui_stock_product.ProductView', function (require) {
             this.productBlock = this.$('#product-block');
             this.product_table_body = this.$('#product_table_body');
             this.needLot = this.$('#need_for_lot');
+            this.codeInput = this.$('#search-code');
 
             this.$('#clear-search-code').click(() => {
                 this.codeInput.val('');
