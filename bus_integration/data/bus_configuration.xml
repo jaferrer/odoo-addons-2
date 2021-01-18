@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data noupdate="1">
+         <record model="ir.config_parameter" id="param_bus_integration_ipify">
+            <field name="key">bus_integration.ipify</field>
+            <field name="value">https://api.ipify.org</field>
+        </record>
+
         <record model="bus.configuration" id="backend">
             <field name="name">Bus main backend</field>
             <field name="reception_treatment">simple_reception</field>

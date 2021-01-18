@@ -17,13 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, fields, api
 
 
-@job
+_logger = logging.getLogger(__name__)
+
+
+@job(default_channel='root.other.update_database_monitoring')
 def job_update_tables_list(session, model_name):
     session.env[model_name].update_tables_list()
 
@@ -33,6 +37,7 @@ class OdooMonitoringDatabaseTable(models.Model):
 
     name = fields.Char(string=u"Name", readonly=True, required=True)
     model_id = fields.Many2one('ir.model', string=u"Model", readonly=True)
+    active = fields.Boolean(string=u"Active", default=True)
 
     @api.model
     def cron_update_tables_list(self):
@@ -46,7 +51,8 @@ class OdooMonitoringDatabaseTable(models.Model):
 FROM pg_catalog.pg_tables
 WHERE schemaname != 'pg_catalog'
   AND schemaname != 'information_schema';""")
-        for item in self.env.cr.dictfetchall():
+        tables_dict = self.env.cr.dictfetchall()
+        for item in tables_dict:
             tablename = item['tablename']
             if tablename not in existing_tablenames:
                 data = {'name': tablename}
@@ -58,3 +64,11 @@ WHERE schemaname != 'pg_catalog'
                     except KeyError:
                         continue
                 self.create(data)
+        self.remove_not_existing_tables([item['tablename'] for item in tables_dict])
+
+    @api.model
+    def remove_not_existing_tables(self, table_names):
+        for table in self.search([]):
+            if table.name not in table_names:
+                _logger.info("inactivating not anymore existing table %s from size monitoring", table.name)
+                table.active = False

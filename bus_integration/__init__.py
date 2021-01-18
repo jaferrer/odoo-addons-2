@@ -19,3 +19,4 @@
 
 from . import models
 from . import connector
+from . import controllers

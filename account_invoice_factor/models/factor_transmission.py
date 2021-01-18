@@ -89,6 +89,19 @@ class FactorTransmission(models.Model):
             rec.invoice_ids = self._get_invoices()
 
     # region HANDLING DEBTOR & OPEN ITEMS IR.ATTACHMENT
+    @api.multi
+    def _get_grouped_partner_invoices(self):
+        """
+        need to group partners but a partner may have multiple vat number
+        so.. keep in grouped invoices. The one with distinct partner or distinct vat number
+        """
+        grouped_invoices = self.env['account.invoice']
+        for invoice in self.invoice_ids:
+            referenced = grouped_invoices \
+                .filtered(lambda inv: inv.partner_id == invoice.partner_id and inv.num_vat_id == invoice.num_vat_id)
+            if not referenced:
+                grouped_invoices += invoice
+        return grouped_invoices
 
     @api.multi
     def _generate_attachments(self):
@@ -104,11 +117,13 @@ class FactorTransmission(models.Model):
         debtors_contents = []
         for invoice in self.invoice_ids:
             open_items_contents.append(self._get_open_items_line(invoice))
+        grouped_invoices = self._get_grouped_partner_invoices()
+        for invoice in grouped_invoices:
             debtors_contents.append(self._get_debtor_line(invoice))
 
-        open_items_filename = 'NA%s0_%s.txt' % (self.bank_id.factor_cga_account_number,
+        open_items_filename = 'NC%s0_%s.csv' % (self.bank_id.factor_cga_account_number,
                                                 datetime.today().strftime("%Y%m%d_%H%M%S"))
-        debtor_filename = 'NC%s0_%s.txt' % (self.bank_id.factor_cga_account_number,
+        debtor_filename = 'NA%s0_%s.csv' % (self.bank_id.factor_cga_account_number,
                                             datetime.today().strftime("%Y%m%d_%H%M%S"))
 
         folder = self.env.ref('account_invoice_factor.dir_factor')
@@ -120,11 +135,11 @@ class FactorTransmission(models.Model):
     @api.multi
     def _get_debtor_line(self, invoice):
         self.ensure_one()
-        partner = self.bank_id.partner_id.commercial_partner_id
+        partner = invoice.partner_id.commercial_partner_id
 
         if not partner.siren and partner.country_id.code == 'FR':
-            raise exceptions.except_orm(u"Factor error for invoice %s: Siren is a mandatory field for french debtors"
-                                        % invoice.number)
+            raise exceptions.except_orm(u"Factor error for partner %s: Siren is a mandatory field for french debtors"
+                                        % partner.display_name)
 
         line_mask = u'ADEB;.;04;AAAAMMJJ;A;{file_creation_date};{company_code};{account_number};{cga_account_number};' \
                     u'{cga_contract_number};{contract_type};{cga_currency_code};{siren};{nic_number};;;' \
@@ -132,7 +147,7 @@ class FactorTransmission(models.Model):
                     u'{partner_number};;;;;;;;;{vat_number};{country_code};;;;;;;;;;;;;{partner_number}'
 
         return line_mask.format(
-            file_creation_date=date.today().strftime("Y%m%d"),
+            file_creation_date=date.today().strftime("%Y%m%d"),
             company_code=self.bank_id.factor_company_code,
             account_number=self.bank_id.factor_account_number,
             cga_account_number=self.bank_id.factor_cga_account_number,
@@ -149,7 +164,7 @@ class FactorTransmission(models.Model):
             country_code=partner.country_id.code,
             phone=partner.phone,
             partner_number=partner.number,
-            vat_number=invoice.num_vat_id or "",
+            vat_number=invoice.partner_num_vat_id and invoice.partner_num_vat_id.vat or "",
         )
 
     @api.multi
@@ -170,7 +185,7 @@ class FactorTransmission(models.Model):
                     u'{registration_date};{vat_included_amount};;{balance};{due_date1};{amount1}'
 
         return line_mask.format(
-            file_creation_date=date.today().strftime("Y%m%d"),  # file creation date
+            file_creation_date=date.today().strftime("%Y%m%d"),  # file creation date
             company_code=self.bank_id.factor_company_code,
             account_number=self.bank_id.factor_account_number,
             cga_account_number=self.bank_id.factor_cga_account_number,
