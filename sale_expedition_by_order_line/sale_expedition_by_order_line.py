@@ -418,13 +418,12 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 class ExpeditionByOrderLineSaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    lines_display = fields.Selection([('not_null_remaining_quantity', u"Not delivered lines"), ('all', u"All lines")],
-                                     string=u"Display", default='not_null_remaining_quantity', required=True,
-                                     help=u"Choose whether you want to display all lines or only running ones")
     line_not_null_remaining_qty_ids = fields.One2many('sale.order.line', 'order_id', string=u"Not delivered lines",
                                                       domain=[('remaining_qty', '>', 0)],
                                                       states={'done': [('readonly', True)],
                                                               'cancel': [('readonly', True)]})
+
+    show_not_null_remaining_qty_lines = fields.Boolean(string=u"Show only not delivered lines", default=False)
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
@@ -439,14 +438,6 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
         if valid:
             res['fields']['line_not_null_remaining_qty_ids']['views'] = res['fields']['order_line']['views']
         return res
-
-    @api.multi
-    def toggle_lines_display(self):
-        for rec in self:
-            if rec.lines_display == 'not_null_remaining_quantity':
-                rec.lines_display = 'all'
-            else:
-                rec.lines_display = 'not_null_remaining_quantity'
 
     @api.multi
     def update_remaining_qties(self, jobify=True):
