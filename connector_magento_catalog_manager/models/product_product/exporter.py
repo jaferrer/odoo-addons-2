@@ -35,6 +35,20 @@ class ProductProductExporter(Component):
             categ_binding = self.env['magento.product.category'].get_or_create_bindings(categ, self.backend_record)
             categ_binding.export_record()
 
+    def _get_related_images(self):
+        return self.env['ir.attachment'].search([
+            ('res_model', '=', 'product.template'),
+            ('res_id', '=', self.binding.odoo_id.product_tmpl_id.id),
+            ('res_field', 'in', ['image', 'image_medium', 'image_small']),
+        ])
+
+    def _filter_images(self, images):
+        already_followed = self.env['magento.ir.attachment'].search([
+            ('odoo_id', 'in', images.ids),
+            ('backend_id', '=', self.backend_record.id)
+        ]).mapped('odoo_id')
+        return images - already_followed
+
     def _export_images(self):
         """ Export the related images
 
@@ -42,16 +56,12 @@ class ProductProductExporter(Component):
 
         WARNING: it MUST be done on the 'all' storeview in order to be used correctly
         """
-        images = self.env['ir.attachment'].search([
-            ('res_model', '=', 'product.template'),
-            ('res_id', '=', self.binding.odoo_id.product_tmpl_id.id),
-            ('res_field', 'in', ['image', 'image_medium', 'image_small']),
-            ('magento_bind_ids', '=', False),
-        ])
+        images = self._filter_images(self._get_related_images())
         if images:
             bindings = self.env['magento.ir.attachment'].get_or_create_bindings(
                 images, self.backend_record,
-                comodel_external_name=self.backend_adapter._magento2_model, comodel_external_id=self.binding.external_id
+                comodel_external_name=self.backend_adapter._magento2_model,
+                comodel_external_id=self.binding.external_id
             )
             for binding in bindings:
                 binding.export_record()
