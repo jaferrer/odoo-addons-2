@@ -42,9 +42,7 @@ odoo.define('web_ui_stock_storage.StorageNavigate', function (require) {
             this.codeInput = this.$('#search-code');
 
             this.$('#skip-move-line-btn').click(ev => {
-                if (this.state === STATES.product) {
-                    return;
-                }
+                this.activity.init_fragment_storage_navigate(this.pickingId);
             });
 
             this.$('#force-qty-btn').click(ev => {
