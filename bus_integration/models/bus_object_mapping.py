@@ -181,6 +181,7 @@ class BusObjectMapping(models.Model):
     field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields",
                                 domain=[('is_computed', '=', False)])
     dependency_level = fields.Integer(u"Dependency level", readonly=True)
+    can_select_export_to = fields.Boolean(string=u"Can select export to")
 
     _sql_constraints = [
         ('model_id_uniq', 'unique(model_id)', u"A mapping object already exists with the same model."),

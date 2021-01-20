@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base'],
+    'depends': ['web'],
     'description': """
 One2Many No Popup
 =================
