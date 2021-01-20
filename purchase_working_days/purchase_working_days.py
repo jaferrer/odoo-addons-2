@@ -157,6 +157,8 @@ class purchase_working_days(models.Model):
             partner = self.env['res.partner'].search([('id', '=', partner_id)])
         else:
             partner = product.seller_id.with_context(self.env.context)
+        if partner.temporary_additional_delay:
+            seller_delay += partner.temporary_additional_delay
         if reverse:
             return partner.schedule_working_days(seller_delay + 1, schedule_date)
         return partner.schedule_working_days(-seller_delay, schedule_date)
