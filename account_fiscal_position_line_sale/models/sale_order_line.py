@@ -29,10 +29,11 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     def fpos_tax_account_mapping(self):
-        fpos = self.fiscal_position_id
-        tax = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
-        new_tax = fpos.map_tax(tax, self.product_id, self.order_id.partner_shipping_id) if fpos else tax
-        return [(6, 0, new_tax.ids)]
+        for rec in self:
+            fpos = rec.fiscal_position_id
+            tax = rec.product_id.taxes_id.filtered(lambda r: not rec.company_id or r.company_id == rec.company_id)
+            new_tax = fpos.map_tax(tax, rec.product_id, rec.order_id.partner_shipping_id) if fpos else tax
+            return [(6, 0, new_tax.ids)]
 
     @api.multi
     @api.onchange('fiscal_position_id')
