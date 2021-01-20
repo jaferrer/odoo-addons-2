@@ -113,6 +113,10 @@ msgid "Default purchase lead time for each new supplier"
 msgstr "Marge d'approvisionnement par défaut pour chaque nouveau fournisseur"
 
 #. module: purchase_working_days
+#: view:resource.calendar.leaves:purchase_working_days.working_days_view_resource_calendar_leaves_search
+msgid "Next 12 month"
+msgstr "12 prochains mois"
+
 #: field:re.partner,temporary_additional_delay:0
 msgid "Temporary additional delay"
 msgstr "Délai additionnel temporaire"
