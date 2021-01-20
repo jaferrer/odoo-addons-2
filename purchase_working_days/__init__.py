@@ -17,5 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from . import res_partner
 from . import purchase_working_days
 from . import res_config

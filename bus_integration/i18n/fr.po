@@ -49,3 +49,26 @@ msgstr "Données synchronisées"
 #, python-format
 msgid "Impossible to delete record on model %s, use for bus synchronisation, please deactivate the record in the sending instance"
 msgstr "Impossible de supprimer un enregistrement sur le modèle %s, utilisé par le bus, merci de désactivé l'enregistrement dans l'instance émettrice"
+
+#. module: bus_integration
+#: field:bus.object.mapping,can_select_export_to:0
+#: model:ir.ui.view,arch_db:bus_integration.object_mapping_search
+msgid "Can select export to"
+msgstr "Peut sélectionner exporter vers"
+#. module: bus_integration
+#: code:addons/bus_integration/models/bus_synchronized_model_abstract.py:64
+#, python-format
+msgid "Error"
+msgstr "Erreur"
+
+#. module: bus_integration
+#: code:addons/bus_integration/models/bus_synchronized_model_abstract.py:65
+#, python-format
+msgid "Fields %s are tagged with update prohibited by bus configuration and can't be updated"
+msgstr "La mise à jour des champs %s est interdite pas la configuration du bus 'update prohibited'"
+
+#: code:addons/bus_integration/controllers/main.py:52
+#, python-format
+msgid "Please log in using a domain name not an IP address"
+msgstr "Veuillez vous connecter en utilisant un nom de domaine et non une adresse IP"
+

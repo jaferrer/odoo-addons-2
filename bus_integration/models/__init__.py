@@ -35,5 +35,6 @@ from . import ir_model
 from . import ir_cron
 from . import ir_ui_view
 from . import mapping_configuration_helper
+from . import res_users
 from . import track_send_bus_base_abstract
 from . import access_rights

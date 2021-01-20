@@ -7,6 +7,9 @@
             <field name="inherit_id" ref="mass_editing.view_mass_object_form"/>
             <field name="model">mass.object</field>
             <field name="arch" type="xml">
+                <field name="field_ids" position="attributes">
+                    <attribute name="domain">[('readonly', '=', False),('ttype', 'not in', ['reference', 'function']), ('model_id', 'in', model_ids[0][2])]</attribute>
+                </field>
                 <field name="model_id" position="after">
                     <field name="sub_model_id" domain="[('ttype', 'in', ['many2one']),('model_id', 'in', model_ids[0][2])]"/>
                 </field>

@@ -18,3 +18,4 @@
 #
 
 import purchase_delivery_tracking_colissimo
+from . import models
