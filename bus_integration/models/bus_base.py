@@ -35,3 +35,22 @@ class BusBase(models.Model):
     @api.multi
     def name_get(self):
         return [(rec.id, rec.bus_username.replace("base_", "") .upper() or "") for rec in self]
+
+    @api.model
+    def create(self, vals):
+        res = super(BusBase, self).create(vals)
+
+        # Lorsque l'on crée une nouvelle base, on souhaite que; pour tous les modèles dont on peut choisir les BDD
+        # d'export (domain_bus_base_ids notamment dans les partner, partnerinfo, supplierinfo) et qui s'exportent vers
+        # toutes les bases existantes sauf elle-même; la nouvelle base s'ajoute automatiquement.
+        models = self.env['bus.object.mapping'].search(
+            [('can_select_export_to', '=', True)]).mapped('model_id').mapped('model')
+        bus_bases = self.env['bus.base']
+        # cas de l'export MASTER -> FILLE
+        bus_bases = self.env['bus.base'].search([
+            ('bus_username', 'not in', ['base_bus', 'base_master', res.bus_username]), ])
+        for model in models:
+            for record in self.env[model].search([]):
+                if record.domain_bus_base_ids == bus_bases:
+                    record.domain_bus_base_ids |= res
+        return res
