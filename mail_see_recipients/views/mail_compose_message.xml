@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="show_recipients">
+            <field name="name">mail.compose.message.form.show_recipients</field>
+            <field name="model">mail.compose.message</field>
+            <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//span[@name='document_followers_text']" position="attributes">
+                        <attribute name="invisible">1</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+    </data>
+</odoo>
