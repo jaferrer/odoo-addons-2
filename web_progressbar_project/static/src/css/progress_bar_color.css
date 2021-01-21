@@ -1,0 +1,56 @@
+.o_progressbar .o_progress {
+  background-color: #e9ecef !important;
+}
+
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_gt_fty {
+  background-color: #28b463;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_lt_fty {
+  background-color: orange;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_red {
+  background-color: #FF0000;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_pink {
+  background-color: #f5b7b1;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_orange {
+  background-color: #f39c12 ;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_yellow {
+  background-color: #f1c40f;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_light_green {
+  background-color: #58d68d;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_green {
+  background-color: #28b463;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_grey {
+  background-color: #99a3a4;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_blue {
+  background-color: #3498db;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_purple {
+  background-color: #8e44ad;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_brown {
+  background-color: #6e2c00;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_black {
+  background-color:#000000;
+  height: 100%;
+}
