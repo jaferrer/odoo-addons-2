@@ -48,6 +48,8 @@ msgstr "Nom"
 #. module: pos_partner_title
 #. openerp-web
 #: code:addons/pos_partner_title/static/src/xml/pos.xml:10
+#: code:addons/pos_partner_title/static/src/xml/pos.xml:38
+#: code:addons/pos_partner_title/static/src/xml/pos.xml:50
 #, python-format
 msgid "Firstname"
 msgstr "Prénom"
