@@ -1,0 +1,169 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* web_progressbar_project
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-01-21 11:19+0000\n"
+"PO-Revision-Date: 2021-01-21 12:20+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 2.4.1\n"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Black"
+msgstr "Noir"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Blue"
+msgstr "Bleu"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Brown"
+msgstr "Marron"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,help:web_progressbar_project.field_set_progressbar_color__color
+msgid "Choose a color for selected range"
+msgstr "Choisissez une couleur pour votre plage saisie"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__color
+msgid "Color"
+msgstr "Couleur"
+
+#. module: web_progressbar_project
+#: model_terms:ir.actions.act_window,help:web_progressbar_project.set_progressbar_color
+msgid "Create a new range"
+msgstr "Créer une nouvelle plage"
+
+#. module: web_progressbar_project
+#: model_terms:ir.actions.act_window,help:web_progressbar_project.set_progressbar_color
+msgid "Create a new range and assign a color for progress bar"
+msgstr "Créer une nouvelle plage et assigner une couleur pour la barre de progression"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Green"
+msgstr "Vert"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Grey"
+msgstr "Gris"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__id
+msgid "ID"
+msgstr "ID"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color____last_update
+msgid "Last Modified on"
+msgstr "Dernière modification le"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Light Green"
+msgstr "Vert pâle"
+
+#. module: web_progressbar_project
+#: model:ir.model,name:web_progressbar_project.model_set_progressbar_color
+msgid "Model to manage color on progressBar"
+msgstr "Modèle de données pour configurer des couleurs sur une barre de progression"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Orange"
+msgstr "Orange"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Pink"
+msgstr "Rose"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Purple"
+msgstr "Violet"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__range_start
+msgid "Range From(%)"
+msgstr "Début de la plage (%)"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,field_description:web_progressbar_project.field_set_progressbar_color__range_stop
+msgid "Range To(%)"
+msgstr "Fin de la plage (%)"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Red"
+msgstr "Rouge"
+
+#. module: web_progressbar_project
+#: model_terms:ir.ui.view,arch_db:web_progressbar_project.set_progress_bar_color_form_view
+#: model_terms:ir.ui.view,arch_db:web_progressbar_project.set_progress_bar_color_tree_view
+msgid "Set Color"
+msgstr "Paramétrer la couleur"
+
+#. module: web_progressbar_project
+#: model:ir.ui.menu,name:web_progressbar_project.progress_bar_menu
+msgid "Set Progressbar Color"
+msgstr "Paramétrer les couleurs de la barre de progression"
+
+#. module: web_progressbar_project
+#: model:ir.actions.act_window,name:web_progressbar_project.set_progressbar_color
+msgid "Set Range"
+msgstr "Paramétrer la plage"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,help:web_progressbar_project.field_set_progressbar_color__range_start
+msgid "Starting range of Statusbar in Percentage"
+msgstr "Départ de la plage en pourcentage"
+
+#. module: web_progressbar_project
+#: model:ir.model.fields,help:web_progressbar_project.field_set_progressbar_color__range_stop
+msgid "Stop range of Statusbar in Percentage"
+msgstr "Fin de la plage en pourcentage"
+
+#. module: web_progressbar_project
+#: selection:set.progressbar.color,color:0
+msgid "Yellow"
+msgstr "Jaune"
