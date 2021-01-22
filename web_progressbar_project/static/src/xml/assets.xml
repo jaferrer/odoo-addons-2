@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="assets_web_progressbar_options" name="ProgressBar Options Asset" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_progressbar_project/static/src/css/progress_bar_color.css"/>
+                <script type="text/javascript" src="/web_progressbar_project/static/src/js/progressbar_options.js"></script>
+            </xpath>
+        </template>
+    </data>
+</odoo>
