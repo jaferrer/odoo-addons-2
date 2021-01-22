@@ -53,7 +53,7 @@ odoo.define('web_progress_bar.option', function(require) {
                         _self.$('.o_progress').addClass('progress');
                         _self.$('.o_progressbar_complete').addClass('progress-bar');
 
-                        if (widthComplete >= result[ranges][0] && widthComplete <= result[ranges][1]) {
+                        if (max_value != 0 && widthComplete >= result[ranges][0] && widthComplete <= result[ranges][1]) {
                             _self.$('.o_progressbar_complete').toggleClass('o_progress_red', result[ranges][2] == 'red').css('width', widthComplete + '%');
                             _self.$('.o_progressbar_complete').toggleClass('o_progress_pink', result[ranges][2] == 'pink').css('width', widthComplete + '%');
                             _self.$('.o_progressbar_complete').toggleClass('o_progress_orange', result[ranges][2] == 'orange').css('width', widthComplete + '%');
@@ -67,7 +67,7 @@ odoo.define('web_progress_bar.option', function(require) {
                             _self.$('.o_progressbar_complete').toggleClass('o_progress_brown', result[ranges][2] == 'brown').css('width', widthComplete + '%');
 
                             break;
-                        } else if (ranges == (result.length - 1)) {
+                        } else if (ranges == (result.length - 1) || max_value == 0) {
                             _self.$('.o_progressbar_complete').toggleClass('progress-bar o_progress_grey', widthComplete != 0).css('width', widthComplete + '%');
                         }
                     }
