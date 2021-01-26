@@ -30,4 +30,28 @@
         </tr>
     </t>
 
+    <t t-extend="ClientDetails">
+        <t t-jquery="t[t-if='partner.is_company == false']:first" t-operation="replace">
+            <t t-if="partner.is_company == false">
+                <div t-attf-style="display: #{!partner.is_company ? 'block': 'none'};">
+                    <div class="client-detail">
+                        <span class='label'>Firstname</span>
+                        <span class='detail firstname'><t t-esc='partner.firstname or ""'/></span>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <t t-extend="ClientDetailsEdit">
+        <t t-jquery="div.is_person:first" t-operation="replace">
+            <div class="is_person" t-attf-style="display: #{!partner.is_company ? 'block': 'none'};">
+                <div class='client-detail'>
+                    <span class='label'>Firstname</span>
+                    <input class='detail firstname person' name="firstname" t-att-value='partner.firstname or ""'/>
+                </div>
+            </div>
+        </t>
+    </t>
+
 </templates>

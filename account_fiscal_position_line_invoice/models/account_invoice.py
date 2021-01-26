@@ -1,6 +1,6 @@
-# -*- coding: utf8 -*-
+# - * - coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+from odoo import models, api
+
+
+class AccountInvoice(models.Model):
+    _inherit = 'account.invoice'
+
+    @api.multi
+    @api.onchange('fiscal_position_id')
+    def _onchange_fiscal_position_id(self):
+        for line in self.invoice_line_ids:
+            line.account_fiscal_position_id = self.fiscal_position_id

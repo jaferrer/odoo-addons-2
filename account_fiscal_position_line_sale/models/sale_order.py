@@ -17,5 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+from odoo import models, api
+
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    @api.multi
+    @api.onchange('fiscal_position_id')
+    def _onchange_fiscal_position_id(self):
+        if self.fiscal_position_id:
+            self.order_line.fiscal_position_id = self.fiscal_position_id.id

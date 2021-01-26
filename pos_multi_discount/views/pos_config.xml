@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_multi_discount_pos_config_form" model="ir.ui.view">
+        <field name="name">pos_multi_discount_pos_config_form</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_setting_box')][div[hasclass('o_setting_left_pane')]/field[@name='module_pos_discount']/..]"
+                   position="replace">
+                <div class="o_setting_left_pane">
+                    <field name="module_pos_discount"/>
+                </div>
+                <div class="o_setting_right_pane">
+                    <label for="module_pos_discount"/>
+                    <div class="text-muted">
+                        Allow global discounts on orders
+                    </div>
+                    <div class="content-group " attrs="{'invisible':[('module_pos_discount','=',False)]}">
+                        <div class="row mt16">
+                            <label string="Remises" for="discount_product_ids" class="col-lg-3 o_light_label"/>
+                            <field name="discount_product_ids" widget="many2many_tags"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

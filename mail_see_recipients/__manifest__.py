@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2021 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+
+{
+    'name': 'Mail - See Recipients',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Mail',
+    'depends': ['mail'],
+    'description': """
+Mail - See Recipients
+=====================
+This module allow to see all recipients in mail.compose.message.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/mail_compose_message.xml'
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

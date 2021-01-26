@@ -17,5 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+{
+    "name": "POS Change Logo",
+    "summary": "Allow to change logo on receipt",
+    "version": "0.1",
+    "category": "Point Of Sale",
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    "license": "AGPL-3",
+    "application": False,
+    "installable": True,
+    "auto_install": True,
+    "depends": [
+        "point_of_sale",
+    ],
+    'data': [
+        'views/assets.xml',
+        'views/pos_config.xml',
+    ],
+    'qweb': [
+        'static/src/xml/pos.xml',
+        'static/src/xml/pos_screen_image_view.xml',
+    ],
+}

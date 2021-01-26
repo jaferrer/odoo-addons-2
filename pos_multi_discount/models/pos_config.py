@@ -17,5 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+from odoo import fields, models
+
+
+class PosConfig(models.Model):
+    _inherit = 'pos.config'
+
+    discount_product_ids = fields.Many2many('product.product', string='Remises',
+                                            domain="[('is_pos_discount', '=', True)]")

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="point_of_sale.template" xml:space="preserve">
+    <t t-extend="PosTicket">
+        <t t-jquery="t[t-esc='widget.pos.company.name']" t-operation="replace">
+            <t t-esc="receipt.contact.contact_name"/>
+        </t>
+        <t t-jquery="div[class='receipt-phone']" t-operation="replace">
+            <div class="receipt-phone">
+                Phone: <t t-esc="receipt.contact.contact_phone || ''"/><br/>
+                <t t-esc="receipt.contact.contact_email || ''"/><br/>
+                <t t-esc="receipt.contact.contact_website || ''"/><br/>
+            </div>
+        </t>
+        <t t-jquery="div[class='receipt-user']" t-operation="replace">
+            <div class="receipt-user">
+                Vendeur: <t t-esc="widget.pos.get_cashier().name"/><br/>
+                <t t-if="order.get_client()">
+                    Client: <t t-esc="order.get_client().name || ''"/><br/>
+                </t>
+            </div>
+        </t>
+    </t>
+
+    <t t-extend="XmlReceipt">
+        <t t-jquery="t[t-if='!receipt.company.logo']" t-operation="replace">
+            <t t-if='!receipt.contact.contact_name'>
+                <h1><t t-esc='receipt.contact.contact_name' /></h1>
+                <br/>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.company.contact_address']" t-operation="replace">
+            <t t-if='receipt.contact.contact_address'>
+                <div><t t-esc='receipt.contact.contact_address' /></div>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.company.phone']" t-operation="replace">
+            <t t-if='receipt.contact.contact_phone'>
+                <div>Tel:<t t-esc='receipt.contact.contact_phone' /></div>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.company.vat']" t-operation="replace">
+            <t t-if='receipt.contact.contact_vat'>
+                <div>VAT:<t t-esc='receipt.contact.contact_vat' /></div>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.company.email']" t-operation="replace">
+            <t t-if='receipt.contact.contact_email'>
+                <div><t t-esc='receipt.contact.contact_email' /></div>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.company.website']" t-operation="replace">
+            <t t-if='receipt.contact.contact_website'>
+                <div><t t-esc='receipt.contact.contact_website' /></div>
+            </t>
+        </t>
+        <t t-jquery="t[t-if='receipt.cashier']" t-operation="replace">
+            <t t-if='receipt.cashier'>
+                <div class='cashier'>
+                    <div>--------------------------------</div>
+                    <div>Served by <t t-esc='receipt.cashier' /></div>
+                </div>
+            </t>
+            <t t-if='order.get_client()'>
+                <div class='cashier'>
+                    <div>Client: <t t-esc='order.get_client().name'/></div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+</templates>

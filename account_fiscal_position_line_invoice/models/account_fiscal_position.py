@@ -1,6 +1,6 @@
-# -*- coding: utf8 -*-
+# - * - coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .post_install import set_oversea_department_on_partner
-from . import model
+from odoo import models, fields
+
+
+class AccountFiscalPosition(models.Model):
+    _inherit = 'account.fiscal.position'
+
+    visible_in_line = fields.Boolean(string=u"Visible dans les lignes d'achat/vente", default=False)
