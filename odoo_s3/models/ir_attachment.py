@@ -181,7 +181,8 @@ class S3Attachment(models.Model):
                     _logger.debug('S3: _file_delete deleted %s:%s successfully', bucket_name, full_path)
                 except Exception as e:
                     _logger.error('S3: _file_delete was not able to gc (%s:%s) : %s', bucket_name, full_path, e)
-        except ResponseError:
+        except Exception as e:
+            _logger.error('S3: _file_delete get_stat was not able to gc (%s:%s) : %s', bucket_name, full_path, e)
             pass
 
     @api.model
