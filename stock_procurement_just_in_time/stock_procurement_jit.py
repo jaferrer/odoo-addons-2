@@ -67,9 +67,11 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
     objects_to_delete.unlink()
 
+
 @job(default_channel='root.auto_delete_cancelled_moves_procs')
 def job_pop_delete_cancelled_moves_and_procs_jobs(session, model_name):
     session.env[model_name].delete_cancelled_moves_and_procs()
+
 
 @job(default_channel='root.update_rsm_treat_by_scheduler')
 def job_rsm_treat_by_scheduler(session, model_name, ids):
@@ -399,7 +401,7 @@ FROM list_sequences""", (self.env.uid, company_id, tuple(orderpoints.ids + [0]))
     @api.model
     def pop_delete_cancelled_moves_and_procs_jobs(self):
         job = self.env['queue.job'].search([('state', 'not in', ['done', 'failed']),
-                                            ('func_name', 'ilike', "%delete_cancelled_moves_and_procs%"),], limit=1)
+                                            ('func_name', 'ilike', "%delete_cancelled_moves_and_procs%")], limit=1)
         if job:
             return u"Job %s already in execution" % job.name
         job_pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
@@ -587,7 +589,8 @@ class StockWarehouseOrderPointJit(models.Model):
                 if event['date'] not in done_dates:
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
-                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
+                if op.is_over_stock_max(event, stock_after_event) and \
+                        event['move_type'] in ['in', 'planned'] and event['proc_id']:
                     procs_oversupply = self.env['procurement.order']. \
                         search([('id', 'in', [item['proc_id'] for item in events_at_date]),
                                 ('state', '!=', 'done')])
@@ -635,6 +638,12 @@ WHERE sm.product_id = %s
   AND sl.parent_left < %s"""
 
     @api.model
+    def get_query_pols_in(self):
+        """Hack request can't be build because we need fields not defined here..
+        See: sirail_donnees_ref.stock_warehouse_orderpoint.py - get_query_pols_in() """
+        return False
+
+    @api.model
     def get_query_moves_out(self):
         return """SELECT sm.id,
        sm.product_qty,
@@ -660,7 +669,7 @@ WHERE po.product_id = %s
   AND po.state NOT IN ('done', 'cancel')
   AND (sm.state = 'draft' OR sm.id IS NULL)"""
 
-    @api.model
+    @api.multi
     def compute_stock_levels_requirements(self, list_move_types, limit=1, parameter_to_sort='date', to_reverse=False,
                                           max_date=None):
         """
@@ -677,6 +686,7 @@ WHERE po.product_id = %s
         procurement_date_clause = max_date and " AND po.date_planned <= %s " or ""
         move_out_date_clause = max_date and " AND sm.date <= %s " or ""
         move_in_date_clause = max_date and " AND COALESCE(po.date_planned, sm.date) <= %s " or ""
+        pols_in_date_clause = max_date and " AND pol.date_planned <= %s" or ""
         # Workaround for tests
         if not self.location_id.parent_left or not self.location_id.parent_right:
             self.env['stock.location']._parent_store_compute()
@@ -693,6 +703,15 @@ GROUP BY sm.id, po.id, sm.product_qty
 ORDER BY DATE"""
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
+
+        pols_in_tuples = []
+        if self.get_query_pols_in():
+            query_pols_in = self.get_query_pols_in() + pols_in_date_clause + """
+    GROUP BY pol_id, pol.date_required
+    ORDER BY pol.date_required
+    """
+            self.env.cr.execute(query_pols_in, params)
+            pols_in_tuples = self.env.cr.fetchall()
 
         query_moves_out = self.get_query_moves_out() + move_out_date_clause + """
 GROUP BY sm.id, sm.product_qty
@@ -728,6 +747,19 @@ ORDER BY po.date_planned"""
             'move_qty': existing_qty,
             'move_id': False,
         }]
+
+        # pols not covered items
+        for pol in pols_in_tuples:
+            if pol[2] > 0.0:
+                intermediate_result += [{
+                    'proc_id': False,
+                    'location_id': self.location_id.id,
+                    'move_type': 'in',
+                    'date': pol[1],
+                    'move_qty': pol[2],
+                    'move_id': False,
+                }]
+
         # incoming items
         for sm in moves_in_tuples:
             intermediate_result += [{

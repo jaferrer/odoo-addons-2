@@ -17,19 +17,13 @@ msgstr ""
 
 #. module: sale_expedition_by_order_line
 #: field:sale.order,line_not_null_remaining_qty_ids:0
-#: selection:sale.order,lines_display:0
 msgid "Not delivered lines"
-msgstr "Lines non livrées"
+msgstr "Lignes non livrées"
 
 #. module: sale_expedition_by_order_line
-#: field:sale.order,lines_display:0
-msgid "Lines Display"
-msgstr "Affichage des lignes"
-
-#. module: sale_expedition_by_order_line
-#: selection:sale.order,lines_display:0
-msgid "All lines"
-msgstr "Toutes les lignes"
+#: field:sale.order,show_not_null_remaining_qty_lines:0
+msgid "Show only not delivered lines"
+msgstr "Afficher uniquement les lignes non livrées"
 
 #. module: sale_expedition_by_order_line
 #: field:sale.order.line,remaining_qty:0

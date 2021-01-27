@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,6 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
-from . import purchase_working_days
-from . import res_config
+from openerp import models, api
+
+SUPERUSER_ID = 1
+
+
+class ResUsers(models.Model):
+    _inherit = 'res.users'
+
+    @api.multi
+    def is_bus_user(self):
+        """ bus data = referential data created in the mother db that cannot be updated in children's db.
+        only the administrator and the bus user are allowed to do it. """
+
+        self.ensure_one()
+        return self.id in [SUPERUSER_ID, self.env.ref('bus_integration.bus_user').id]

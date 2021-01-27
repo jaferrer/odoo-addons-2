@@ -13,6 +13,17 @@
             <field name="help"></field>
         </record>
 
+        <record model="ir.ui.view" id="working_days_view_resource_calendar_leaves_search">
+            <field name="name">working_days_view_resource_calendar_leaves_search</field>
+            <field name="model">resource.calendar.leaves</field>
+            <field name="inherit_id" ref="resource.view_resource_calendar_leaves_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <filter name="next_12_month" string="Next 12 month" domain="[('date_from', '&gt;=', context_today().strftime('%%Y-%%m-%%d')),('date_from', '&lt;=', (context_today()+relativedelta(years=1)).strftime('%%Y-%%m-%%d'))]"/>
+                </xpath>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="res_partner_with_calendar_view_form">
             <field name="name">res.partner.with.calendar.view.form</field>
             <field name="model">res.partner</field>
@@ -21,7 +32,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='buttons']" position="inside">
                     <button class="oe_inline oe_stat_button" name="%(working_days_open_partner_leaves)d" type="action"
-                            icon="fa-tasks" context="{'search_default_resource_id': resource_id}">
+                            icon="fa-tasks" context="{'search_default_resource_id': resource_id, 'search_default_next_12_month': True}">
                         <field name="partner_leaves_count" widget="statinfo"/>
                     </button>
                 </xpath>

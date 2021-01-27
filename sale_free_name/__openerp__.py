@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,6 +17,28 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
-from . import purchase_working_days
-from . import res_config
+
+{
+    'name': 'Free Numbering of Sale Orders',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Purchase',
+    'depends': ['purchase'],
+    'description': """
+Free Numbering of Sale Orders
+=============================
+With this module, the auto-incremented number of the sale order can be modified by the user when it is in draft
+state.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'sale_free_name_view.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

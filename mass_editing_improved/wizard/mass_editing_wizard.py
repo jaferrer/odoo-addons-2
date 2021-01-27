@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from openerp import fields, models, api
+from openerp import models, api, exceptions, _
 
 
 class MassEditingWizardImproved(models.TransientModel):
@@ -30,6 +30,17 @@ class MassEditingWizardImproved(models.TransientModel):
         result = False
         if self.env.context.get('mass_editing_object'):
             mass_object = self.env['mass.object'].browse(self.env.context.get('mass_editing_object'))
+
+            # check if wizard fields are available for the current user. fields might be unreachable if 'groups=' is
+            # specified on the field declaration
+            if mass_object.field_ids:
+                model_name = mass_object.field_ids[0].model
+                model = self.env[model_name]
+                for field in mass_object.field_ids:
+                    if not model.fields_get().get(field.name):
+                        raise exceptions.ValidationError(_("Mass editing can't be opened, you don't have access "
+                                                           "to %s.%s field") % (model_name, field.name))
+
             if mass_object.sub_model_id:
                 result = super(MassEditingWizardImproved,
                                self.with_context(active_model=mass_object.sub_model_id.relation)). \

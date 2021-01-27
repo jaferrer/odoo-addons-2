@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,6 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
-from . import purchase_working_days
-from . import res_config
+from openerp import fields, models
+
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    def _get_default_name(self):
+        seq = self.env['ir.sequence'].next_by_code('sale.order') or '/'
+        return seq
+
+    name = fields.Char(readonly=True, states={'draft': [('readonly', False)]}, default=_get_default_name)
