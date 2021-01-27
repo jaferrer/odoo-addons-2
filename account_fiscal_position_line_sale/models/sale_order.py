@@ -26,5 +26,7 @@ class SaleOrder(models.Model):
     @api.multi
     @api.onchange('fiscal_position_id')
     def _onchange_fiscal_position_id(self):
-        if self.fiscal_position_id:
-            self.order_line.fiscal_position_id = self.fiscal_position_id.id
+        for rec in self:
+            if rec.fiscal_position_id:
+                for line in rec.order_line:
+                    line.fiscal_position_id = rec.fiscal_position_id.id
